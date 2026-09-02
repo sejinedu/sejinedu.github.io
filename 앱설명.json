@@ -1,0 +1,17 @@
+{
+  "name": "세진 과학",
+  "short_name": "세진 과학",
+  "description": "완전 무료 인강 — 김세진 과학",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e1116",
+  "theme_color": "#0e1116",
+  "lang": "ko",
+  "icons": [
+    { "src": "자산/아이콘192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "자산/아이콘512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "자산/아이콘512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

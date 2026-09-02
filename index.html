@@ -9,6 +9,19 @@
      영상이 유튜브 미등록이라, 사이트도 검색으로 흘러들지 않게 막는다.
      ★ 자물쇠는 아니다. 주소를 아는 사람은 들어온다. -->
 <meta name="robots" content="noindex, nofollow">
+
+<!-- ★★★ 폰 홈화면에 바로가기로 놓을 수 있게 (2026-09-02 · 사용자가 정함)
+       「이거 바탕화면에 내놓을수 있지 않냐? 폰에서 말이야 바로가기 같은거」
+
+     ★ 홈화면에서 열면 **주소창이 아예 없다.** 앱처럼 뜬다.
+       그동안 애먹은 「위아래 잡다한 게 남는다」 가 여기서는 처음부터 없다.
+     ★ 애플은 manifest 의 아이콘을 안 본다. apple-touch-icon 을 따로 줘야 한다. -->
+<link rel="manifest" href="앱설명.json">
+<link rel="apple-touch-icon" href="자산/아이콘180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="세진 과학">
 <title>세진 과학</title>
 <link rel="icon" href="자산/아이콘.png" type="image/png">
 <link rel="apple-touch-icon" href="자산/아이콘.png">
