@@ -546,6 +546,16 @@ const 재생기 = (() => {
   //
   //  ★ 눕혀 놨으면 보는 사람의 「아래」 는 화면 왼쪽이다. 그만큼 돌려서 센다.
 
+  //  톡 누르면 재생/정지
+  function 재생껐켰() {
+    if (!플레이어) return;
+    try {
+      const 상태 = 플레이어.getPlayerState ? 플레이어.getPlayerState() : -9;
+      if (상태 === 1) 플레이어.pauseVideo();
+      else 플레이어.playVideo();
+    } catch (오류) {}
+  }
+
   (function 아래로쓸어닫기() {
     const 쓸기칸 = document.getElementById("쓸기칸");
     const 자막층 = document.getElementById("자막층");
@@ -607,7 +617,11 @@ const 재생기 = (() => {
         if (!잡았나) return;
         잡았나 = false;
         try { (잡은것 || 요소).releasePointerCapture(ㅇ.pointerId); } catch (오류) {}
-        if (!끌었나) return;                       // 그냥 톡 누른 것
+        // ★★★ 그냥 톡 누른 것 — 재생/정지를 우리가 시킨다 (2026-09-03 · 사용자가 잡음)
+        //   「탭했을때 정지 재생이 안먹힌다」
+        //   쓸기 자리가 영상을 거의 다 덮어서 그 손짓이 유튜브까지 안 간다.
+        //   그래서 우리가 대신 눌러 준다. 유튜브는 멈추면 스스로 조작판을 띄운다.
+        if (!끌었나) { 재생껐켰(); return; }
         끌었나 = false;
         const 눕혔나 = 통.classList.contains("가로눕히기");
         const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
