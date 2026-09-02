@@ -41,8 +41,15 @@ button { cursor: pointer; }
 /* ---------- 머리 ---------- */
 
 header {
-  position: sticky; top: 0; z-index: 60; height: var(--머리높이);
-  display: flex; align-items: center; gap: 12px; padding: 0 14px;
+  /* ★★★ 폰 시계·배터리 자리를 피한다 (2026-09-03 · 사용자가 사진으로 잡아냄)
+       머리줄 글씨가 시계·와이파이·배터리와 겹쳐 보였다.
+       index.html 에 viewport-fit=cover 를 걸어 화면 끝까지 쓰는데,
+       그러면 위쪽 「안전 여백」 만큼은 우리가 직접 비켜 줘야 한다.
+     ★ 높이도 그만큼 늘려야 단추가 안 눌린다. */
+  position: sticky; top: 0; z-index: 60;
+  height: calc(var(--머리높이) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  display: flex; align-items: center; gap: 12px; padding-left: 14px; padding-right: 14px;
   background: var(--바탕); border-bottom: 1px solid var(--테두리);
 }
 .이름 {
