@@ -270,11 +270,19 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
   //  ★★★ 한 번만 시도한다. 안 넘어가는 폰에서 되풀이하면 갇힌다 (지침서 7절).
   (function 카톡이면넘기기() {
     var 손 = navigator.userAgent || "";
-    if (!/KAKAOTALK/i.test(손)) return;
+    // ★ 카톡 아이폰판은 이름표가 KAKAOTALK 이 아닐 때가 있다. 넓게 본다. (2026-09-02)
+    if (!/KAKAO/i.test(손)) return;
+
+    // ★★★ 되풀이 막이 (2026-09-02 에 밟음)
+    //   전에는 「한 번만」 으로 막았더니, 첫 시도가 실패하면 새로고침해도
+    //   두 번 다시 안 해 봤다. 사용자가 「사파리로 안간다」 고 한 게 이것일 수 있다.
+    //   ⇒ 시각으로 막는다. 4초 안에 또 오면 되돌이라 보고 그만둔다.
+    //     사람이 새로고침해서 다시 오면 그때는 다시 해 본다.
     try {
-      if (sessionStorage.getItem("세진과학.카톡넘김")) return;   // 이미 해 봤다
-      sessionStorage.setItem("세진과학.카톡넘김", "1");
-    } catch (오류) { return; }      // 서랍을 못 쓰면 아예 안 한다 — 갇히면 안 된다
+      var 지난번 = +(sessionStorage.getItem("세진과학.카톡넘김때") || 0);
+      if (Date.now() - 지난번 < 4000) return;
+      sessionStorage.setItem("세진과학.카톡넘김때", String(Date.now()));
+    } catch (오류) { /* 서랍을 못 써도 한 번은 해 본다 */ }
 
     var 주소 = location.href;
     if (/Android/i.test(손)) {
