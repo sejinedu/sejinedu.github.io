@@ -838,7 +838,10 @@ body.전체화면중 { overflow: hidden; }
    ★ 사용자가 잡아 줬다 — 「스피커 위치가 우측상단에 있다」 (2026-09-02).
      처음엔 아래 왼쪽으로 잡았는데 틀렸다. 스피커·CC·설정이 오른쪽 위에 모여 있다.
      그 왼쪽에 붙인다. 위에 있으니 드롭바를 아래로 열 자리가 넉넉하다. */
-.자막통 { position: absolute; right: 128px; top: 10px; }
+/* ★ 왼쪽 위로 옮겼다 (2026-09-02 · 「자막 위치는 스피커 위치랑 겹친다」)
+     오른쪽 위에는 유튜브가 스피커·CC·설정을 놓는다. 폭이 기기마다 달라
+     옆에 붙이면 언제든 겹친다. 왼쪽 위는 유튜브가 안 쓴다. */
+.자막통 { position: absolute; left: 10px; top: 10px; }
 
 /* 나가기 — 맨 위 가운데 */
 .전체단추.나가기 {
@@ -864,7 +867,7 @@ body.전체화면중 { overflow: hidden; }
 .자막판 {
   /* ★ 아래로 연다 — 「드롭바는 아래로 뜨게 해」.
        단추가 위에 있으니 아래로 열 자리가 넉넉하다. */
-  position: absolute; right: 0; top: calc(100% + 7px);
+  position: absolute; left: 0; top: calc(100% + 7px);
   display: flex; flex-direction: column; gap: 4px;
   background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
   border-radius: 9px; padding: 5px; min-width: 128px;
@@ -949,8 +952,9 @@ body.전체화면중 { overflow: hidden; }
 .높이단추:active { background: var(--고른바탕); border-color: var(--고른테); }
 .높이이름 { flex: 1; text-align: center; font-size: .8rem; color: var(--흐린글); }
 
-/* ★ 유튜브 조작판이 사라질 때 우리 것도 같이 옅어진다 (2026-09-02)
-     「x 유튜브 재생바 없어질때 … 생기고 사라져야 하는데 계속 존재해」
-   ★ 아주 없애지는 않는다 — 없애면 나갈 길이 막혀 갇힌다. */
-.전체화면단추들 > * { transition: opacity .4s ease; }
-.전체화면단추들.쉬는중 > * { opacity: .18; }
+/* ★★★ 아주 감춘다 (2026-09-02 · 사용자가 정함)
+     「완전 흐려진 상태로 화면에 계속 떠있다 … 사라지고 이래야 한다」
+     「그리고 바로 다. 스무스 하게 생기거나 사라지지 않는다. 폰화면은 그렇다」
+   ⇒ 옅게 남기지 않는다. 아주 없앤다. 그리고 스르륵 없애지 않고 곧바로.
+   ★ 되부를 길은 있다 — 영상을 멈추면(누르면) 다시 뜬다. */
+.전체화면단추들.쉬는중 > * { display: none; }
