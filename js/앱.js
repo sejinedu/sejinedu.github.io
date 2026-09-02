@@ -1643,6 +1643,7 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
   const 닫을비율 = 0.3;      // 서랍 폭의 이만큼 넘게 끌면 닫는다
   const 홱기준 = 0.5;        // 이보다 빠르게 튕기면 거리와 상관없이 닫는다 (px/ms)
   const 나가기거리 = 55;     // 오른쪽으로 이만큼 넘게 끌면 한 층 위로
+  const 나가는거리끝 = 110;  // 손가락을 따라 밀리는 한도
 
   let 첫x = 0, 첫y = 0, 첫때 = 0;
   let 방향 = null;           // null | "옆" | "세로"
@@ -1667,6 +1668,20 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
     뒷막.style.opacity = "";
   }
 
+  // 밀어 놓은 목록을 제자리로 (나가지 않을 때)
+  function 목록되돌리기() {
+    나무칸.classList.remove("손따라감");
+    나무칸.style.transform = "";
+    나무칸.style.opacity = "";
+  }
+
+  // 나갈 때는 밀린 채로 두고, 새 목록이 그려지면서 자연스럽게 바뀐다
+  function 목록치우기() {
+    나무칸.classList.remove("손따라감");
+    나무칸.style.transform = "";
+    나무칸.style.opacity = "";
+  }
+
   왼쪽칸.addEventListener("pointerdown", ㅇ => {
     첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 첫때 = Date.now();
     방향 = null; 잡았나 = true; 마지막옆 = 0;
@@ -1685,6 +1700,16 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
       if (방향 === "옆" && 서랍이었나) 왼쪽칸.classList.add("손따라감");
     }
     if (방향 !== "옆") return;
+
+    // ★★★ 오른쪽으로 끌면 「나가는 것」 도 손가락을 따라온다 (2026-09-02 · 사용자가 정함)
+    //   「단원에서 스와이프하면 이제 나와야 할 창이 슬그머니 나오게 해라」
+    //   전에는 손을 뗄 때 툭 바뀌었다. 이제 미는 만큼 밀린다.
+    //   ★ 맨 위 층(과목 목록)에서는 나갈 데가 없으니 안 민다.
+    if (옆 > 0 && 경로.length > 0) {
+      나무칸.classList.add("손따라감");
+      나무칸.style.transform = "translateX(" + Math.min(옆, 나가는거리끝) + "px)";
+      나무칸.style.opacity = String(Math.max(0.35, 1 - 옆 / (나가는거리끝 * 1.6)));
+    }
     if (서랍이었나) 손따라(옆);
   }, { passive: true });
 
@@ -1700,14 +1725,17 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
     if (서랍이었나) {
       놓아주기();                                   // 먼저 손을 놓고
       const 닫을까 = (옆 < -서랍폭() * 닫을비율) || (옆 < -20 && 빠르기 > 홱기준);
-      if (닫을까) { 쓸어닫은때 = Date.now(); 서랍닫기(); return; }
+      if (닫을까) { 쓸어닫은때 = Date.now(); 목록되돌리기(); 서랍닫기(); return; }
     }
 
     // 오른쪽으로 확실히 끌었으면 한 층 위로
-    if (옆 > 나가기거리 && 빠르기 > 0.05) {
+    if (옆 > 나가기거리 && 경로.length > 0) {
       쓸어닫은때 = Date.now();
-      층나가기();
+      목록치우기();
+      층나가기();          // 새 목록이 왼쪽에서 스르륵 들어온다
+      return;
     }
+    목록되돌리기();        // 덜 끌었으면 있던 자리로 돌아간다
   }
 
   ["pointerup", "pointercancel"].forEach(이름 =>

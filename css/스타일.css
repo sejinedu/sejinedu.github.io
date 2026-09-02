@@ -833,3 +833,10 @@ body.전체화면중 { overflow: hidden; }
 .전체단추:active { background: rgba(10, 14, 19, .92); }
 .전체단추.나가기 { font-size: .95rem; min-width: 36px; }
 .전체단추.꺼짐 { color: var(--흐린글); border-color: rgba(211,216,222,.15); }
+
+/* ★ 오른쪽으로 끌 때 단원 목록이 손가락을 따라 밀린다 (2026-09-02)
+     「단원에서 스와이프하면 이제 나와야 할 창이 슬그머니 나오게 해라」
+     끄는 동안은 미끄러짐을 끄고(손가락보다 늦으면 끈적하다),
+     손을 떼면 다시 스르륵 제자리로 간다. */
+.나무칸 { transition: transform .18s ease, opacity .18s ease; }
+.나무칸.손따라감 { transition: none !important; }
