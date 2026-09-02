@@ -851,7 +851,11 @@ body.전체화면중 { overflow: hidden; }
      · 왼쪽 위 → 화면 위쪽에 떠서 「세진과학」 로고와 겹쳤다
      · 오른쪽 위 → 마찬가지로 로고 위에 얹혔다
      ⇒ ✕(가운데) 바로 옆, 로고와 유튜브 아이콘 사이의 빈 자리로 옮긴다. */
-.자막통 { position: absolute; top: 10px; left: 28%; }
+/* ★ 오른쪽으로 붙인다 (2026-09-03 · 사용자가 정함)
+     「x 버튼 맨 우측에 옮기고 자막도 오른쪽으로 붙여 옮겨」
+   ✕ 가 맨 오른쪽, 그 왼쪽에 자막. */
+.자막통 { position: absolute; top: 10px; left: auto; right: 58px; }
+.자막통 .자막판 { left: auto; right: 0; }   /* 오른쪽 끝이라 드롭바도 오른쪽 정렬 */
 
 /* ★★★ 나가기 ✕ — 폰에서는 **오른쪽 변 한가운데** (2026-09-02 · 사용자가 정함)
      「전체화면에서 x 버튼 위치 옮기자. 오른쪽 가운데로. 오른쪽 변 가운데」
@@ -860,8 +864,8 @@ body.전체화면중 { overflow: hidden; }
   /* ★ 다시 맨 위 가운데다 (2026-09-02 · 사용자가 정함)
        「x 버튼은 다시 화면 가운데 위에 배치해라」
        오른쪽 변 가운데로 옮겼더니 「이러면 x버튼 사라진다」 — 되돌린다. */
-  position: absolute; top: 10px; left: 50%; right: auto;
-  transform: translateX(-50%);
+  position: absolute; top: 10px; right: 10px; left: auto;
+  transform: none;
   font-size: .95rem; min-width: 40px;
 }
 
@@ -873,6 +877,7 @@ body.전체화면중 { overflow: hidden; }
      오른쪽 가장자리에서 100px 쯤이다. 그 왼쪽에 붙인다. */
 @media (hover: hover) and (pointer: fine) {
   .전체단추.나가기 { display: none; }
+  .자막통 { right: 118px; }        /* 웹은 유튜브 대신 우리 바를 쓰니 오른쪽 위가 빈다 */
 
   .자막통 { left: auto; right: 176px; top: 10px; }
 
@@ -1106,6 +1111,7 @@ body.전체화면중 { overflow: hidden; }
   backdrop-filter: blur(3px);
 }
 .가운데재생[hidden] { display: none; }
+.가운데재생.돈다 { padding-left: 0; font-size: 1.15rem; }
 
 .우리바 {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 7;
