@@ -861,6 +861,13 @@ body.전체화면중 { overflow: hidden; }
   font-size: .95rem; min-width: 40px;
 }
 
+/* ★ 채우기 단추 — ✕ 맞은편, 왼쪽 변 한가운데 */
+.전체단추.채움 {
+  position: absolute; top: 50%; left: 10px; right: auto;
+  transform: translateY(-50%);
+  font-size: .78rem; min-width: 40px;
+}
+
 /* ★★★ 웹(마우스 쓰는 자리)은 딴판이다 (2026-09-02 · 사용자가 정함)
      · 「웹에는 x를 그냥 없애라 이미 크롬엔 x가 있다」 → ✕ 를 아예 안 그린다
      · 「웹에 자막 버튼 스피커 옆으로 옮겨놔라」   → 오른쪽 위 스피커 왼쪽으로
@@ -869,6 +876,8 @@ body.전체화면중 { overflow: hidden; }
      오른쪽 가장자리에서 100px 쯤이다. 그 왼쪽에 붙인다. */
 @media (hover: hover) and (pointer: fine) {
   .전체단추.나가기 { display: none; }
+  /* 웹 화면은 16:9 라 띠가 안 생긴다 — 채우기가 필요 없다 */
+  .전체단추.채움 { display: none; }
 
   .자막통 { left: auto; right: 176px; top: 10px; }
 
@@ -1040,4 +1049,41 @@ body.전체화면중 { overflow: hidden; }
   .좋아요:hover { color: var(--글); border-color: var(--흐린글); }
   .옆줄:hover { background: var(--판); }
   .옆줄.막힘:hover { background: none; }
+}
+
+
+/* ============================================================
+   ★★★ 채우기 — 유튜브가 그리는 검은 띠를 없앤다
+   ============================================================
+
+   사용자가 정한 것 (2026-09-02):
+     「야 전체화면에 좌우 폭 꽉 채워줘」
+     「재생 안하고 전체화면 하면 꽉 차는데 재생 누르는 순간 다시 작아진다」
+
+   ★ 왜 띠가 생기나 — 틀은 화면만큼 크다(2.07:1). 그런데 영상은 16:9(1.78:1) 다.
+     유튜브가 영상 실제 비율에 맞춰 **스스로** 띠를 그린다. 그 띠는 남의 집 안이라 못 지운다.
+   ⇒ 유튜브 틀을 화면보다 크게 만들고 넘치는 부분을 잘라 낸다.
+     잘리는 양은 위아래 각 8% 다.
+
+   ★ 아래를 바닥에 붙인다 — 그래야 유튜브 재생바가 안 잘린다.
+     넘치는 것은 전부 위쪽으로 보낸다.
+   ★ 화면칸만 자른다. 자막과 단추는 화면칸 밖(형제)이라 안 잘린다.
+   ★★★ 눕힌 것을 **뒤에** 둔다. 두 클래스가 같이 붙는 자리라 뒤엣것이 이겨야 맞다. */
+
+.영상통.꽉채움 .화면칸 { position: relative; overflow: hidden; }
+
+.영상통.꽉채움.가짜전체화면 .화면칸 iframe {
+  position: absolute; bottom: 0; top: auto; left: 50%;
+  transform: translateX(-50%);
+  width:  max(100vw, calc(100lvh * 16 / 9));
+  height: max(100lvh, calc(100vw * 9 / 16));
+  max-width: none; max-height: none;
+}
+
+.영상통.꽉채움.가로눕히기 .화면칸 iframe {
+  position: absolute; bottom: 0; top: auto; left: 50%;
+  transform: translateX(-50%);
+  width:  max(100lvh, calc(100lvw * 16 / 9));
+  height: max(100lvw, calc(100lvh * 9 / 16));
+  max-width: none; max-height: none;
 }

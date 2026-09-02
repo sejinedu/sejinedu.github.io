@@ -81,6 +81,7 @@ const 재생기 = (() => {
 
   const 단추칸     = document.getElementById("전체화면단추들");
   const 나가기단추 = document.getElementById("전체화면나가기");
+  const 채움단추   = document.getElementById("채움단추");
   const 작게단추   = document.getElementById("자막작게");
   const 크게단추   = document.getElementById("자막크게");
 
@@ -362,6 +363,35 @@ const 재생기 = (() => {
       setTimeout(마침, 돌기시간 + 120);
     } catch (오류) { 마침(); }
   }
+
+  // ============================================================
+  //  채우기 — 검은 띠를 없앨지 말지 고른다
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-02):
+  //    「야 전체화면에 좌우 폭 꽉 채워줘」 → 채우면 위아래가 8% 씩 잘린다
+  //    「이건 너무 차서 위아래 다 짤렸자나」 → 그래서 **고를 수 있게** 만든다
+  //
+  //  ★ 고른 값은 이 브라우저에 담아 둔다. 다음에 열어도 그대로다.
+  //  ★ 기본은 「맞추기」 다 — 칠판이 안 잘리는 쪽이 먼저다.
+
+  const 채움열쇠 = "세진과학.꽉채움.v1";
+  let 꽉채울까 = false;
+
+  try { 꽉채울까 = localStorage.getItem(채움열쇠) === "1"; } catch (오류) {}
+
+  function 채움입히기() {
+    통.classList.toggle("꽉채움", 꽉채울까);
+    if (채움단추) 채움단추.textContent = 꽉채울까 ? "맞추기" : "채우기";
+  }
+  채움입히기();
+
+  if (채움단추) 채움단추.addEventListener("click", ㅇ => {
+    ㅇ.stopPropagation();
+    꽉채울까 = !꽉채울까;
+    채움입히기();
+    try { localStorage.setItem(채움열쇠, 꽉채울까 ? "1" : "0"); } catch (오류) {}
+  });
 
   function 전체화면바꾸기() {
     const 지금전체 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
