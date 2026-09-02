@@ -1032,22 +1032,28 @@ body.전체화면중 { overflow: hidden; }
    나머지 위·왼쪽·오른쪽은 전부 우리가 받는다. */
 .쓸기판 { position: absolute; pointer-events: auto; touch-action: none; }
 
-/* --- 작은 화면 --- 좌우 좁은 띠만 쓴다.
-     ★ 가운데를 비워 둬야 영상 위에서 위아래로 쓸어 **화면 넘기기(스크롤)** 가 된다.
-       거기까지 덮으면 폰에서 목록을 못 내린다. */
-.쓸기판.위   { display: none; }
-.쓸기판.왼   { left: 0;  width: 18%; top: 0; bottom: 26%; }
-.쓸기판.오른 { right: 0; width: 18%; top: 0; bottom: 26%; }
+/* ★★★ 최대한 넓게 (2026-09-03 · 사용자가 정함)
+     「최대한 넓혀줘. 가능한 화면 전체로. 둘다 화면 거의 전체로 최대한 해줘」
 
-/* --- 전체화면 --- 넓게 쓴다. 유튜브 재생바와 가운데 기둥만 비운다. */
+   비워 두는 건 딱 둘이다 —
+     · 아래 띠 … 유튜브 재생바. 덮으면 이동·재생을 못 한다
+     · 가운데 … 유튜브 가운데 재생 단추
+   그 밖은 전부 우리가 받는다. */
+
+/* --- 작은 화면 --- 아래 띠(유튜브 재생바)만 빼고 다 */
+.쓸기판.위   { left: 0; right: 0; top: 0; height: 74%; }
+.쓸기판.왼   { display: none; }
+.쓸기판.오른 { display: none; }
+
+/* --- 전체화면 --- 아래 띠와 가운데 단추만 빼고 다 */
 .영상통.가로눕히기 .쓸기판.위,
 .영상통.가짜전체화면 .쓸기판.위,
-.영상통:fullscreen .쓸기판.위 { display: block; left: 0; right: 0; top: 0; height: 30%; }
+.영상통:fullscreen .쓸기판.위 { left: 0; right: 0; top: 0; height: 36%; }
 
 .영상통.가로눕히기 .쓸기판.왼,
 .영상통.가짜전체화면 .쓸기판.왼,
-.영상통:fullscreen .쓸기판.왼 { left: 0; width: 30%; top: 30%; bottom: 22%; }
+.영상통:fullscreen .쓸기판.왼 { display: block; left: 0; width: 36%; top: 36%; bottom: 16%; }
 
 .영상통.가로눕히기 .쓸기판.오른,
 .영상통.가짜전체화면 .쓸기판.오른,
-.영상통:fullscreen .쓸기판.오른 { right: 0; width: 30%; top: 30%; bottom: 22%; }
+.영상통:fullscreen .쓸기판.오른 { display: block; right: 0; width: 36%; top: 36%; bottom: 16%; }
