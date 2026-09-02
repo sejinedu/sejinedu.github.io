@@ -744,6 +744,18 @@ function 손붙이기(상자, 마디, 아래있나) {
 
     let 끌고있나 = false, 메뉴떴나 = false, 마지막 = null;
 
+    // ★★★ 스크롤하려고 짚은 것을 「골랐다」 로 치면 안 된다 (2026-09-02 · 사용자가 잡음)
+    //   「위로 올리려고 아래쪽에 손가락으로 터치한 다음 위로 쓸어 버리면,
+    //     터치한 부분이 선택되어져 버린다」
+    //   목록을 밀어 올리려고 아무 데나 짚는 것뿐인데 그게 눌림이 된다.
+    //   ⇒ 손가락이 조금이라도 움직였으면 고르지 않는다.
+    const 흔들림봐줌 = 8;          // 이만큼은 손 떨림으로 본다
+    let 움직였나 = false;
+
+    const 얼마나움직였나 = ㅇ =>
+      Math.abs(ㅇ.clientX - 시작.clientX) > 흔들림봐줌 ||
+      Math.abs(ㅇ.clientY - 시작.clientY) > 흔들림봐줌;
+
     // ★★★ 손님한테는 꾹 누르기 시계를 아예 안 돌린다 (2026-09-02 에 밟음)
     //   전에는 시계는 돌면서 메뉴만 안 떴다. 그래서 천천히 누르면
     //   「메뉴 떴다」 로 쳐 버려서 **고르기가 안 먹었다.** 폰에서 답답해진다.
@@ -754,6 +766,7 @@ function 손붙이기(상자, 마디, 아래있나) {
     }, 꾹누르는시간) : null;
 
     const 움직임 = ㅇ => {
+      if (얼마나움직였나(ㅇ)) 움직였나 = true;   // ★ 주인이든 아니든 먼저 재 둔다
       if (메뉴떴나) return;
       if (!끌고있나) {
         if (!주인인가) return;                 // ★ 남의 화면에서는 못 끈다 (2026-09-02)
@@ -794,6 +807,7 @@ function 손붙이기(상자, 마디, 아래있나) {
       나무칸.querySelectorAll(".상자").forEach(ㅅ => ㅅ.classList.remove("위로", "아래로", "안으로"));
 
       if (메뉴떴나) return;
+      if (움직였나) return;              // ★ 쓸어 올린 것이지 고른 것이 아니다
       // ★ 옆으로 쓸어서 서랍을 닫은 직후라면 고르지 않는다 (2026-09-02)
       if (Date.now() - 쓸어닫은때 < 450) return;
       if (!끌고있나) { 고르기(아이디, 아래있나); return; }
@@ -978,8 +992,17 @@ function 카드끌기붙이기(카드, ㅇ) {
   // 브라우저가 제 방식으로 끌어가려는 것을 막는다
   카드.addEventListener("dragstart", ㅇ2 => ㅇ2.preventDefault());
 
+  // ★★★ 쓸어 올린 것을 「눌렀다」 로 치지 않는다 (2026-09-02 · 사용자가 잡음)
+  //   목록을 밀어 올리려고 카드를 짚었을 뿐인데 영상이 열려 버리면 안 된다.
+  //   단원 목록과 같은 까닭이다.
+  let 카드움직였나 = false;
+  카드.addEventListener("click", ㅈ => {
+    if (카드움직였나) { ㅈ.stopPropagation(); ㅈ.preventDefault(); }
+  }, true);
+
   카드.addEventListener("pointerdown", 시작 => {
     if (시작.button === 2) return;
+    카드움직였나 = false;
 
     let 끌고있나 = false, 메뉴떴나 = false, 목표상자 = null;
 
@@ -991,6 +1014,8 @@ function 카드끌기붙이기(카드, ㅇ) {
     }, 꾹누르는시간) : null;
 
     const 움직임 = ㅁ => {
+      if (Math.abs(ㅁ.clientX - 시작.clientX) > 8 ||
+          Math.abs(ㅁ.clientY - 시작.clientY) > 8) 카드움직였나 = true;
       if (메뉴떴나) return;
       if (!끌고있나) {
         if (!주인인가) return;                 // ★ 손님은 못 끈다
