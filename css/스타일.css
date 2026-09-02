@@ -556,60 +556,6 @@ body.전체화면중 { overflow: hidden; }
   font-size: calc(clamp(22px, 4.2vh, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
 }
 
-/* ★★★ 전체화면에서 좌우를 꽉 채운다 (2026-09-02 · 사용자가 폰 사진으로 잡아냄)
-     「야 전체화면에 좌우 폭 꽉 채워줘」
-
-   왜 남았나 — 요즘 폰은 화면이 길다(가로:세로 ≈ 2.1 : 1).
-   강의 영상은 16:9(≈1.78 : 1) 다. 길이가 안 맞으니 유튜브가 **스스로 검은 띠를 그린다.**
-   그 띠는 유튜브 틀 **안** 이라 우리가 지울 수 없다.
-
-   ⇒ 유튜브 틀을 화면보다 **크게 만들어 놓고, 넘치는 부분을 잘라 낸다.**
-     유튜브 앱에서 손가락으로 벌리면 꽉 차는 것과 같은 수다.
-   ★ 대신 위아래(칠판 테두리 쪽)가 조금 잘린다. 채우려면 자르는 수밖에 없다.
-
-   ★ 셈법 — 상자를 덮으려면 가로·세로 중 **모자란 쪽에 맞춰 키운다.**
-     그래서 둘 다 max() 로 「상자만큼」 과 「16:9 로 늘린 만큼」 중 큰 값을 쓴다.
-   ★ 화면칸만 자른다. 자막과 단추는 화면칸 밖(형제)이라 안 잘린다. */
-
-.영상통.가로눕히기 .화면칸,
-.영상통.가짜전체화면 .화면칸 { position: relative; overflow: hidden; }
-
-/* 눕혔을 때는 상자의 가로·세로가 맞바뀐다 — 가로가 100dvh, 세로가 100dvw 다 */
-.영상통.가로눕히기 .화면칸 iframe {
-  /* ★ 아래를 바닥에 붙인다 — 그래야 유튜브 재생바가 안 잘린다.
-       넘치는 부분은 전부 **위쪽**으로 보낸다. */
-  position: absolute; bottom: 0; top: auto; left: 50%;
-  transform: translateX(-50%);
-  width:  max(100dvh, calc(100dvw * 16 / 9));
-  height: max(100dvw, calc(100dvh * 9 / 16));
-  max-width: none; max-height: none;
-}
-
-.영상통.가짜전체화면 .화면칸 iframe {
-  /* ★ 아래를 바닥에 붙인다 — 그래야 유튜브 재생바가 안 잘린다.
-       넘치는 부분은 전부 **위쪽**으로 보낸다. */
-  position: absolute; bottom: 0; top: auto; left: 50%;
-  transform: translateX(-50%);
-  width:  max(100vw, calc(100dvh * 16 / 9));
-  height: max(100dvh, calc(100vw * 9 / 16));
-  max-width: none; max-height: none;
-}
-
-/* 폰이 진짜로 가로로 돌아간 경우(안드로이드) — 그때도 꽉 채운다.
-   ★ 웹은 건드리지 않는다. 마우스 쓰는 자리는 잘릴 까닭이 없다. */
-@media (pointer: coarse) {
-  .영상통:fullscreen .화면칸 { position: relative; overflow: hidden; }
-  .영상통:fullscreen .화면칸 iframe {
-    /* ★ 아래를 바닥에 붙인다 — 그래야 유튜브 재생바가 안 잘린다.
-         넘치는 부분은 전부 **위쪽**으로 보낸다. */
-    position: absolute; bottom: 0; top: auto; left: 50%;
-    transform: translateX(-50%);
-    width:  max(100vw, calc(100dvh * 16 / 9));
-    height: max(100dvh, calc(100vw * 9 / 16));
-    max-width: none; max-height: none;
-  }
-}
-
 /* ---------- 영상 밑 단추줄 ---------- */
 /* ★★★ 우리 단추는 영상 「밖」 에 둔다 (2026-09-02 에 밟음)
      한때 유튜브 재생바를 끄고(controls=0) 우리 재생바를 영상 위에 그렸다.
