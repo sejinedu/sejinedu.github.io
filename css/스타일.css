@@ -475,7 +475,10 @@ body.주인 .카드 { touch-action: none; }
 :root { --자막배율: 1; }
 
 .자막층 {
-  position: absolute; left: 50%; bottom: 13%;
+  position: absolute; left: 50%;
+  /* ★ 자막 높이는 사람이 고른다 (2026-09-02 · 「자막 위치 조절할수 있게 해봐」)
+       기본은 화면 거의 아래 — 「디폴트 값은 폰화면 거의 아래에 붙게해」 */
+  bottom: var(--자막바닥, 3%);
   z-index: 4;                     /* ★ 덮개(2)보다 위 — 자막이 가려지면 안 된다 */
   transform: translateX(-50%);
   max-width: 88%; pointer-events: none;
@@ -504,7 +507,7 @@ body.주인 .카드 { touch-action: none; }
 .영상통:fullscreen { border-radius: 0; display: flex; align-items: center; justify-content: center; }
 .영상통:fullscreen .화면칸 { width: 100vw; height: 100vh; aspect-ratio: auto; }
 .영상통:fullscreen .자막층 {
-  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: 11%;
+  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
 }
 
 /* ★★★ 가짜 전체화면 (2026-09-02 · 사용자가 폰에서 잡아냄)
@@ -523,7 +526,7 @@ body.주인 .카드 { touch-action: none; }
 }
 .영상통.가짜전체화면 .화면칸 { width: 100vw; height: 100dvh; aspect-ratio: auto; }
 .영상통.가짜전체화면 .자막층 {
-  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: 11%;
+  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
 }
 /* 뒤에 깔린 것이 스크롤되지 않게 */
 body.전체화면중 { overflow: hidden; }
@@ -557,7 +560,7 @@ body.전체화면중 { overflow: hidden; }
   width: 100%; height: 100%; aspect-ratio: auto;
 }
 .영상통.가로눕히기 .자막층 {
-  font-size: calc(clamp(22px, 4.2vh, 44px) * var(--자막배율)); bottom: 11%;
+  font-size: calc(clamp(22px, 4.2vh, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
 }
 
 /* ---------- 영상 밑 단추줄 ---------- */
@@ -840,3 +843,22 @@ body.전체화면중 { overflow: hidden; }
      손을 떼면 다시 스르륵 제자리로 간다. */
 .나무칸 { transition: transform .18s ease, opacity .18s ease; }
 .나무칸.손따라감 { transition: none !important; }
+
+/* ★★★ 전체화면이 스르륵 돌면서 커진다 (2026-09-02 · 사용자가 정함)
+     「전체화면 누르면 좀 스무스 하게 회전 되면서 화면이 확장 되게 해줘.
+       연속적으로. 끌때도 마찬가지야」
+   ★ 크기와 회전을 같은 시간에 함께 움직인다. 따로 놀면 덜컹거린다.
+   ★ 눈이 아픈 사람이 「움직임 줄이기」 를 켜 놨으면 그냥 바로 바뀐다. */
+.영상통 {
+  transition:
+    transform .32s cubic-bezier(.32,.72,0,1),
+    width     .32s cubic-bezier(.32,.72,0,1),
+    height    .32s cubic-bezier(.32,.72,0,1),
+    top       .32s cubic-bezier(.32,.72,0,1),
+    left      .32s cubic-bezier(.32,.72,0,1),
+    border-radius .32s ease;
+  will-change: transform, width, height;
+}
+@media (prefers-reduced-motion: reduce) {
+  .영상통 { transition: none; }
+}

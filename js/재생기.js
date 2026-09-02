@@ -109,6 +109,22 @@ const 재생기 = (() => {
     자리 = Math.max(0, Math.min(목록.length - 1, 자리 + 쪽));
     자막.크기바꾸기(목록[자리].값);
   }
+  // ★ 자막 높이 — 목록은 자막 모듈이 갖고 있다. 두 벌로 만들지 않는다.
+  //   (2026-09-02 · 「자막이 너무 위에 있어 자막 위치 조절할수 있게 해봐」)
+  function 자막높이옮기기(쪽) {
+    if (typeof 자막 === "undefined" || !자막.높이목록) return;
+    const 목록 = 자막.높이목록();
+    const 지금 = 자막.지금높이();
+    let 자리 = 목록.findIndex(ㄱ => Math.abs(ㄱ.값 - 지금) < 0.01);
+    if (자리 < 0) 자리 = 0;
+    자리 = Math.max(0, Math.min(목록.length - 1, 자리 + 쪽));
+    자막.높이바꾸기(목록[자리].값);
+  }
+  const 내리기단추 = document.getElementById("자막내리기");
+  const 올리기단추 = document.getElementById("자막올리기");
+  if (내리기단추) 내리기단추.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 자막높이옮기기(-1); });
+  if (올리기단추) 올리기단추.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 자막높이옮기기(+1); });
+
   if (작게단추) 작게단추.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 자막크기옮기기(-1); });
   if (크게단추) 크게단추.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 자막크기옮기기(+1); });
 

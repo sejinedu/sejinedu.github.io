@@ -1289,41 +1289,27 @@ function 크기판그리기() {
     크기판.appendChild(단);
   });
 
-  // --- 밀기 (싱크) ---
-  const 밀기머리 = document.createElement("div");
-  밀기머리.className = "판머리 위줄";
-  밀기머리.textContent = "자막 밀기";
-  크기판.appendChild(밀기머리);
+  // --- 자막 높이 ---
+  //  사용자가 정한 것 (2026-09-02):
+  //    「자막이 너무 위에 있어 자막 위치 조절할수 있게 해봐」
+  //    「자막 밀기는 필요 없을듯 없애라」 ⇒ 밀기 자리를 높이가 물려받았다.
+  const 높이머리 = document.createElement("div");
+  높이머리.className = "판머리 위줄";
+  높이머리.textContent = "자막 높이";
+  크기판.appendChild(높이머리);
 
-  const 밀기줄 = document.createElement("div");
-  밀기줄.className = "밀기줄";
-
-  const 만들기 = (글, 할일, 결) => {
-    const ㅂ = document.createElement("button");
-    ㅂ.type = "button";
-    ㅂ.className = "밀기단추" + (결 ? " " + 결 : "");
-    ㅂ.textContent = 글;
-    ㅂ.addEventListener("click", ㅈ => { ㅈ.stopPropagation(); 할일(); 크기판그리기(); });
-    return ㅂ;
-  };
-
-  밀기줄.appendChild(만들기("−", () => 자막.밀기바꾸기(자막.지금밀기() - 0.1)));
-
-  const 값 = document.createElement("span");
-  값.className = "밀기값";
-  const ㅁ = 자막.지금밀기();
-  값.textContent = (ㅁ > 0 ? "+" : "") + ㅁ.toFixed(2) + "초";
-  밀기줄.appendChild(값);
-
-  밀기줄.appendChild(만들기("+", () => 자막.밀기바꾸기(자막.지금밀기() + 0.1)));
-  밀기줄.appendChild(만들기("0", () => 자막.밀기바꾸기(0), "영으로"));
-
-  크기판.appendChild(밀기줄);
-
-  const 귀 = document.createElement("div");
-  귀.className = "판귀띔";
-  귀.textContent = "자막이 미리 뜨면 +, 늦게 뜨면 −";
-  크기판.appendChild(귀);
+  자막.높이목록().forEach(ㅋ => {
+    const 단 = document.createElement("button");
+    단.type = "button";
+    단.className = "크기단추" + (Math.abs(자막.지금높이() - ㅋ.값) < 0.01 ? " 골랐음" : "");
+    단.textContent = ㅋ.이름;
+    단.addEventListener("click", ㅈ => {
+      ㅈ.stopPropagation();
+      자막.높이바꾸기(ㅋ.값);
+      크기판그리기();
+    });
+    크기판.appendChild(단);
+  });
 }
 
 // ---------- 강의 안에서 찾기 ----------
