@@ -100,7 +100,28 @@
           <div class="영상통" id="영상통">
             <div class="화면칸" id="화면칸"></div>
 
+            <!-- ★★★ 손짓 받는 층 (2026-09-02 · 사용자가 정함)
+                   「전체화면에서 동영상을 꾹누르고 아래로 스와이프하면 작아지게도 해줘」
+                 영상 위의 손짓은 유튜브 틀이 삼켜서 우리한테 안 온다.
+                 그래서 유튜브 조작판을 끄고(controls=0) 이 층이 손짓을 받는다.
+                 · 한 번 누르면 조작판을 폈다 접는다
+                 · 꾹 누르고 아래로 쓸면 전체화면에서 나간다 -->
+            <div class="몸짓층" id="몸짓층"></div>
+
             <div class="자막층" id="자막층" hidden></div>
+
+            <!-- 우리가 만든 조작판 — 유튜브 것 대신이다 -->
+            <div class="조작판" id="조작판" hidden>
+              <button class="조작단추 큰것" id="재생정지" type="button" aria-label="재생">▶</button>
+              <span class="시각글" id="지금시각">0:00</span>
+              <input class="진행바" id="진행바" type="range" min="0" max="1000" value="0"
+                     aria-label="재생 위치">
+              <span class="시각글" id="전체시각">0:00</span>
+              <span class="배속통">
+                <button class="조작단추" id="배속단추" type="button">1×</button>
+                <div class="배속판" id="배속판" hidden></div>
+              </span>
+            </div>
 
             <!-- ★★★ 전체화면에서 쓰는 단추들 (2026-09-02 · 사용자가 폰에서 잡음)
                    「전체 화면에서 다시 되돌아 가는 방법이 없다」

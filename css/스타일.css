@@ -915,3 +915,64 @@ body.전체화면중 { overflow: hidden; }
   font-size: .82rem; font-weight: 600; white-space: nowrap;
 }
 .자막판칸:active { background: rgba(211,216,222,.14); }
+
+/* ---------- 우리가 만든 조작판 ---------- */
+/* ★ 사용자가 정한 것 (2026-09-02) —
+     「없앨수 있으면 없애자. 그리고 해당 기능들 니가 새로 만들어.
+       일단 cc는 확실히 필요 없고 배속 기능 화질 기능 따로 만들어」
+   ★ 화질은 못 만든다 — 유튜브가 setPlaybackQuality 를 폐기했다.
+   ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다. */
+
+/* 손짓 받는 층 — 영상 위를 덮는다. 유튜브 조작판을 껐으니 가릴 게 없다. */
+.몸짓층 { position: absolute; inset: 0; z-index: 3; background: transparent; }
+
+.조작판 {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 7;
+  display: flex; align-items: center; gap: 9px;
+  background: rgba(10, 14, 19, .82); border: 1px solid rgba(211,216,222,.2);
+  border-radius: 11px; padding: 7px 10px;
+  backdrop-filter: blur(4px);
+}
+.조작판[hidden] { display: none; }
+
+.조작단추 {
+  flex-shrink: 0;
+  background: rgba(211,216,222,.1); border: 0; color: #e6ebf0;
+  border-radius: 8px; min-width: 40px; height: 32px; padding: 0 9px;
+  font-size: .8rem; font-weight: 700; line-height: 1;
+}
+.조작단추:active { background: rgba(211,216,222,.22); }
+.조작단추.큰것 { font-size: .95rem; }
+
+.시각글 { flex-shrink: 0; font-size: .74rem; color: #cfd6de; font-variant-numeric: tabular-nums; }
+
+.진행바 {
+  flex: 1; min-width: 60px; height: 26px;
+  -webkit-appearance: none; appearance: none; background: transparent;
+}
+.진행바::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px; background: rgba(211,216,222,.3);
+}
+.진행바::-moz-range-track { height: 4px; border-radius: 2px; background: rgba(211,216,222,.3); }
+.진행바::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 15px; height: 15px; border-radius: 50%; background: var(--악센트);
+  margin-top: -5.5px; border: 0;
+}
+.진행바::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: var(--악센트); border: 0; }
+
+.배속통 { position: relative; flex-shrink: 0; }
+.배속판 {
+  position: absolute; right: 0; bottom: calc(100% + 7px);
+  display: flex; flex-direction: column; gap: 3px;
+  background: rgba(10, 14, 19, .95); border: 1px solid rgba(211,216,222,.24);
+  border-radius: 9px; padding: 5px; min-width: 74px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.55);
+}
+.배속판[hidden] { display: none; }
+.배속칸 {
+  background: none; border: 0; color: #e6ebf0;
+  padding: 7px 9px; border-radius: 6px; font-size: .8rem; font-weight: 600;
+}
+.배속칸.골랐음 { background: var(--악센트흐림); color: #dff3ee; }
+.배속칸:active { background: rgba(211,216,222,.14); }
