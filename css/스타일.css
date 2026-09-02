@@ -1101,17 +1101,19 @@ body.전체화면중 { overflow: hidden; }
 
    ★ 우리 바는 화면칸 **밖**(형제)이라 영상을 키워도 안 잘린다. */
 
-.톡덮개 { position: absolute; inset: 0; z-index: 4; }
+/* ★★★ 가운데는 뚫어 둔다 (2026-09-03 · 사용자가 알아냄)
+     「가운데는 유튜브 버튼 아니냐? 이거 못없애자나 그래서 겹쳐서 생기는구나
+       그럼 가운데는 그냥 유튜브 버튼 남겨놔 그걸로 눌러서 정지 재생 하게」
+   유튜브 가운데 재생 단추는 controls=0 으로도 안 없어진다.
+   ⇒ 우리 덮개를 네 조각으로 나눠 **가운데만 비워** 그 단추가 눌리게 한다.
+     바깥 네 조각은 우리가 받는다 — 톡 누르면 조작판이 떴다 사라진다. */
+.톡덮개 { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.톡칸  { position: absolute; pointer-events: auto; }
+.톡칸.위   { left: 0; right: 0; top: 0;  bottom: calc(50% + 62px); }
+.톡칸.아래 { left: 0; right: 0; top: calc(50% + 62px); bottom: 0; }
+.톡칸.왼   { left: 0; width: calc(50% - 62px); top: calc(50% - 62px); height: 124px; }
+.톡칸.오른 { right: 0; width: calc(50% - 62px); top: calc(50% - 62px); height: 124px; }
 
-.가운데재생 {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  z-index: 7; width: 62px; height: 62px; border-radius: 50%;
-  background: rgba(10, 14, 19, .60); border: 1px solid rgba(211,216,222,.24);
-  color: #fff; font-size: 1.4rem; line-height: 1; padding-left: 4px;
-  backdrop-filter: blur(3px);
-}
-.가운데재생[hidden] { display: none; }
-.가운데재생.돈다 { padding-left: 0; font-size: 1.15rem; }
 
 .우리바 {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 7;

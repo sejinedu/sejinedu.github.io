@@ -87,7 +87,6 @@ const 재생기 = (() => {
   const 바재생     = document.getElementById("바재생");
   const 바시간     = document.getElementById("바시간");
   const 바줄       = document.getElementById("바줄");
-  const 가운데재생 = document.getElementById("가운데재생");
   const 배속단추   = document.getElementById("배속단추");
   const 배속판     = document.getElementById("배속판");
   const 작게단추   = document.getElementById("자막작게");
@@ -169,7 +168,6 @@ const 재생기 = (() => {
     if (우리바 && !우리바.hidden) 우리바.classList.toggle("쉬는중", !보일까);
     통.classList.toggle("조작판보임", 보일까);
     if (!보일까) { 드롭바접기(); 배속판접기(); }
-    가운데재생칠하기();
   }
 
   function 사라질시계걸기(얼마) {
@@ -228,7 +226,6 @@ const 재생기 = (() => {
     //   이제 유튜브 조작판이 없으니 맞출 상대도 없다 — 우리가 곧 기준이다.
     if (!도나) { clearTimeout(사라질시계); 유튜브떠있나 = true; 입히기(); }
     else 보이기(true, 재생눌렀을때);
-    가운데재생칠하기();
   }
 
   function 나가기단추보이기() {
@@ -495,29 +492,9 @@ const 재생기 = (() => {
   //    그 사이에 단추가 떴다 사라졌다 해서 난잡했다.
   //    ⇒ **진짜로 멈춰 있을 때만** 띄운다. 받아오는 중이면 건드리지 않는다.
   //    ⇒ 바가 숨어 있으면 같이 숨는다.
-  //  ★★★ 화면을 톡 누르면 가운데 단추가 뜬다 (2026-09-03 · 사용자가 정함)
-  //    「화면 한번 터치하면 가운데 정지 버튼 나오게 해」
-  //    조작판이 떠 있는 동안 늘 같이 뜬다 — 돌고 있으면 ❚❚, 멈춰 있으면 ▶.
-  //  ★ 깜빡이지 않게 「받아오는 중(3)」 에는 그림만 그대로 둔다.
-  function 가운데재생칠하기() {
-    if (!가운데재생) return;
-    const 바보임 = !!(우리바 && !우리바.hidden && !우리바.classList.contains("쉬는중"));
-    가운데재생.hidden = !바보임;
-
-    let 상태 = -9;
-    try { 상태 = (플레이어 && 플레이어.getPlayerState) ? 플레이어.getPlayerState() : -9; }
-    catch (오류) { 상태 = -9; }
-    if (상태 === 3) return;                       // 받아오는 중 — 그림은 그대로
-    const 돈다 = (상태 === 1);
-    가운데재생.textContent = 돈다 ? "❚❚" : "▶";
-    가운데재생.setAttribute("aria-label", 돈다 ? "멈춤" : "재생");
-    가운데재생.classList.toggle("돈다", 돈다);
-  }
-
   function 재생단추칠하기() {
     const 돈다 = 돌고있나2();
     if (바재생) { 바재생.textContent = 돈다 ? "❚❚" : "▶"; 바재생.setAttribute("aria-label", 돈다 ? "멈춤" : "재생"); }
-    가운데재생칠하기();
   }
 
   function 재생껐켰() {
@@ -573,9 +550,6 @@ const 재생기 = (() => {
 
   // ---------- 단추들 ----------
   if (바재생) 바재생.addEventListener("click", ㅇ => {
-    ㅇ.stopPropagation(); 재생껐켰(); 보이기(true, 재생눌렀을때);
-  });
-  if (가운데재생) 가운데재생.addEventListener("click", ㅇ => {
     ㅇ.stopPropagation(); 재생껐켰(); 보이기(true, 재생눌렀을때);
   });
 
@@ -845,7 +819,6 @@ const 재생기 = (() => {
   function 끄기() {
     돌리기멈춤();
     if (우리바) { 우리바.hidden = true; 우리바.classList.remove("쉬는중"); }
-    if (가운데재생) 가운데재생.hidden = true;
     배속판접기();
     통.classList.remove("조작판보임");
     if (플레이어 && 플레이어.destroy) { try { 플레이어.destroy(); } catch (오류) {} }
