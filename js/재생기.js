@@ -568,7 +568,6 @@ const 재생기 = (() => {
       let 첫x = 0, 첫y = 0, 잡았나 = false, 끌었나 = false, 잡은것 = null;
 
       요소.addEventListener("pointerdown", ㅇ => {
-        if (!전체화면중인가()) return;
         첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 잡았나 = true; 끌었나 = false;
         // ★ 실제로 눌린 조각에 손가락을 붙들어 둔다 (쓸기칸 자체는 손짓을 안 받는다)
         잡은것 = (ㅇ.target && ㅇ.target.setPointerCapture) ? ㅇ.target : 요소;
@@ -577,6 +576,7 @@ const 재생기 = (() => {
 
       요소.addEventListener("pointermove", ㅇ => {
         if (!잡았나) return;
+        const 전체다 = 전체화면중인가();
         const 눕혔나 = 통.classList.contains("가로눕히기");
         const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
         const 아래로 = 눕혔나 ? -옆 : 세로;
@@ -586,9 +586,17 @@ const 재생기 = (() => {
           끌었나 = true;
           통.style.transition = "none";
         }
-        const 길이 = 눕혔나 ? window.innerWidth : window.innerHeight;
-        const 배 = Math.max(.70, 1 - (아래로 / Math.max(1, 길이)) * 0.7);
-        그리기(옆, 세로, 배);
+        if (전체다) {
+          // 전체화면 — 밀수록 작아진다
+          const 길이 = 눕혔나 ? window.innerWidth : window.innerHeight;
+          const 배 = Math.max(.70, 1 - (아래로 / Math.max(1, 길이)) * 0.7);
+          그리기(옆, 세로, 배);
+        } else {
+          // ★ 작은 화면 — 밀수록 **커진다** (2026-09-03 · 사용자가 정함)
+          //   「작은 화면 아래로 끌어내리면 이것도 확대 되게 해줘」
+          const 배 = 1 + Math.min(0.14, 아래로 / 700);
+          그리기(옆 * 0.35, 세로 * 0.35, 배);
+        }
       });
 
       const 손뗌 = ㅇ => {
@@ -601,6 +609,7 @@ const 재생기 = (() => {
         const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
         const 아래로 = 눕혔나 ? -옆 : 세로;
 
+        // 많이 밀었으면 — 전체화면이면 닫고, 작은 화면이면 키운다
         if (아래로 > 닫는거리) { 그림지우기(); 전체화면바꾸기(); return; }
 
         // 덜 밀었으면 제자리로 스르륵 돌아간다
