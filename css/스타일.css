@@ -829,8 +829,11 @@ body.전체화면중 { overflow: hidden; }
 .전체화면단추들[hidden] { display: none; }
 .전체화면단추들 > * { pointer-events: auto; }
 
-/* 자막 단추 — 유튜브 스피커 단추 옆 (영상 아래 왼쪽) */
-.자막통 { position: absolute; left: 92px; bottom: 12px; }
+/* 자막 단추 — 유튜브 스피커 단추 옆 (영상 오른쪽 위)
+   ★ 사용자가 잡아 줬다 — 「스피커 위치가 우측상단에 있다」 (2026-09-02).
+     처음엔 아래 왼쪽으로 잡았는데 틀렸다. 스피커·CC·설정이 오른쪽 위에 모여 있다.
+     그 왼쪽에 붙인다. 위에 있으니 드롭바를 아래로 열 자리가 넉넉하다. */
+.자막통 { position: absolute; right: 128px; top: 10px; }
 
 /* 나가기 — 맨 위 가운데 */
 .전체단추.나가기 {
@@ -851,9 +854,9 @@ body.전체화면중 { overflow: hidden; }
 /* 자막 드롭바 (2026-09-02 · 「자막 버튼 클릭하면 드롭바 생기면서」) */
 .자막통 { position: relative; flex-shrink: 0; }
 .자막판 {
-  /* ★ 위로 연다 — 단추가 영상 아래쪽에 있어서 밑으로 열면 화면 밖으로 나간다
-       (사용자는 「아래로 뜨게」 라고 했지만 그 자리에서는 안 보인다) */
-  position: absolute; left: 0; bottom: calc(100% + 7px);
+  /* ★ 아래로 연다 — 「드롭바는 아래로 뜨게 해」.
+       단추가 위에 있으니 아래로 열 자리가 넉넉하다. */
+  position: absolute; right: 0; top: calc(100% + 7px);
   display: flex; flex-direction: column; gap: 4px;
   background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
   border-radius: 9px; padding: 5px; min-width: 128px;
