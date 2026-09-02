@@ -26,7 +26,7 @@ const 기록소 = (() => {
   // ★★★ 여기에 기록서버 주소를 적으면 그때부터 진짜로 모인다.
   //   비워 두면 예전처럼 이 브라우저에만 쌓인다.
   //   (자료/기록서버.gs 를 구글에 올리고 나오는 웹 앱 URL)
-  const 기록서버 = "";
+  const 기록서버 = "https://script.google.com/macros/s/AKfycbxF2_GcR-atVwhTJTZqtYpCDnHfk_MDjuYQ_fhRsT1OuTgFXZYpmxWDXPrwOCdbDoF5/exec";
 
   const 진짜집계 = !!기록서버;
 
