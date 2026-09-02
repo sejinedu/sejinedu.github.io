@@ -840,9 +840,12 @@ body.전체화면중 { overflow: hidden; }
      ⇒ ✕(가운데) 바로 옆, 로고와 유튜브 아이콘 사이의 빈 자리로 옮긴다. */
 .자막통 { position: absolute; top: 10px; left: 28%; }
 
-/* 나가기 — 맨 위 가운데 */
+/* ★ 나가기 ✕ — 오른쪽 변 한가운데 (2026-09-03 · 사용자가 정함)
+     「야 x 버튼만 오른쪽 중앙에 넣어줘」
+   ★ 단추가 영상통 안에 들어 있어서 눕혀도 같이 돌아간다 — 사람 눈엔 늘 오른쪽 가운데다. */
 .전체단추.나가기 {
-  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 50%; right: 10px; left: auto;
+  transform: translateY(-50%);
   font-size: .95rem; min-width: 40px;
 }
 
