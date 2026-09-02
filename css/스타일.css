@@ -513,11 +513,12 @@ body.주인 .카드 { touch-action: none; }
 .영상통.가짜전체화면, .보기 .영상통.가짜전체화면 {
   position: fixed; inset: 0; z-index: 9999;
   width: 100vw; height: 100vh;
-  height: 100dvh;                       /* 폰 주소창까지 덮는다 */
+  height: 100dvh;
+  height: 100lvh;                       /* 폰 주소창까지 덮는다 */
   border-radius: 0; background: #000;
   display: flex; align-items: center; justify-content: center;
 }
-.영상통.가짜전체화면 .화면칸 { width: 100vw; height: 100dvh; aspect-ratio: auto; }
+.영상통.가짜전체화면 .화면칸 { width: 100vw; height: 100dvh; height: 100lvh; aspect-ratio: auto; }
 .영상통.가짜전체화면 .자막층 {
   font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
 }
@@ -541,7 +542,14 @@ body.전체화면중 { overflow: hidden; }
        그러면 폭·높이를 줘도 그 두 개가 상자를 붙들어 크기가 안 먹는다.
        그래서 화면을 다 못 덮고 위아래에 원래 화면이 비쳤다. */
   right: auto; bottom: auto;
-  width: 100dvh; height: 100dvw;
+  /* ★★★ 틀을 **화면 끝까지** 키운다 (2026-09-02 · 사용자가 사진 둘로 잡아냄)
+       「야 너 지금 뭔가 잘못생각하고 있어」 — 맞았다.
+       사방이 남았던 건 16:9 때문이 아니라 **틀이 화면보다 작게 잡혔기 때문**이다.
+       dvh 는 주소창·아랫바를 모두 밀어낸 「지금 보이는」 높이라 화면보다 짧다.
+       lvh/lvw 는 **화면 전체** 크기다.
+     ★ 영상을 자르는 것이 아니다. 틀만 키우면 영상도 그만큼 커진다. */
+  width: 100dvh; height: 100dvw;          /* 예날 브라우저용 */
+  width: 100lvh; height: 100lvw;
   max-width: none; max-height: none;
   transform: translate(-50%, -50%) rotate(90deg);
   transform-origin: center center;
