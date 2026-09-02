@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store">
+<meta name="theme-color" content="#0e1116">
+<!-- ★ 검색에 안 뜨게 한다 (2026-09-02 · 사용자가 정함)
+     영상이 유튜브 미등록이라, 사이트도 검색으로 흘러들지 않게 막는다.
+     ★ 자물쇠는 아니다. 주소를 아는 사람은 들어온다. -->
+<meta name="robots" content="noindex, nofollow">
+<title>세진 과학</title>
+<link rel="icon" href="자산/아이콘.png" type="image/png">
+<link rel="apple-touch-icon" href="자산/아이콘.png">
+
+<!-- ★ 스타일이 오기 전에도 하얗게 번쩍이지 않게 바탕색을 먼저 깐다.
+     (사용자가 정한 것 — 「화면 꺼지게 하지 말아라」, 2026-09-01) -->
+<style>
+  html, body { background: #0e1116; margin: 0; }
+  body { opacity: 0; transition: opacity .12s; }
+  body.들어옴 { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="서랍단추" id="서랍단추" type="button" aria-label="단원 열기">☰</button>
+  <!-- ★ href="./" 로 두면 파일로 열었을 때 엉뚱한 화면이 뜬다.
+       링크가 아니라 단추로 두고 홈 첫화면으로 돌린다.
+       (사용자가 정한 것 — 「세진 과학 누르면 그냥 홈 첫화면」, 2026-09-01) -->
+  <button class="이름" id="홈으로" type="button">
+    <img class="로고" id="로고" src="자산/아이콘.png" alt="">
+    <span class="이름글">세진 <span>과학</span></span>
+  </button>
+
+  <nav class="머리메뉴">
+    <button class="메뉴칸 켜짐" id="동영상보기" type="button">동영상 보기</button>
+  </nav>
+
+  <div class="머리오른쪽">
+    <span class="판" id="판표시">v—</span>
+    <button class="업데이트" id="업데이트" type="button">업데이트</button>
+  </div>
+</header>
+
+<div class="뒷막" id="뒷막" hidden></div>
+
+<main class="두단">
+
+  <aside class="왼쪽" id="왼쪽">
+    <div class="왼쪽속">
+      <div class="층머리" id="층머리"></div>
+      <div class="미끄럼" id="미끄럼">
+        <nav class="나무칸" id="나무칸" aria-label="단원"></nav>
+      </div>
+      <div class="손질줄" id="손질줄">
+        <button class="손질" id="과목추가" type="button">＋ 과목 추가</button>
+      </div>
+      <p class="귀띔">우클릭하면 이름 바꾸기·추가·삭제. 끌면 자리를 옮긴다.</p>
+    </div>
+  </aside>
+
+  <!-- 왼쪽 폭을 끌어서 조절하는 자리. 두 번 누르면 처음 폭으로 돌아간다. -->
+  <div class="폭잡이" id="폭잡이" role="separator" aria-orientation="vertical"
+       aria-label="사이드바 폭 조절" tabindex="0"></div>
+
+  <section class="오른쪽">
+
+    <!-- ① 썸네일 격자 — 단원을 고르면 여기 -->
+    <div class="격자보기" id="격자보기">
+      <div class="목록머리" id="목록머리"></div>
+      <div class="격자" id="격자"></div>
+    </div>
+
+    <!-- ② 시청 화면 — 썸네일을 누르면 여기 -->
+    <div class="보기" id="보기" hidden>
+      <div class="뒤로줄">
+        <button class="뒤로" id="뒤로" type="button"><span class="뒤화살">‹</span>목록으로</button>
+      </div>
+
+      <div class="보기판">
+        <div class="보기가운데">
+
+          <!-- 영상 + 우리 자막이 한 통에 들어간다.
+               ★ 전체화면은 이 통을 통째로 키운다 — 유튜브 자체 전체화면으로 가면
+                 우리 자막이 안 따라온다. -->
+          <div class="영상통" id="영상통">
+            <div class="화면칸" id="화면칸"></div>
+
+            <div class="자막층" id="자막층" hidden></div>
+          </div>
+
+          <!-- ★ 우리 단추는 영상 밖에 둔다. 재생바는 유튜브 것을 그대로 쓴다.
+               (2026-09-02 — 영상 위에 얹으면 유튜브가 그리는 것과 따로 놀아서 어긋나 보인다) -->
+          <div class="영상밑줄" id="영상밑줄" hidden>
+            <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
+            <span class="크기통">
+              <button class="밑단추" id="자막크기단추" type="button">자막 크기 · 밀기</button>
+              <div class="크기판" id="크기판" hidden></div>
+            </span>
+            <button class="밑단추" id="전체단추" type="button">전체화면</button>
+          </div>
+
+          <!-- 강의 안에서 말 찾기 -->
+          <div class="찾기줄" id="찾기줄" hidden>
+            <input type="search" id="찾기칸" placeholder="강의 안에서 찾기 — 예: 암모나이트" autocomplete="off">
+            <span class="찾기셈" id="찾기셈"></span>
+          </div>
+          <div class="찾은것" id="찾은것"></div>
+
+          <!-- 제목과 강사를 한 줄에. 강사는 오른쪽 끝. -->
+          <div class="제목줄">
+            <h1 class="보기제목" id="지금제목"></h1>
+            <span class="보기강사" id="지금강사" hidden>
+              <span class="강사딱지">강사</span><span class="강사이름칸" id="지금강사이름"></span>
+            </span>
+          </div>
+          <div class="보기줄">
+            <span class="보기셈" id="지금셈"></span>
+            <button class="좋아요" id="좋아요단추" type="button" aria-pressed="false">♥ 0</button>
+          </div>
+          <div class="보기길" id="지금길"></div>
+        </div>
+
+        <aside class="옆목록" id="옆목록"></aside>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- 업데이트 게이지 — 뒤 화면이 그대로 비친다. 까맣게 덮지 않는다. -->
+<div class="업막" id="업막" hidden>
+  <div class="업통">
+    <div class="업글" id="업글">새 화면을 받는 중</div>
+    <div class="게이지"><div class="찬것" id="찬것"></div></div>
+  </div>
+</div>
+
+<div class="쪽지" id="쪽지" hidden></div>
+<div class="끄는것" id="끄는것" hidden></div>
+<div class="맥락메뉴" id="맥락메뉴" hidden role="menu"></div>
+
+<!-- 동영상 링크 연결 창 -->
+<div class="연결막" id="연결막" hidden>
+  <div class="연결창" role="dialog" aria-modal="true" aria-labelledby="연결제목">
+    <h2 class="연결제목" id="연결제목">동영상 링크 연결</h2>
+    <p class="연결단원" id="연결단원"></p>
+
+    <label class="연결칸">
+      <span class="연결이름">강사명</span>
+      <input type="text" id="연결강사" placeholder="예: 김세진" autocomplete="off">
+    </label>
+
+    <label class="연결칸">
+      <span class="연결이름">동영상 제목</span>
+      <input type="text" id="연결제목칸" placeholder="주소를 넣으면 유튜브 제목이 저절로 들어온다" autocomplete="off">
+    </label>
+
+    <label class="연결칸">
+      <span class="연결이름">동영상 URL</span>
+      <input type="text" id="연결주소" placeholder="https://youtu.be/…  또는  https://www.youtube.com/watch?v=…" autocomplete="off" spellcheck="false">
+    </label>
+
+    <p class="연결말" id="연결말"></p>
+
+    <div class="연결단추줄">
+      <button class="연결취소" id="연결취소" type="button">취소</button>
+      <button class="연결하기" id="연결하기" type="button">연결</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     불러오는 순서를 정하는 곳 (부트로더)
+     ============================================================
+     ★★★ 왜 <script src> 를 그냥 안 쓰고 이렇게 하나
+
+     브라우저는 한 번 읽은 파일을 기억해 둔다. 그래서 내가 파일을 고쳐도
+     새로 고침했을 때 「옛날 것」 을 그대로 내주는 일이 생긴다.
+     그러면 고친 사람은 「고쳤다」 고 하고 보는 사람 화면은 그대로다.
+
+     그래서 —
+       1. 판.js 는 늘 시각을 붙여 부른다  → 판 번호는 언제나 진짜 최신
+       2. 나머지 파일은 그 판을 붙여 부른다 → 판이 바뀌면 주소가 바뀌므로
+                                              브라우저가 기억해 둔 것을 못 쓴다
+     판 번호만 올리면 모든 파일이 자동으로 새로 온다. 고칠 곳은 판.js 한 줄뿐이다.
+     ============================================================ -->
+<script>
+// ★★★ 무엇이 터지든 화면에 띄운다 (2026-09-02 에 밟음)
+//   앱.js 가 어디선가 죽으면 화면이 통째로 먹통이 된다. 눌러도 아무 일이 안 난다.
+//   그러면 왜 그런지 짐작조차 못 한다. 조용히 죽지 않게 여기서 잡는다.
+//   (지침서 7절 25번 — 조용히 안 되는 것을 제일 조심해라)
+window.첫탈 = null;
+
+function 탈띄우기(글) {
+  var 통 = document.getElementById("터짐알림");
+  if (!통) {
+    통 = document.createElement("div");
+    통.id = "터짐알림";
+    통.setAttribute("style",
+      "position:fixed;left:0;right:0;bottom:0;z-index:9999;" +
+      "background:#2a1c1f;color:#e08b96;border-top:2px solid #a34d5c;" +
+      "padding:12px 16px;font:13px/1.7 'Malgun Gothic',sans-serif;" +
+      "user-select:text;-webkit-user-select:text;white-space:pre-wrap;");
+    (document.body || document.documentElement).appendChild(통);
+  }
+  통.textContent = 글;
+}
+
+window.addEventListener("error", function (ㅇ) {
+  var 글 = (ㅇ.message || "알 수 없는 탈") +
+           "  (" + String(ㅇ.filename || "").split("/").pop().split("?")[0] +
+           " " + (ㅇ.lineno || "?") + "줄)";
+  if (!window.첫탈) window.첫탈 = 글;
+  탈띄우기("화면이 멈췄다 — " + window.첫탈 + "\n이 글을 그대로 알려 주면 바로 고친다.");
+});
+
+window.addEventListener("unhandledrejection", function (ㅇ) {
+  var 글 = "약속이 깨졌다 — " + (ㅇ.reason && ㅇ.reason.message ? ㅇ.reason.message : String(ㅇ.reason));
+  if (!window.첫탈) window.첫탈 = 글;
+  탈띄우기("화면이 멈췄다 — " + window.첫탈 + "\n이 글을 그대로 알려 주면 바로 고친다.");
+});
+
+(function () {
+
+  function 스크립트(주소, 됐을때, 안될때) {
+    var ㅅ = document.createElement("script");
+    ㅅ.src = 주소;
+    ㅅ.onload = 됐을때;
+    ㅅ.onerror = 안될때;
+    document.head.appendChild(ㅅ);
+  }
+
+  function 못열었다(어디) {
+    document.body.classList.add("들어옴");
+    document.body.innerHTML =
+      '<div style="color:#d3d8de;font-family:Malgun Gothic,sans-serif;padding:40px;line-height:1.8">' +
+      '<b>파일을 못 읽었다.</b><br>못 읽은 것: ' + 어디 +
+      '<br><br>이 화면이 보이면 파일이 없거나 이름이 바뀐 것이다.' +
+      '</div>';
+  }
+
+  // ★ 영상창고.js 는 동영상.js · 자료/영상목록.js 다음이라야 한다. 앞엣것을 받아서 합치기 때문이다.
+  // ★ 재생기.js 가 자막.js 보다 먼저다 — 자막이 재생기한테서 시간을 받아 간다.
+  // ★★★ 자료/영상목록.js 가 붙인 영상 목록이다 (2026-09-02).
+  //   전에는 이 목록이 브라우저 서랍에만 있었다. 그래서 크롬을 청소하면 날아가고,
+  //   남한테 주소를 줘도 그 사람은 텅 빈 사이트를 봤다.
+  var 차례 = ["js/기록소.js", "js/단원.js", "js/나무.js", "js/동영상.js",
+              "자료/영상목록.js",
+              "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/자막.js", "js/앱.js"];
+
+  스크립트("js/판.js?t=" + Date.now(), function () {
+
+    var 판 = window.판;
+    document.getElementById("판표시").textContent = "v" + 판;
+
+    // 아이콘도 판을 붙인다 — 안 그러면 브라우저가 옛 아이콘을 계속 물고 있는다
+    document.querySelector('link[rel="icon"]').href = "자산/아이콘.png?v=" + 판;
+    document.getElementById("로고").src = "자산/아이콘.png?v=" + 판;
+
+    var 링 = document.createElement("link");
+    링.rel = "stylesheet";
+    링.href = "css/스타일.css?v=" + 판;
+    링.onload = function () { document.body.classList.add("들어옴"); };
+    링.onerror = function () { document.body.classList.add("들어옴"); };
+    document.head.appendChild(링);
+
+    (function 다음(ㅈ) {
+      if (ㅈ >= 차례.length) {
+        // ★★★ 파수꾼 — 앱.js 가 끝까지 안 돌면 조용히 먹통이 된다.
+        //   눌러도 아무 일이 안 나서 원인을 짐작할 수도 없다. 그걸 말로 만든다.
+        //   (2026-09-02 — 「먹통이다」 를 세 번 듣고 넣음. 지침서 7절 25번)
+        setTimeout(function () {
+          if (window.앱다됐다) return;
+          탈띄우기(
+            "화면이 끝까지 안 켜졌다.\n" +
+            (window.첫탈 ? ("탈: " + window.첫탈) : "탈 내용이 안 잡혔다.") +
+            "\n마지막으로 실린 파일: " + 차례[차례.length - 1] +
+            "\n이 글을 그대로 알려 주면 바로 고친다."
+          );
+        }, 2500);
+        return;
+      }
+      스크립트(차례[ㅈ] + "?v=" + 판,
+        function () { 다음(ㅈ + 1); },
+        function () { 못열었다(차례[ㅈ]); });
+    })(0);
+
+  }, function () { 못열었다("js/판.js"); });
+
+})();
+</script>
+</body>
+</html>

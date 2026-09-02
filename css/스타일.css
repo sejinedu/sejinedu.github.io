@@ -1,0 +1,738 @@
+/* 세진 과학 — 스타일
+   사용자가 정한 것 (2026-09-01):
+     · 어두운 화면, 밝기 낮게, 화려하지 않게 · 「존나 심플하게」
+     · 맨 위 메뉴 하나, 아래는 세로 2단, 왼쪽은 단원 트리
+     · 강사와 과목은 따로 간다
+     · 판 번호와 업데이트 단추는 맨 우측 상단 · 화면 꺼지게 하지 마라
+     · 클릭 범위는 글자에 붙은 박스로, 고른 것은 박스로 표시, 겹쳐 고를 수 없다
+     · 「고치기」 단추는 없앤다 — 우클릭으로 삭제
+     · 단원을 고르면 오른쪽에 썸네일 격자, 썸네일을 누르면 유튜브처럼 큰 화면
+     · 애들은 폰·태블릿으로 본다 — 16:9 에 맞춘다 */
+
+:root {
+  --바탕:      #0e1116;
+  --판:        #141920;
+  --판밝게:    #1b212a;
+  --테두리:    #232a34;
+  --글:        #d3d8de;
+  --흐린글:    #7f8996;
+  --악센트:    #4d9e8f;
+  --악센트흐림:#2c554e;
+  --고른바탕:  #172b30;
+  --고른테:    #3d7d72;
+  --왼쪽바탕:  #090c11;   /* 사이드바는 본문보다 한 단 더 어둡게 */
+  --왼쪽테:    #1a2028;
+  --왼쪽폭:    290px;
+  --머리높이:  54px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { background: var(--바탕); }
+
+body {
+  background: var(--바탕); color: var(--글);
+  font-family: "Pretendard", "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+  line-height: 1.55; -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input { font-family: inherit; }
+button { cursor: pointer; }
+
+/* ---------- 머리 ---------- */
+
+header {
+  position: sticky; top: 0; z-index: 60; height: var(--머리높이);
+  display: flex; align-items: center; gap: 12px; padding: 0 14px;
+  background: var(--바탕); border-bottom: 1px solid var(--테두리);
+}
+.이름 {
+  display: flex; align-items: center; gap: 9px;
+  background: none; border: 0; padding: 2px 4px; border-radius: 7px;
+  font-size: 1rem; font-weight: 700; color: var(--글);
+  text-decoration: none; letter-spacing: -.02em;
+}
+.이름:hover { background: var(--판); }
+.이름:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+.로고 { width: 27px; height: 27px; border-radius: 7px; display: block; flex-shrink: 0; }
+.이름글 span { color: var(--악센트); }
+
+.머리메뉴 { display: flex; gap: 4px; margin-left: 6px; }
+.메뉴칸 {
+  background: none; border: 0; color: var(--흐린글);
+  padding: 7px 12px; border-radius: 7px; font-size: .88rem;
+}
+.메뉴칸:hover { color: var(--글); background: var(--판); }
+.메뉴칸.켜짐 { color: var(--글); background: var(--판밝게); }
+.메뉴칸:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+.서랍단추 {
+  display: none; background: none; border: 1px solid var(--테두리); color: var(--글);
+  width: 36px; height: 34px; border-radius: 7px; font-size: 1rem; line-height: 1;
+}
+.머리오른쪽 { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.판 { color: var(--흐린글); font-size: .8rem; }
+.업데이트 {
+  background: var(--악센트흐림); border: 1px solid var(--악센트); color: #e6f2f0;
+  height: 30px; padding: 0 14px; border-radius: 6px; font-size: .84rem; line-height: 1;
+}
+.업데이트:hover { background: var(--악센트); color: #08110f; }
+
+/* ★ 새 판이 나왔을 때 — 단추가 스스로 눈에 띈다 (2026-09-02)
+     사용자가 정한 것 — 「업데이트 있으면 색깔이 찐하던지 반짝거리던지」
+   ★ 화면을 건드리지 않는다. 이 단추 하나만 숨쉬듯 밝아졌다 어두워진다. */
+@keyframes 새판숨쉬기 {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(77, 158, 143, .55); }
+  50%      { box-shadow: 0 0 0 7px rgba(77, 158, 143, 0); }
+}
+.업데이트.새판 {
+  background: var(--악센트); color: #06100e; font-weight: 700;
+  border-color: #6fd3bf;
+  animation: 새판숨쉬기 1.9s ease-out infinite;
+}
+.업데이트.새판:hover { background: #61c2ae; }
+
+/* 눈이 아픈 사람을 위해 — 깜빡임을 끄겠다고 한 기기에서는 색만 바꾼다 */
+@media (prefers-reduced-motion: reduce) {
+  .업데이트.새판 { animation: none; box-shadow: 0 0 0 2px rgba(77,158,143,.5); }
+}
+.업데이트:disabled { opacity: .5; cursor: default; }
+.업데이트:focus-visible, .서랍단추:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+
+/* ---------- 두 단 ---------- */
+
+.두단 { display: grid; grid-template-columns: var(--왼쪽폭) 1fr; }
+
+/* ★ 사이드바는 본문보다 한 단 더 어둡게 — 두 칸이 눈에 바로 갈린다.
+     (사용자가 정한 것 — 「사이드바 다크모드로」, 2026-09-01) */
+.왼쪽 {
+  background: var(--왼쪽바탕);
+  border-right: 1px solid var(--왼쪽테);
+  position: sticky; top: var(--머리높이);
+  height: calc(100vh - var(--머리높이));
+  overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: #232a34 transparent;
+}
+.왼쪽::-webkit-scrollbar { width: 9px; }
+.왼쪽::-webkit-scrollbar-track { background: transparent; }
+.왼쪽::-webkit-scrollbar-thumb { background: #1e242d; border-radius: 5px; border: 2px solid var(--왼쪽바탕); }
+.왼쪽::-webkit-scrollbar-thumb:hover { background: #2b333e; }
+
+/* ★ 왼쪽 「‹ 과목」 과 오른쪽 「‹ 목록으로」 의 윗줄을 맞춘다.
+     둘 다 머리 바로 밑에서 시작하므로 위쪽 여백을 같게 준다.
+     (사용자가 정한 것 — 「왼쪽 과목과 목록으로 글자 박스 줄 좀 맞춰라」, 2026-09-02) */
+.왼쪽속 { padding: 12px 10px 40px; }
+.오른쪽 { padding: 12px 20px 60px; min-width: 0; }
+
+/* ---------- 폭 조절 손잡이 ---------- */
+
+.폭잡이 {
+  position: fixed; top: var(--머리높이); bottom: 0;
+  left: var(--왼쪽폭); width: 9px; margin-left: -4px;
+  z-index: 65; cursor: col-resize; background: none;
+}
+.폭잡이::after {
+  content: ""; position: absolute; left: 3px; top: 0; bottom: 0; width: 3px;
+  background: transparent; transition: background .12s;
+}
+.폭잡이:hover::after, .폭잡이.잡힘::after, .폭잡이:focus-visible::after { background: var(--악센트); }
+.폭잡이:focus-visible { outline: none; }
+body.폭조절중 { cursor: col-resize; user-select: none; -webkit-user-select: none; }
+body.폭조절중 iframe { pointer-events: none; }   /* 영상 위로 끌어도 안 끊기게 */
+
+/* ---------- 층 머리 (뒤로가기 + 지금 층 이름) ---------- */
+
+.층머리 { padding: 0 0 9px; border-bottom: 1px solid var(--왼쪽테); margin-bottom: 8px; }
+
+/* ★ 뒤로가기는 폭을 꽉 채워 크게. 폰에서 엄지로 눌러야 한다.
+     (사용자가 정한 것 — 「＜과목 버튼 좀 더 크게, 폭 꽉 채워서」, 2026-09-01) */
+.층뒤로 {
+  display: flex; align-items: center; gap: 5px; width: 100%;
+  background: #111820; border: 1px solid var(--왼쪽테); color: var(--글);
+  min-height: 42px; padding: 0 12px; border-radius: 9px;
+  font-size: .9rem; font-weight: 600; margin-bottom: 9px; text-align: left;
+}
+.층뒤로:hover { background: #16202a; border-color: var(--악센트흐림); color: var(--악센트); }
+.층뒤로:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+.뒤화살 { font-size: 1.25rem; line-height: 1; margin-top: -2px; }
+
+/* ★ 과목 이름은 누를 수 있다 — 누르면 그 과목 강의가 전부 나온다 (2026-09-02) */
+.층이름 {
+  display: block; width: 100%; text-align: left;
+  background: none; border: 1px solid transparent; border-radius: 8px;
+  font-size: .96rem; font-weight: 700; color: var(--글);
+  letter-spacing: -.01em; padding: 6px 8px; overflow-wrap: anywhere;
+}
+.층이름:hover { background: #141a22; }
+.층이름:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+.층이름.골랐음 {
+  background: var(--고른바탕); border-color: var(--고른테); color: #cfe9e2;
+}
+.층이름.뿌리 { font-size: .82rem; font-weight: 600; color: var(--흐린글); letter-spacing: .06em; padding: 4px 4px 2px; }
+
+/* ---------- 미끄러지는 층 ---------- */
+
+.미끄럼 { overflow: hidden; }
+
+@keyframes 안에서들어옴 { from { transform: translateX(26%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes 밖에서들어옴 { from { transform: translateX(-26%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.목.안에서 { animation: 안에서들어옴 .2s cubic-bezier(.32,.72,0,1); }
+.목.밖에서 { animation: 밖에서들어옴 .2s cubic-bezier(.32,.72,0,1); }
+
+.층빔 { color: #5d6773; font-size: .82rem; padding: 22px 8px; list-style: none; }
+
+/* ---------- 손질 ---------- */
+
+.손질줄 { display: flex; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--왼쪽테); }
+.손질줄[hidden] { display: none; }
+.손질 {
+  flex: 1; background: none; border: 1px dashed var(--테두리); color: var(--흐린글);
+  padding: 7px 0; border-radius: 7px; font-size: .8rem;
+}
+.손질:hover { color: var(--글); border-color: var(--흐린글); }
+.손질[hidden] { display: none; }
+
+.귀띔 { font-size: .72rem; color: #5d6773; line-height: 1.5; margin-bottom: 10px; padding: 0 2px; }
+.귀띔 b { color: var(--흐린글); font-weight: 600; }
+.귀띔[hidden] { display: none; }
+
+.손질:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+
+/* ---------- 단원 나무 ---------- */
+
+.목 { list-style: none; }
+.칸 { position: relative; }
+
+/* ★ 클릭 자리를 박스로. 폰에서 손가락으로 눌러야 하니 높이를 넉넉히. */
+.상자 {
+  display: flex; align-items: center; gap: 7px;
+  min-height: 38px; padding: 7px 9px; margin: 3px 0;
+  border: 1px solid transparent; border-radius: 8px;
+  font-size: .89rem; color: var(--글); line-height: 1.35;
+  user-select: none; -webkit-user-select: none; touch-action: none;
+}
+.상자:hover { background: #141a22; }
+
+/* 과목 안에서는 단원이 층층이 들여쓰기로 펼쳐진다.
+   ★ 기본은 소단원까지 다 펼친 상태. 꺾쇠로 접었다 폈다 한다. */
+.상자.깊이0 { padding-left: 5px; }
+.상자.깊이1 { padding-left: 18px; font-size: .86rem; }
+.상자.깊이2 { padding-left: 31px; font-size: .84rem; color: #b7bfc9; }
+.상자.깊이3 { padding-left: 44px; font-size: .83rem; color: #a8b1bc; }
+.상자.깊이4 { padding-left: 57px; font-size: .83rem; color: #a8b1bc; }
+.상자.깊이0 .글 { font-weight: 600; }
+
+/* 접기·펴기 꺾쇠
+   ★ 크게 만든다. 이걸 눌러야만 하위 단원이 열리므로 손가락으로 정확히 짚혀야 한다.
+     (사용자가 정한 것 — 「단원 열고 닫는 거 사이즈 좀 키워라」, 2026-09-01) */
+.꺾쇠 {
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: none; border: 0; padding: 0; border-radius: 6px;
+  color: #79838f; font-size: .95rem; line-height: 28px; text-align: center;
+  transition: transform .13s, color .13s, background .13s;
+}
+.꺾쇠.빔 { pointer-events: none; visibility: hidden; }
+.꺾쇠:hover { color: #fff; background: #222c38; }
+.꺾쇠.접힘 { transform: rotate(-90deg); }
+.꺾쇠:focus-visible { outline: 2px solid var(--악센트); }
+.상자.골랐음 .꺾쇠 { color: var(--악센트); }
+
+.더들어감 { flex-shrink: 0; color: #4a5563; font-size: 1rem; line-height: 1; }
+.상자:hover .더들어감 { color: var(--흐린글); }
+.상자.골랐음 .더들어감 { color: var(--악센트); }
+.상자:focus-visible { outline: 2px solid var(--악센트); outline-offset: -1px; }
+
+/* 고른 것 — 하나만 켜진다 */
+.상자.골랐음 {
+  background: var(--고른바탕); border-color: var(--고른테);
+  color: var(--악센트); font-weight: 700;
+}
+.상자.골랐음:hover { background: var(--고른바탕); }
+
+.글 { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.개수 {
+  flex-shrink: 0; color: var(--흐린글); font-size: .74rem;
+  background: var(--판밝게); border-radius: 999px; padding: 1px 7px;
+}
+.상자.골랐음 .개수 { background: #1e3b3d; color: #8fd3c4; }
+
+.고침칸 {
+  flex: 1; min-width: 0; background: #0b0e12; color: var(--글);
+  border: 1px solid var(--악센트); border-radius: 5px; padding: 3px 7px; font-size: .875rem;
+}
+.고침칸:focus { outline: none; }
+
+/* 끌 때 표시 */
+.상자.위로   { box-shadow: inset 0  2px 0 0 var(--악센트); }
+.상자.아래로 { box-shadow: inset 0 -2px 0 0 var(--악센트); }
+.상자.안으로 { background: #1d3833; border-color: var(--악센트); }
+
+.끄는것 {
+  position: fixed; z-index: 300; pointer-events: none; transform: translate(10px, 10px);
+  background: var(--판밝게); border: 1px solid var(--악센트); color: var(--글);
+  font-size: .82rem; padding: 5px 11px; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.5);
+}
+.끄는것[hidden] { display: none; }
+body.끄는중, body.끄는중 .상자 { cursor: grabbing; }
+
+/* ---------- 우클릭 메뉴 ---------- */
+
+.맥락메뉴 {
+  position: fixed; z-index: 320; min-width: 168px;
+  background: var(--판밝게); border: 1px solid var(--테두리); border-radius: 9px;
+  padding: 5px; box-shadow: 0 10px 30px rgba(0,0,0,.55);
+}
+.맥락메뉴[hidden] { display: none; }
+.메뉴이름 {
+  font-size: .74rem; color: var(--흐린글); padding: 5px 10px 7px;
+  border-bottom: 1px solid var(--테두리); margin-bottom: 4px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.메뉴줄 {
+  display: block; width: 100%; text-align: left;
+  background: none; border: 0; color: var(--글);
+  padding: 8px 10px; border-radius: 6px; font-size: .85rem;
+}
+.메뉴줄:hover { background: var(--판); }
+.메뉴줄.빨강 { color: #e08b96; }
+.메뉴줄.빨강:hover { background: #2a1c1f; }
+.메뉴줄.강조 { color: var(--악센트); font-weight: 600; }
+.메뉴줄.강조:hover { background: #14262a; }
+.메뉴안내 {
+  padding: 8px 10px; font-size: .76rem; color: #6b7681; line-height: 1.45;
+  max-width: 240px; overflow-wrap: anywhere;
+}
+
+/* 영상을 끌 때는 왼쪽 단원이 받는 자리라는 걸 보여 준다 */
+body.영상끄는중 .왼쪽 { outline: 2px dashed var(--악센트흐림); outline-offset: -4px; }
+body.영상끄는중 .상자 { cursor: copy; }
+/* ★ 끄는 동안 뒷막이 손끝을 가로채면 단원을 못 짚는다 */
+body.영상끄는중 .뒷막 { pointer-events: none; }
+.메뉴줄:focus-visible { outline: 2px solid var(--악센트); }
+
+/* ---------- 동영상 링크 연결 창 ---------- */
+
+.연결막 {
+  position: fixed; inset: 0; z-index: 340;
+  background: rgba(6, 8, 11, .72); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.연결막[hidden] { display: none; }
+
+.연결창 {
+  width: min(460px, 100%);
+  background: var(--판); border: 1px solid var(--테두리); border-radius: 12px;
+  padding: 24px 24px 20px; box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+.연결제목 { font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; }
+.연결단원 {
+  margin-top: 5px; font-size: .8rem; color: var(--흐린글);
+  overflow-wrap: anywhere; padding-bottom: 16px; border-bottom: 1px solid var(--테두리);
+}
+
+.연결칸 { display: block; margin-top: 16px; }
+.연결이름 { display: block; font-size: .8rem; color: var(--흐린글); margin-bottom: 6px; }
+.연결칸 input {
+  width: 100%; background: #0b0e12; color: var(--글);
+  border: 1px solid var(--테두리); border-radius: 8px;
+  padding: 10px 12px; font-size: .9rem;
+}
+.연결칸 input::placeholder { color: #4d5763; }
+.연결칸 input:focus { outline: none; border-color: var(--악센트); }
+
+.연결말 { min-height: 18px; margin-top: 12px; font-size: .8rem; color: var(--흐린글); overflow-wrap: anywhere; }
+.연결말.빨강 { color: #e08b96; }
+
+.연결단추줄 { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.연결취소, .연결하기 {
+  height: 38px; padding: 0 20px; border-radius: 8px; font-size: .88rem; border: 1px solid var(--테두리);
+}
+.연결취소 { background: none; color: var(--흐린글); }
+.연결취소:hover { color: var(--글); border-color: var(--흐린글); }
+.연결하기 { background: var(--악센트흐림); border-color: var(--악센트); color: #e6f2f0; font-weight: 600; }
+.연결하기:hover { background: var(--악센트); color: #08110f; }
+.연결하기:disabled { opacity: .55; cursor: default; }
+.연결취소:focus-visible, .연결하기:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+
+/* ---------- ① 격자 ---------- */
+
+.목록머리 { padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--테두리); }
+.목록머리:empty { display: none; }
+.길줄 { font-size: 1.02rem; font-weight: 600; color: var(--글); overflow-wrap: anywhere; letter-spacing: -.01em; }
+.머리잔글 { font-size: .82rem; color: var(--흐린글); margin-top: 3px; }
+.단원아이디 {
+  margin-top: 6px; font-size: .71rem; color: #5d6773;
+  font-family: Consolas, monospace; user-select: all;
+}
+
+.격자 { display: block; }
+.카드판 { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px 16px; }
+
+
+/* ★ touch-action:none 이라야 폰에서 끌 수 있다.
+     없으면 손가락을 끌 때 브라우저가 화면 스크롤로 가져가 버린다.
+     -webkit-user-drag:none 은 브라우저가 그림을 끌어가는 것을 막는다.
+     (2026-09-02 — 「동영상을 드래그해서 다른 단원으로 이동시킬 수 있게 해」) */
+.카드 {
+  background: none; border: 0; padding: 0; text-align: left; color: inherit;
+  display: flex; flex-direction: column; gap: 9px;
+  touch-action: none;
+  user-select: none; -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+.카드 img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+.카드그림 {
+  position: relative;                 /* ★ 길이 딱지를 오른쪽 아래에 앉히려면 필요하다 */
+  width: 100%; aspect-ratio: 16 / 9; background: #0a0d11;
+  border-radius: 9px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.카드그림 img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/*  영상 길이 딱지 — 썸네일 오른쪽 아래 (사용자가 정한 것, 2026-09-02) */
+.영상길이 {
+  position: absolute; right: 6px; bottom: 6px;
+  background: rgba(0, 0, 0, .82); color: #fff;
+  font-size: .74rem; font-weight: 600; line-height: 1;
+  padding: 3px 5px; border-radius: 4px;
+  letter-spacing: .2px; pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.카드:hover .카드그림 { outline: 2px solid var(--악센트흐림); outline-offset: -2px; }
+.카드:focus-visible .카드그림 { outline: 2px solid var(--악센트); outline-offset: 2px; }
+.없음 { font-size: .72rem; color: var(--흐린글); text-align: center; padding: 8px; line-height: 1.4; }
+
+.카드제목 { font-size: .93rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.카드아래 { display: flex; gap: 11px; margin-top: 4px; font-size: .79rem; color: var(--흐린글); flex-wrap: wrap; }
+.강사이름 { color: var(--악센트); }
+.하트.내가 { color: #d97a86; }
+
+.카드.막힘 { opacity: .45; cursor: not-allowed; }
+.카드.막힘:hover .카드그림 { outline: none; }
+
+/* ---------- 자막 만드는 중 게이지 ---------- */
+/*  사용자가 정한 것 (2026-09-02): 「자막 생성되는 동안은 게이지가 차도록」 */
+
+.자막칸 { margin-top: 7px; }
+.자막글 { font-size: .74rem; color: var(--흐린글); margin-bottom: 4px; }
+.자막글 b { color: var(--악센트); font-weight: 700; }
+.자막게이지 { height: 4px; background: #1b212a; border-radius: 2px; overflow: hidden; }
+.자막찬것 {
+  height: 100%; width: 0; border-radius: 2px; background: var(--악센트);
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+.자막칸.터짐 .자막글 { color: #d97a86; }
+.자막칸.기다림 .자막글 { color: var(--흐린글); opacity: .72; margin-bottom: 0; }
+
+.자막만들기단추 {
+  background: none; border: 1px dashed var(--테두리); color: var(--흐린글);
+  padding: 5px 10px; border-radius: 6px; font-size: .74rem; line-height: 1;
+}
+.자막만들기단추:hover { color: var(--악센트); border-color: var(--악센트흐림); border-style: solid; }
+.자막만들기단추:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+
+.빈목록 { color: var(--흐린글); padding: 44px 4px; font-size: .9rem; }
+.빈잔글 { display: block; margin-top: 6px; font-size: .78rem; color: #5d6773; }
+
+/* ---------- ② 보기 (유튜브식) ---------- */
+
+.보기[hidden], .격자보기[hidden] { display: none; }
+
+/* ★ 왼쪽 사이드바의 「‹ 과목」 과 크기·생김새를 똑같이 맞춘다.
+     (사용자가 정한 것 — 「목록으로 옆에 ‹과목 하고 사이즈·디자인 동일하게」, 2026-09-02) */
+.뒤로줄 { display: flex; gap: 8px; margin-bottom: 14px; }
+.뒤로 {
+  display: flex; align-items: center; gap: 5px;
+  background: #111820; border: 1px solid var(--왼쪽테); color: var(--글);
+  min-height: 42px; padding: 0 16px; border-radius: 9px;
+  font-size: .9rem; font-weight: 600;
+}
+.뒤로:hover { background: #16202a; border-color: var(--악센트흐림); color: var(--악센트); }
+.뒤로:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+
+.보기판 { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+
+/* ★ 16:9 로 못 박는다. 화면이 커도 너무 커지지 않게 위 한계를 준다. */
+.영상통 { position: relative; width: 100%; background: #000; border-radius: 10px; overflow: hidden; }
+.화면칸 { width: 100%; aspect-ratio: 16 / 9; background: #000; }
+.화면칸 iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* ---------- 우리 자막 ---------- */
+/* ★ 영상 위에 겹쳐 그린다. pointer-events:none 이라 밑의 재생 단추가 그대로 눌린다. */
+
+/* ★ bottom 을 넉넉히 띄운다. 8% 로 뒀더니 긴 자막이 유튜브 재생 막대를 덮었다.
+     (2026-09-01 — 「뭐 이런거 가끔 나오네」) */
+/* --자막배율 은 js/자막.js 가 정한다. 화면에서 고른 크기가 여기로 들어온다. */
+:root { --자막배율: 1; }
+
+.자막층 {
+  position: absolute; left: 50%; bottom: 13%;
+  z-index: 4;                     /* ★ 덮개(2)보다 위 — 자막이 가려지면 안 된다 */
+  transform: translateX(-50%);
+  max-width: 88%; pointer-events: none;
+  background: rgba(0, 0, 0, .8);
+  color: #fff;
+  font-size: calc(clamp(17px, 2.9cqw, 34px) * var(--자막배율));
+  font-weight: 600; line-height: 1.4; letter-spacing: -.01em;
+  padding: 5px 13px; border-radius: 6px; text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,.9);
+  word-break: keep-all; overflow-wrap: anywhere;
+  /* 어쩌다 긴 줄이 와도 세 줄까지만. 화면을 잡아먹지 않게. */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+/* ★ 수식 변수는 기울임체 (2026-09-02 · 사용자가 정함)
+     수학은 변수를 기울여 쓴다. 세리프체로 두면 진짜 수식처럼 보인다.
+     단위·상수는 자막.js 에서 걸러서 안 기울인다. */
+.자막층 i.변수 {
+  font-family: "Cambria Math", "Latin Modern Math", Cambria, "Times New Roman", serif;
+  font-style: italic; font-weight: 500;
+  padding-right: .04em;
+}
+.자막층[hidden] { display: none; }
+.영상통 { container-type: inline-size; }
+
+/* 전체화면일 때는 영상이 가운데 오게 */
+.영상통:fullscreen { border-radius: 0; display: flex; align-items: center; justify-content: center; }
+.영상통:fullscreen .화면칸 { width: 100vw; height: 100vh; aspect-ratio: auto; }
+.영상통:fullscreen .자막층 {
+  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: 11%;
+}
+
+/* ---------- 영상 밑 단추줄 ---------- */
+/* ★★★ 우리 단추는 영상 「밖」 에 둔다 (2026-09-02 에 밟음)
+     한때 유튜브 재생바를 끄고(controls=0) 우리 재생바를 영상 위에 그렸다.
+     그런데 유튜브가 그리는 것(가운데 정지 표시 등)은 못 지워서,
+     우리 바는 빨리 사라지고 유튜브 표시는 늦게 사라져 따로 놀았다.
+     ⇒ 영상 안은 전부 유튜브에게 맡기고, 우리 것은 밑에 둔다. */
+
+.영상밑줄 { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.영상밑줄[hidden] { display: none; }
+.밑단추 {
+  background: var(--판); border: 1px solid var(--테두리); color: var(--흐린글);
+  height: 34px; padding: 0 14px; border-radius: 7px; font-size: .82rem; line-height: 1;
+}
+.밑단추:hover { color: var(--글); border-color: var(--흐린글); }
+.밑단추.꺼짐 { color: #6b7681; }
+.밑단추:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+
+.크기통 { position: relative; }
+
+/* ★★★ 유튜브가 그리는 것을 덮으려고 하지 마라 (2026-09-02 에 밟음)
+
+   좌측 아래 🔗 · 우측 아래 유튜브 로고 · 가운데 정지 표시 —
+   셋 다 iframe 안쪽이라 우리가 못 지운다.
+   그래서 위에 검은 조각을 얹어 봤는데 「훨씬 더 이상해졌다」 는 말을 들었다.
+   검은 네모든 그늘이든, 영상 위에 얹은 것은 그냥 눈에 띈다.
+   ⇒ 가리지 않는 쪽이 낫다. 저것들은 멈췄을 때만 잠깐 뜨고 재생하면 사라진다. */
+
+
+/* 자막 크기 고르는 판 */
+.크기통 { position: relative; }
+.크기판 {
+  position: absolute; right: 0; bottom: 40px; min-width: 168px; z-index: 20;
+  background: rgba(14,17,22,.96); border: 1px solid rgba(211,216,222,.22);
+  border-radius: 8px; padding: 5px; box-shadow: 0 8px 24px rgba(0,0,0,.6);
+}
+.판머리 {
+  font-size: .7rem; color: #8b95a1; letter-spacing: .06em;
+  padding: 5px 10px 4px;
+}
+.판머리.위줄 { border-top: 1px solid rgba(211,216,222,.16); margin-top: 4px; padding-top: 8px; }
+.판귀띔 { font-size: .68rem; color: #6b7681; padding: 2px 10px 4px; line-height: 1.4; }
+
+.밀기줄 { display: flex; align-items: center; gap: 4px; padding: 2px 6px 4px; }
+.밀기단추 {
+  background: rgba(255,255,255,.09); border: 0; color: #e8edf2;
+  width: 30px; height: 28px; border-radius: 6px; font-size: .95rem; line-height: 1;
+}
+.밀기단추:hover { background: rgba(255,255,255,.2); }
+.밀기단추.영으로 { font-size: .75rem; }
+.밀기값 {
+  flex: 1; text-align: center; color: var(--악센트);
+  font-size: .8rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.크기판[hidden] { display: none; }
+.크기줄 {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  color: #e8edf2; padding: 7px 10px; border-radius: 5px; line-height: 1.3;
+}
+.크기줄:hover { background: rgba(255,255,255,.14); }
+.크기줄.골랐음 { color: var(--악센트); font-weight: 700; }
+
+/* ---------- 강의 안에서 찾기 ---------- */
+
+.찾기줄 { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.찾기줄[hidden] { display: none; }
+.찾기줄 input {
+  flex: 1; min-width: 0; background: #0b0e12; color: var(--글);
+  border: 1px solid var(--테두리); border-radius: 8px; padding: 9px 12px; font-size: .88rem;
+}
+.찾기줄 input::placeholder { color: #4d5763; }
+.찾기줄 input:focus { outline: none; border-color: var(--악센트); }
+.찾기셈 { flex-shrink: 0; font-size: .78rem; color: var(--흐린글); }
+
+.찾은것 { display: flex; flex-direction: column; max-height: 300px; overflow-y: auto; }
+.찾은것:not(:empty) { margin-top: 8px; border: 1px solid var(--테두리); border-radius: 8px; padding: 4px; }
+
+.찾은줄 {
+  display: flex; gap: 10px; align-items: baseline; width: 100%; text-align: left;
+  background: none; border: 0; color: var(--글);
+  padding: 7px 9px; border-radius: 6px; font-size: .85rem; line-height: 1.5;
+}
+.찾은줄:hover { background: var(--판); }
+.찾은줄:focus-visible { outline: 2px solid var(--악센트); outline-offset: -2px; }
+.찾은때 {
+  flex-shrink: 0; color: var(--악센트); font-size: .78rem;
+  font-variant-numeric: tabular-nums; min-width: 48px;
+}
+.찾은글 { min-width: 0; overflow-wrap: anywhere; }
+.찾은글 mark { background: #3b5f3a; color: #d6f5cf; border-radius: 3px; padding: 0 2px; }
+
+/* ★ 제목과 강사를 한 줄에 두고 강사는 오른쪽 끝으로.
+     「강사」 딱지와 이름은 생김새를 다르게 한다.
+     (사용자가 정한 것 — 「강사명을 제목 있는 줄로 옮기고 우측정렬, 강사 김세진 으로 표기」, 2026-09-02) */
+.제목줄 {
+  display: flex; align-items: baseline; gap: 18px;
+  margin-top: 15px;
+}
+.보기제목 { flex: 1; min-width: 0; font-size: 1.16rem; font-weight: 600; letter-spacing: -.02em; overflow-wrap: anywhere; }
+
+.보기강사 { flex-shrink: 0; display: inline-flex; align-items: baseline; gap: 7px; }
+.보기강사[hidden] { display: none; }
+.강사딱지 {
+  font-size: .68rem; font-weight: 500; color: var(--흐린글);
+  letter-spacing: .14em; border: 1px solid var(--테두리);
+  border-radius: 4px; padding: 2px 6px; position: relative; top: -1px;
+}
+.강사이름칸 { font-size: 1.02rem; font-weight: 700; color: var(--악센트); letter-spacing: -.01em; }
+
+.보기줄 { display: flex; align-items: center; gap: 14px; margin-top: 9px; flex-wrap: wrap; }
+.보기셈 { color: var(--흐린글); font-size: .85rem; }
+.보기길 { margin-top: 10px; color: #5d6773; font-size: .79rem; overflow-wrap: anywhere; }
+
+.좋아요 {
+  margin-left: auto; background: var(--판); border: 1px solid var(--테두리); color: var(--흐린글);
+  height: 34px; padding: 0 16px; border-radius: 999px; font-size: .85rem; line-height: 1; flex-shrink: 0;
+}
+.좋아요:hover { color: var(--글); border-color: var(--흐린글); }
+.좋아요.눌림 { color: #e08b96; border-color: #563036; background: #201a1c; }
+.좋아요:focus-visible { outline: 2px solid var(--악센트); outline-offset: 2px; }
+
+.옆머리 { font-size: .84rem; color: var(--흐린글); margin-bottom: 11px; }
+.옆빔 { font-size: .82rem; color: #5d6773; }
+
+.옆줄 {
+  display: flex; gap: 10px; width: 100%; background: none; border: 0;
+  padding: 7px; border-radius: 8px; text-align: left; color: var(--글); margin-bottom: 3px;
+}
+.옆줄:hover { background: var(--판); }
+.옆줄:focus-visible { outline: 2px solid var(--악센트); outline-offset: -2px; }
+.옆그림 {
+  width: 124px; aspect-ratio: 16 / 9; flex-shrink: 0; background: #0a0d11;
+  border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+}
+.옆그림 img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.옆속 { min-width: 0; flex: 1; }
+.옆제목 { font-size: .85rem; font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
+.옆아래 { display: flex; gap: 9px; margin-top: 3px; font-size: .75rem; color: var(--흐린글); flex-wrap: wrap; }
+.옆줄.막힘 { opacity: .45; cursor: not-allowed; }
+.옆줄.막힘:hover { background: none; }
+
+/* ---------- 업데이트 게이지 ---------- */
+/* ★ 뒤 화면이 비쳐야 한다. 까맣게 덮으면 「꺼졌다」 로 보인다. */
+
+.업막 {
+  position: fixed; inset: 0; z-index: 200; background: rgba(14, 17, 22, .55);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.업막[hidden] { display: none; }
+.업통 {
+  width: min(340px, 100%); background: var(--판);
+  border: 1px solid var(--테두리); border-radius: 10px; padding: 20px 22px;
+}
+.업글 { font-size: .9rem; color: var(--글); margin-bottom: 12px; }
+.게이지 { height: 6px; background: #0c1015; border-radius: 3px; overflow: hidden; }
+.찬것 { height: 100%; width: 0%; border-radius: 3px; background: var(--악센트); transition: width .55s cubic-bezier(.4,0,.2,1); }
+
+/* ---------- 쪽지 · 뒷막 ---------- */
+
+.쪽지 {
+  position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 10px);
+  background: var(--판밝게); border: 1px solid var(--테두리); color: var(--글);
+  padding: 10px 17px; border-radius: 8px; font-size: .85rem; z-index: 210;
+  opacity: 0; transition: opacity .22s, transform .22s;
+  max-width: calc(100vw - 32px); text-align: center;
+}
+.쪽지[hidden] { display: none; }
+.쪽지.뜸 { opacity: 1; transform: translate(-50%, 0); }
+
+.뒷막 { position: fixed; inset: 0; z-index: 70; background: rgba(6, 8, 11, .6); }
+.뒷막[hidden] { display: none; }
+
+/* ============================================================
+   폰 · 태블릿
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  .보기판 { grid-template-columns: 1fr; gap: 22px; }
+  .옆그림 { width: 150px; }
+}
+
+@media (max-width: 900px) {
+  .두단 { grid-template-columns: 1fr; }
+  .서랍단추 { display: block; }
+
+  .폭잡이 { display: none; }   /* 폰에서는 서랍이라 폭을 끌 일이 없다 */
+
+  .왼쪽 {
+    position: fixed; z-index: 80; top: 0; left: 0; bottom: 0;
+    width: min(310px, 84vw); height: 100%;
+    background: var(--왼쪽바탕); border-right: 1px solid var(--왼쪽테);
+    transform: translateX(-102%); transition: transform .2s ease;
+    box-shadow: 0 0 30px rgba(0,0,0,.5);
+  }
+  .왼쪽.열림 { transform: translateX(0); }
+  .왼쪽속 { padding: 14px 12px 60px; }
+
+  .오른쪽 { padding: 14px 14px 50px; }
+
+  /* 보기 화면에서는 영상이 화면 폭 그대로 위에 붙는다 */
+  .보기 .영상통 { margin: 0 -14px; width: calc(100% + 28px); border-radius: 0; }
+  .영상밑줄 { padding: 0 14px; }
+  .뒤로 { margin-bottom: 12px; }
+
+  .카드판 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px 14px; }
+
+  /* 손가락으로 누를 자리 */
+  .상자 { min-height: 46px; font-size: .92rem; }
+  .꺾쇠 { width: 36px; height: 36px; line-height: 36px; font-size: 1.05rem; }
+  .메뉴줄 { padding: 11px 12px; font-size: .9rem; }
+  .옆그림 { width: 132px; }
+}
+
+@media (max-width: 620px) {
+  .머리메뉴 { display: none; }      /* 폰에서는 자리가 없다. 어차피 화면이 이것뿐이다 */
+  .이름글 { display: none; }
+}
+
+@media (max-width: 480px) {
+  .카드판 { grid-template-columns: 1fr; gap: 16px; }
+  /* 폰에서는 제목이 길면 강사를 아래로 내린다 — 옆에 붙이면 제목이 잘린다 */
+  .제목줄 { flex-wrap: wrap; gap: 6px 14px; }
+  .보기제목 { flex-basis: 100%; }
+  .보기강사 { margin-left: auto; }
+  .머리오른쪽 { gap: 7px; }
+  .업데이트 { padding: 0 11px; font-size: .8rem; }
+  .판 { font-size: .74rem; }
+  .옆그림 { width: 116px; }
+  .보기제목 { font-size: 1.06rem; }
+}
+
+/* ★ 폰을 눕혀서 볼 때 — 영상이 화면을 꽉 채운다. 애들이 제일 많이 하는 자세다. */
+@media (max-height: 500px) and (orientation: landscape) {
+  header { display: none; }
+  .오른쪽 { padding: 0; }
+  .보기 .뒤로, .보기제목, .보기줄, .보기길, .옆목록 { display: none; }
+  .보기 .화면칸 { height: 100vh; aspect-ratio: auto; margin: 0; width: 100%; border-radius: 0; }
+  .왼쪽 { top: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
