@@ -546,7 +546,7 @@ body.전체화면중 { overflow: hidden; }
      화면을 90도 눕혀 놨으니 보는 사람의 「위」 = 폰 기준 **오른쪽**이다.
      그래서 위로 올리려면 left 를 키워야 한다. (내가 top 을 만지고 있었다)
    ★ 숫자는 --올려보기 한 곳만 고치면 된다. */
-  position: fixed; top: 50%; left: calc(50% + var(--올려보기, 40px));
+  position: fixed; top: 50%; left: calc(50% + var(--올려보기, 12px));
   /* ★★★ right·bottom 을 반드시 풀어야 한다 (2026-09-02 에 밟음)
        「전체 화면이 … 잡다한거 위아래는 그냥 다 남는다」
        가짜전체화면이 inset:0 을 걸어 둬서 right·bottom 이 0 으로 남는다.
