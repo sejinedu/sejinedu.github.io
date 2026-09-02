@@ -856,29 +856,6 @@ body.전체화면중 { overflow: hidden; }
 /* ★★★ 나가기 ✕ — 폰에서는 **오른쪽 변 한가운데** (2026-09-02 · 사용자가 정함)
      「전체화면에서 x 버튼 위치 옮기자. 오른쪽 가운데로. 오른쪽 변 가운데」
    ★ 단추가 영상통 안에 들어 있어서 눕혀도 같이 돌아간다 — 사람 눈엔 늘 오른쪽 가운데다. */
-/* ★★★ 임시 조절판 — 자막 단추 맞은편(왼쪽 위) (2026-09-02)
-     사용자가 손으로 비율을 맞춰 보고 숫자를 알려 주면 그 값으로 굳히고 지운다. */
-/* ★ 가장자리는 잘려 보인다 — 안쪽으로 (2026-09-02 · 사용자가 잡음)
-     「조절 버튼 자체가 짤려서 잘 안보여 좀 중앙쪽에 만들어놔」
-   자막(28%) · ✕(50%) 와 안 겹치게 70% 자리에 둔다. */
-.조절통 { position: absolute; top: 10px; left: 70%; }
-.조절통 .조절판 { left: auto; right: 0; }
-.조절판 {
-  position: absolute; left: 0; top: calc(100% + 7px);
-  display: flex; flex-direction: column; gap: 4px;
-  background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
-  border-radius: 9px; padding: 5px; min-width: 150px;
-  box-shadow: 0 8px 22px rgba(0,0,0,.55);
-  backdrop-filter: blur(4px);
-}
-.조절판 { max-height: 74vh; overflow-y: auto; }
-.조절판[hidden] { display: none; }
-.조절값 {
-  color: #7fe3c0; font-size: .8rem; font-weight: 700;
-  padding: 6px 10px; white-space: nowrap;
-  border-bottom: 1px solid rgba(211,216,222,.18); margin-bottom: 2px;
-}
-
 .전체단추.나가기 {
   /* ★ 다시 맨 위 가운데다 (2026-09-02 · 사용자가 정함)
        「x 버튼은 다시 화면 가운데 위에 배치해라」
@@ -896,7 +873,6 @@ body.전체화면중 { overflow: hidden; }
      오른쪽 가장자리에서 100px 쯤이다. 그 왼쪽에 붙인다. */
 @media (hover: hover) and (pointer: fine) {
   .전체단추.나가기 { display: none; }
-  .조절통 { display: none; }   /* 임시 조절판도 폰에서만 */
 
   .자막통 { left: auto; right: 176px; top: 10px; }
 
@@ -1101,23 +1077,9 @@ body.전체화면중 { overflow: hidden; }
   max-width: none; max-height: none;
   /* ★★★ 그냥 볼 때는 형이 맞춘 만큼 키우고, 조작판을 부르면 원래대로 돌아간다.
        그래야 유튜브 재생바·설정 아이콘이 안 잘린다 (2026-09-02 · 사용자가 정함).
-     ★ --손확대 · --손옆 · --손위 는 임시 조절판이 만지는 값이다 (없으면 1 과 0). */
+     ★ --손확대 · --손옆 은 js/재생기.js 가 적어 준다 (없으면 1 과 0). */
   transform: translate(-50%, -50%)
              translateX(var(--손옆, 0px)) translateY(var(--손위, 0px))
              scale(var(--손확대, 1));
   transform-origin: center center;
-  transition: transform .22s ease;
-}
-
-/* ★★★ 조작판이 떠 있는 동안은 **키우지 않는다** (2026-09-02 · 사용자가 정함)
-     「또 유튜브 재생바 설정 아이콘 이딴거 다 날리지 말고」
-   키운 채로 두면 유튜브 재생바·설정이 가장자리 밖으로 밀려나 잘린다.
-   손을 대는 순간 원래 크기(1배)로 되돌아가 단추가 전부 보인다.
-   손을 떼고 조작판이 사라지면 다시 스르륵 커진다. */
-.영상통.조작판떴다.가짜전체화면 .화면칸 iframe,
-.영상통.조작판떴다.가로눕히기 .화면칸 iframe,
-.영상통.조작판떴다:fullscreen .화면칸 iframe {
-  transform: translate(-50%, -50%)
-             translateX(var(--손옆, 0px)) translateY(var(--손위, 0px))
-             scale(1);
 }
