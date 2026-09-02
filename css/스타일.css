@@ -166,7 +166,17 @@ body.폭조절중 iframe { pointer-events: none; }   /* 영상 위로 끌어도 
 .층이름.골랐음 {
   background: var(--고른바탕); border-color: var(--고른테); color: #cfe9e2;
 }
-.층이름.뿌리 { font-size: .82rem; font-weight: 600; color: var(--흐린글); letter-spacing: .06em; padding: 4px 4px 2px; }
+/* ★ 「과목 선택」 과 「‹ 과목」 의 상자·글자 크기를 맞춘다 (2026-09-02 · 사용자가 정함)
+     「과목 선택하고 과목 글자 크기 동일하게 하고 여기 박스 크기 동일하게 해줘」
+     둘은 같은 자리에 번갈아 나오는 것이라 크기가 다르면 화면이 들썩인다.
+   ★ 색만 다르게 둔다 — 하나는 누르는 것(단추)이고 하나는 그냥 이름표다. */
+.층이름.뿌리 {
+  display: flex; align-items: center; width: 100%;
+  min-height: 42px; padding: 0 12px; border-radius: 9px;
+  border: 1px solid transparent;
+  font-size: .9rem; font-weight: 600; color: var(--흐린글);
+  letter-spacing: .02em; margin-bottom: 9px;
+}
 
 /* ---------- 미끄러지는 층 ---------- */
 
