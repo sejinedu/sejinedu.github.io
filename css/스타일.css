@@ -842,7 +842,12 @@ body.전체화면중 { overflow: hidden; }
      ★ 나는 유튜브 틀 안을 못 본다. 남의 집이라 들여다볼 수가 없다.
        스피커가 어디 있는지는 사용자가 보내 준 사진으로만 안다.
        겹치면 말해 달라고 해서 숫자를 옮기는 수밖에 없다. */
-.자막통 { position: absolute; right: 10px; top: 10px; }
+/* ★★★ 자리 잡기가 어렵다 — 나는 유튜브 틀 안을 못 본다 (2026-09-02)
+     남의 집이라 브라우저가 막아 놨다. 사용자가 보내 주는 사진으로만 안다.
+     · 왼쪽 위 → 화면 위쪽에 떠서 「세진과학」 로고와 겹쳤다
+     · 오른쪽 위 → 마찬가지로 로고 위에 얹혔다
+     ⇒ ✕(가운데) 바로 옆, 로고와 유튜브 아이콘 사이의 빈 자리로 옮긴다. */
+.자막통 { position: absolute; top: 10px; left: 28%; }
 
 /* 나가기 — 맨 위 가운데 */
 .전체단추.나가기 {
@@ -868,7 +873,7 @@ body.전체화면중 { overflow: hidden; }
 .자막판 {
   /* ★ 아래로 연다 — 「드롭바는 아래로 뜨게 해」.
        단추가 위에 있으니 아래로 열 자리가 넉넉하다. */
-  position: absolute; right: 0; top: calc(100% + 7px);
+  position: absolute; left: 0; top: calc(100% + 7px);
   display: flex; flex-direction: column; gap: 4px;
   background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
   border-radius: 9px; padding: 5px; min-width: 128px;
