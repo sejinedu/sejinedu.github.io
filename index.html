@@ -100,28 +100,8 @@
           <div class="영상통" id="영상통">
             <div class="화면칸" id="화면칸"></div>
 
-            <!-- ★★★ 손짓 받는 층 (2026-09-02 · 사용자가 정함)
-                   「전체화면에서 동영상을 꾹누르고 아래로 스와이프하면 작아지게도 해줘」
-                 영상 위의 손짓은 유튜브 틀이 삼켜서 우리한테 안 온다.
-                 그래서 유튜브 조작판을 끄고(controls=0) 이 층이 손짓을 받는다.
-                 · 한 번 누르면 조작판을 폈다 접는다
-                 · 꾹 누르고 아래로 쓸면 전체화면에서 나간다 -->
-            <div class="몸짓층" id="몸짓층"></div>
-
             <div class="자막층" id="자막층" hidden></div>
 
-            <!-- 우리가 만든 조작판 — 유튜브 것 대신이다 -->
-            <div class="조작판" id="조작판" hidden>
-              <button class="조작단추 큰것" id="재생정지" type="button" aria-label="재생">▶</button>
-              <span class="시각글" id="지금시각">0:00</span>
-              <input class="진행바" id="진행바" type="range" min="0" max="1000" value="0"
-                     aria-label="재생 위치">
-              <span class="시각글" id="전체시각">0:00</span>
-              <span class="배속통">
-                <button class="조작단추" id="배속단추" type="button">1×</button>
-                <div class="배속판" id="배속판" hidden></div>
-              </span>
-            </div>
 
             <!-- ★★★ 전체화면에서 쓰는 단추들 (2026-09-02 · 사용자가 폰에서 잡음)
                    「전체 화면에서 다시 되돌아 가는 방법이 없다」
@@ -130,21 +110,20 @@
                  ★ 영상 위(유튜브 틀 위)에 얹혀 있어야 눌린다.
                  ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다 — 삐뚤지 않다. -->
             <div class="전체화면단추들" id="전체화면단추들" hidden>
-              <button class="손잡이" id="단추손잡이" type="button" aria-label="자막 손질 열기">가</button>
               <div class="단추속" id="단추속">
-                <!-- 자막 단추를 누르면 드롭바가 뜬다 (2026-09-02 · 사용자가 정함)
-                     「자막 버튼 클릭하면 드롭바 생기면서 자막 끄기 켜기 있고,
-                       자막 위치 올리기, 자막 위치 내리기, 뜨게 해줘」 -->
+                <!-- ★ 우리 것은 자막 하나뿐이다 (2026-09-02 · 사용자가 정함)
+                     「유튜브 조작판은 냅두고 그냥 우리껀 자막 버튼만 하나 심자」
+                     크기·위치·끄기를 모두 이 드롭바 안에 넣었다. -->
                 <span class="자막통">
                   <button class="전체단추" id="자막메뉴단추" type="button" aria-haspopup="true">자막 ▾</button>
                   <div class="자막판" id="자막판" hidden>
                     <button class="자막판칸" id="자막껐켰" type="button">자막 끄기</button>
+                    <button class="자막판칸" id="자막크게" type="button">글씨 크게 가＋</button>
+                    <button class="자막판칸" id="자막작게" type="button">글씨 작게 가−</button>
                     <button class="자막판칸" id="자막올리기" type="button">위치 올리기 ↑</button>
                     <button class="자막판칸" id="자막내리기" type="button">위치 내리기 ↓</button>
                   </div>
                 </span>
-                <button class="전체단추" id="자막작게" type="button" aria-label="자막 작게">가−</button>
-                <button class="전체단추" id="자막크게" type="button" aria-label="자막 크게">가＋</button>
                 <button class="전체단추 나가기" id="전체화면나가기" type="button"
                         aria-label="전체화면 나가기">✕</button>
               </div>

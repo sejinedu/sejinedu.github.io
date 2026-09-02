@@ -817,91 +817,43 @@ body.전체화면중 { overflow: hidden; }
 .뒷막 { transition: opacity .2s ease; }
 
 /* ---------- 전체화면에서 쓰는 단추들 ---------- */
-/* ★ 사용자가 폰에서 잡은 것 (2026-09-02) —
-     「전체 화면에서 다시 되돌아 가는 방법이 없다」
-     「이 상황에서 자막 크기를 줄일 방법도 없다」
-     「니가 만든거는 안없어져 … 한번 터치하면 생기고 다시 터치하면 사라지게 해」
-     「요기능도 쓸때가 있으니까 냅두고, 니가 만든건 이거랑 안겹치게」
+/* ★ 사용자가 정한 것 (2026-09-02) —
+     「유튜브 조작판은 냅두고 그냥 우리껀 자막 버튼만 하나 심자」
+     「자막 버튼을 스피커 버튼 옆에 만들고, 드롭바는 아래로 뜨게 해」
+     「그리고 엑스버튼은 맨위에 가운데에 만들어」
 
-   ★★★ 자리를 왼쪽 가운데로 잡았다.
-     유튜브는 위(제목)·아래(재생바)·오른쪽 위(소리·자막·설정)를 쓴다.
-     왼쪽 가운데는 유튜브가 안 쓰는 자리라 겹치지 않는다.
+   ★ 통은 화면을 덮되 손짓은 통과시킨다(pointer-events:none).
+     그래야 유튜브 조작판을 그대로 누를 수 있다. 단추만 손짓을 받는다.
    ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다 — 삐뚤지 않다. */
-.전체화면단추들 {
-  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  z-index: 6; display: flex; align-items: center; gap: 6px;
-  width: max-content; white-space: nowrap;
-}
+.전체화면단추들 { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
 .전체화면단추들[hidden] { display: none; }
+.전체화면단추들 > * { pointer-events: auto; }
 
-/* 평소에는 손잡이 하나만. 누르면 펴진다. */
-.손잡이 {
-  flex-shrink: 0;
-  background: rgba(10, 14, 19, .55); border: 1px solid rgba(211,216,222,.22);
-  color: #e6ebf0; border-radius: 999px;
-  width: 34px; height: 34px; padding: 0;
-  font-size: .82rem; font-weight: 700; line-height: 1;
-  backdrop-filter: blur(3px);
-}
-.손잡이:active { background: rgba(10, 14, 19, .85); }
+/* 자막 단추 — 유튜브 스피커 단추 옆 (영상 아래 왼쪽) */
+.자막통 { position: absolute; left: 92px; bottom: 12px; }
 
-.단추속 {
-  display: flex; gap: 6px;
-  max-width: 0; overflow: hidden; opacity: 0;
-  transition: max-width .26s cubic-bezier(.32,.72,0,1), opacity .2s ease;
+/* 나가기 — 맨 위 가운데 */
+.전체단추.나가기 {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  font-size: .95rem; min-width: 40px;
 }
-.전체화면단추들.펼침 .단추속 { max-width: 60vmax; opacity: 1; }
-.전체화면단추들.펼침 .손잡이 { background: rgba(10, 14, 19, .85); }
 
 .전체단추 {
-  flex-shrink: 0;
   background: rgba(10, 14, 19, .72); border: 1px solid rgba(211,216,222,.28);
   color: #e6ebf0; border-radius: 8px;
-  min-width: 40px; height: 34px; padding: 0 9px;
-  font-size: .8rem; font-weight: 600; line-height: 1;
+  min-width: 40px; height: 32px; padding: 0 10px;
+  font-size: .78rem; font-weight: 600; line-height: 1;
   backdrop-filter: blur(3px);
 }
 .전체단추:active { background: rgba(10, 14, 19, .92); }
-.전체단추.나가기 { font-size: .95rem; min-width: 36px; }
-.전체단추.꺼짐 { color: var(--흐린글); border-color: rgba(211,216,222,.15); }
 
-
-/* ★★★ 전체화면이 스르륵 돌면서 커진다 (2026-09-02 · 사용자가 정함)
-     「전체화면 누르면 좀 스무스 하게 회전 되면서 화면이 확장 되게 해줘.
-       연속적으로. 끌때도 마찬가지야」
-   ★ 크기와 회전을 같은 시간에 함께 움직인다. 따로 놀면 덜컹거린다.
-   ★ 눈이 아픈 사람이 「움직임 줄이기」 를 켜 놨으면 그냥 바로 바뀐다. */
-.영상통 {
-  transition:
-    transform .32s cubic-bezier(.32,.72,0,1),
-    width     .32s cubic-bezier(.32,.72,0,1),
-    height    .32s cubic-bezier(.32,.72,0,1),
-    top       .32s cubic-bezier(.32,.72,0,1),
-    left      .32s cubic-bezier(.32,.72,0,1),
-    border-radius .32s ease;
-  will-change: transform, width, height;
-}
-@media (prefers-reduced-motion: reduce) {
-  .영상통 { transition: none; }
-}
-
-/* ★ 오른쪽으로 끌 때 뒤에 깔리는 「나갈 곳」 (2026-09-02)
-     「우측 스와이프 하는데 과목선택쪽이 안나온다」
-     밀기만 하고 뒤가 비면 까만 자리만 보인다. 과목 목록을 미리 깔아 둔다.
-   ★ 진짜 목록이 아니라 그림자다 — 누를 수 없다. 손을 떼면 지운다. */
-.뒷장 {
-  position: absolute; left: 0; right: 0; top: 0;
-  pointer-events: none;
-  transform: translateX(-26%); opacity: .15;
-  transition: transform .18s ease, opacity .18s ease;
-}
-.미끄럼 { position: relative; }
-.뒷장칸 { opacity: .85; }
 
 /* 자막 드롭바 (2026-09-02 · 「자막 버튼 클릭하면 드롭바 생기면서」) */
 .자막통 { position: relative; flex-shrink: 0; }
 .자막판 {
-  position: absolute; left: 0; top: calc(100% + 6px);
+  /* ★ 위로 연다 — 단추가 영상 아래쪽에 있어서 밑으로 열면 화면 밖으로 나간다
+       (사용자는 「아래로 뜨게」 라고 했지만 그 자리에서는 안 보인다) */
+  position: absolute; left: 0; bottom: calc(100% + 7px);
   display: flex; flex-direction: column; gap: 4px;
   background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
   border-radius: 9px; padding: 5px; min-width: 128px;
