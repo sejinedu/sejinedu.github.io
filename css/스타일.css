@@ -1115,6 +1115,7 @@ body.전체화면중 { overflow: hidden; }
   transition: opacity .18s ease;
 }
 .우리바[hidden] { display: none; }
+.우리바 { touch-action: none; }   /* 바 위 손짓은 화면 넘김에 안 뺏긴다 */
 .우리바.쉬는중 { opacity: 0; pointer-events: none; }
 
 .바단추 {
@@ -1132,8 +1133,12 @@ body.전체화면중 { overflow: hidden; }
 
 /* 재생 위치 줄 — 브라우저 기본 모양을 안 쓰고 직접 그린다 */
 .바줄 {
-  flex: 1; min-width: 60px; height: 26px; margin: 0;
+  flex: 1; min-width: 60px; height: 30px; margin: 0;
   -webkit-appearance: none; appearance: none; background: none; cursor: pointer;
+  /* ★★★ 손짓을 우리가 다 갖는다 (2026-09-03 · 사용자가 잡음 — 「줄 끌어서 이동 안되고」)
+       이 밖은 touch-action: pan-y 라 옆으로 끄는 손짓을 화면 넘김이 가로챈다.
+       줄 위에서는 none 으로 막아야 끝까지 우리가 받는다. */
+  touch-action: none;
 }
 .바줄::-webkit-slider-runnable-track {
   height: 4px; border-radius: 2px; background: rgba(255,255,255,.32);

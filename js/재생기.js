@@ -169,6 +169,7 @@ const 재생기 = (() => {
     if (우리바 && !우리바.hidden) 우리바.classList.toggle("쉬는중", !보일까);
     통.classList.toggle("조작판보임", 보일까);
     if (!보일까) { 드롭바접기(); 배속판접기(); }
+    가운데재생칠하기();
   }
 
   function 사라질시계걸기(얼마) {
@@ -489,10 +490,20 @@ const 재생기 = (() => {
     catch (오류) { return false; }
   }
 
+  //  ★★★ 깜빡이지 않게 (2026-09-03 · 사용자가 잡음 — 「가운데 재생 멈춤 보였다 안보엿다 난잡하다」)
+  //    앞서는 「돌고 있나」 만 봤다. 그런데 유튜브는 받아오는 중(3)에도 「안 돈다」 고 답한다.
+  //    그 사이에 단추가 떴다 사라졌다 해서 난잡했다.
+  //    ⇒ **진짜로 멈춰 있을 때만** 띄운다. 받아오는 중이면 건드리지 않는다.
+  //    ⇒ 바가 숨어 있으면 같이 숨는다.
   function 가운데재생칠하기() {
     if (!가운데재생) return;
-    const 있나 = !!(우리바 && !우리바.hidden);
-    가운데재생.hidden = !있나 || 돌고있나2();
+    let 상태 = -9;
+    try { 상태 = (플레이어 && 플레이어.getPlayerState) ? 플레이어.getPlayerState() : -9; }
+    catch (오류) { 상태 = -9; }
+    if (상태 === 3) return;                       // 받아오는 중 — 그대로 둔다
+    const 멈췄나 = (상태 === 2 || 상태 === 0 || 상태 === -1);
+    const 바보임 = !!(우리바 && !우리바.hidden && !우리바.classList.contains("쉬는중"));
+    가운데재생.hidden = !(바보임 && 멈췄나);
   }
 
   function 재생단추칠하기() {
@@ -561,10 +572,21 @@ const 재생기 = (() => {
   });
 
   if (바줄) {
-    const 잡기 = () => { 줄잡았나 = true; clearTimeout(사라질시계); };
-    const 놓기 = () => {
+    // ★ 손가락을 이 줄에 **붙들어 둔다**. 안 그러면 조금만 벗어나도 끌기가 끊긴다.
+    const 잡기 = ㅇ => {
+      줄잡았나 = true;
+      clearTimeout(사라질시계);
+      if (ㅇ && ㅇ.pointerId !== undefined) {
+        try { 바줄.setPointerCapture(ㅇ.pointerId); } catch (오류) {}
+      }
+      if (ㅇ && ㅇ.stopPropagation) ㅇ.stopPropagation();
+    };
+    const 놓기 = ㅇ => {
       if (!줄잡았나) return;
       줄잡았나 = false;
+      if (ㅇ && ㅇ.pointerId !== undefined) {
+        try { 바줄.releasePointerCapture(ㅇ.pointerId); } catch (오류) {}
+      }
       const 초 = parseFloat(바줄.value) || 0;
       try { if (플레이어 && 플레이어.seekTo) 플레이어.seekTo(초, true); } catch (오류) {}
       보이기(true, 톡눌렀을때);
