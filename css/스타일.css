@@ -539,6 +539,12 @@ body.전체화면중 { overflow: hidden; }
    ★ 자막층도 영상통 안에 있으니 같이 돌아간다. 따로 손댈 것 없다. */
 .영상통.가로눕히기, .보기 .영상통.가로눕히기 {
   position: fixed; top: 50%; left: 50%;
+  /* ★★★ right·bottom 을 반드시 풀어야 한다 (2026-09-02 에 밟음)
+       「전체 화면이 … 잡다한거 위아래는 그냥 다 남는다」
+       가짜전체화면이 inset:0 을 걸어 둬서 right·bottom 이 0 으로 남는다.
+       그러면 폭·높이를 줘도 그 두 개가 상자를 붙들어 크기가 안 먹는다.
+       그래서 화면을 다 못 덮고 위아래에 원래 화면이 비쳤다. */
+  right: auto; bottom: auto;
   width: 100dvh; height: 100dvw;
   max-width: none; max-height: none;
   transform: translate(-50%, -50%) rotate(90deg);
