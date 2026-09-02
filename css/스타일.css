@@ -213,9 +213,14 @@ body.폭조절중 iframe { pointer-events: none; }   /* 영상 위로 끌어도 
        「목록을 하나 선택하고 그다음 위로 스와이프 하면 스크롤이 안움직인다」
        touch-action:none 은 끌어 옮기려고 건 것인데, 스크롤까지 같이 막는다.
        손님은 끌 일이 없으니 스크롤을 열어 준다. 끄는 건 주인일 때만 막는다.
-     ★ pan-y 로 위아래만 열었더니 좌우가 막혔다 — 「좌우 스와이프도 되게 해라」.
-       auto 로 다 열어 준다. 브라우저 뒤로가기 쓸기도 같이 살아난다. */
-  touch-action: auto;
+     ★★★ auto 로 다 열었더니 브라우저가 손짓을 채 갔다 (2026-09-02 에 밟음)
+       「좌로 가다가 조금만 위로 움직이면 바로 풀린다」
+       auto 면 위아래·좌우를 **브라우저가** 맡는다. 옆으로 끌던 중에
+       손가락이 조금만 위로 흔들려도 브라우저가 스크롤로 가져가 버리고
+       우리 끌기는 끊긴다(pointercancel).
+       ⇒ pan-y 로 되돌린다. 위아래는 브라우저가, **좌우는 우리가** 맡는다.
+         이게 좌우 쓸기를 막는 게 아니라 오히려 우리 것으로 만드는 설정이다. */
+  touch-action: pan-y;
 }
 body.주인 .상자 { touch-action: none; }
 .상자:hover { background: #141a22; }
@@ -384,8 +389,8 @@ body.영상끄는중 .뒷막 { pointer-events: none; }
   background: none; border: 0; padding: 0; text-align: left; color: inherit;
   display: flex; flex-direction: column; gap: 9px;
   /* ★ 손님은 스크롤이 되어야 한다 — 위 .상자 와 같은 까닭 (2026-09-02)
-     ★ 좌우도 연다 (auto). 위아래만 열면 뒤로가기 쓸기가 막힌다. */
-  touch-action: auto;
+     ★ pan-y 라야 좌우 끌기가 우리 것이 된다. auto 면 브라우저가 채 간다. */
+  touch-action: pan-y;
   user-select: none; -webkit-user-select: none;
   -webkit-user-drag: none;
 }
@@ -862,3 +867,16 @@ body.전체화면중 { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .영상통 { transition: none; }
 }
+
+/* ★ 오른쪽으로 끌 때 뒤에 깔리는 「나갈 곳」 (2026-09-02)
+     「우측 스와이프 하는데 과목선택쪽이 안나온다」
+     밀기만 하고 뒤가 비면 까만 자리만 보인다. 과목 목록을 미리 깔아 둔다.
+   ★ 진짜 목록이 아니라 그림자다 — 누를 수 없다. 손을 떼면 지운다. */
+.뒷장 {
+  position: absolute; left: 0; right: 0; top: 0;
+  pointer-events: none;
+  transform: translateX(-26%); opacity: .15;
+  transition: transform .18s ease, opacity .18s ease;
+}
+.미끄럼 { position: relative; }
+.뒷장칸 { opacity: .85; }

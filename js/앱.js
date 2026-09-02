@@ -1654,8 +1654,31 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
     뒷막.style.opacity = "";
   }
 
+  // ★★★ 끌기 시작할 때 뒤에 「나갈 곳」 을 미리 깔아 둔다 (2026-09-02 · 사용자가 잡음)
+  //   「우측 스와이프 하는데 과목선택쪽이 안나온다」
+  //   밀기만 하고 뒤가 비어 있으면 까만 자리만 보인다.
+  //   ⇒ 한 층 위(과목 목록)를 뒤에 깔아서 같이 따라 들어오게 한다.
+  //   ★ 진짜 목록이 아니라 그림자다. 손을 떼면 지운다.
+  let 뒷장 = null;
+
+  function 뒷장깔기() {
+    if (뒷장 || 경로.length === 0) return;
+    뒷장 = document.createElement("div");
+    뒷장.className = "뒷장";
+    뒷장.innerHTML = 나무.목록.map(ㅁ =>
+      '<div class="상자 뒷장칸"><span class="글">' +
+      String(ㅁ.이름 || "").replace(/&/g, "&amp;").replace(/</g, "&lt;") +
+      '</span></div>').join("");
+    미끄럼칸.insertBefore(뒷장, 나무칸);
+  }
+
+  function 뒷장치우기() {
+    if (뒷장) { 뒷장.remove(); 뒷장 = null; }
+  }
+
   // 밀어 놓은 목록을 제자리로 (나가지 않을 때)
   function 목록되돌리기() {
+    뒷장치우기();
     나무칸.classList.remove("손따라감");
     나무칸.style.transform = "";
     나무칸.style.opacity = "";
@@ -1663,6 +1686,7 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
 
   // 나갈 때는 밀린 채로 두고, 새 목록이 그려지면서 자연스럽게 바뀐다
   function 목록치우기() {
+    뒷장치우기();
     나무칸.classList.remove("손따라감");
     나무칸.style.transform = "";
     나무칸.style.opacity = "";
@@ -1692,9 +1716,17 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
     //   전에는 손을 뗄 때 툭 바뀌었다. 이제 미는 만큼 밀린다.
     //   ★ 맨 위 층(과목 목록)에서는 나갈 데가 없으니 안 민다.
     if (옆 > 0 && 경로.length > 0) {
+      뒷장깔기();                                  // 뒤에 과목 목록을 미리 깔아 둔다
+      const 민만큼 = Math.min(옆, 나가는거리끝);
       나무칸.classList.add("손따라감");
-      나무칸.style.transform = "translateX(" + Math.min(옆, 나가는거리끝) + "px)";
-      나무칸.style.opacity = String(Math.max(0.35, 1 - 옆 / (나가는거리끝 * 1.6)));
+      나무칸.style.transform = "translateX(" + 민만큼 + "px)";
+      나무칸.style.opacity = String(Math.max(0.25, 1 - 민만큼 / (나가는거리끝 * 1.3)));
+      if (뒷장) {
+        // 뒤엣것은 왼쪽에서 따라 들어온다 — 미는 만큼 제자리로 온다
+        const 몫 = 민만큼 / 나가는거리끝;
+        뒷장.style.transform = "translateX(" + (-26 * (1 - 몫)) + "%)";
+        뒷장.style.opacity = String(Math.min(1, 0.15 + 몫));
+      }
     }
     if (서랍이었나) 손따라(옆);
   }, { passive: true });
