@@ -541,15 +541,6 @@ body.전체화면중 { overflow: hidden; }
        그러면 폭·높이를 줘도 그 두 개가 상자를 붙들어 크기가 안 먹는다.
        그래서 화면을 다 못 덮고 위아래에 원래 화면이 비쳤다. */
   right: auto; bottom: auto;
-  /* ★★★ 틀을 **화면 끝까지** 키운다 (2026-09-02 · 사용자가 사진 둘로 잡아냄)
-       「야 너 지금 뭔가 잘못생각하고 있어」 — 맞았다.
-       사방이 남았던 건 16:9 때문이 아니라 **틀이 화면보다 작게 잡혔기 때문**이다.
-       dvh 는 주소창·아랫바를 모두 밀어낸 「지금 보이는」 높이라 화면보다 짧다.
-       lvh/lvw 는 **화면 전체** 크기다.
-     ★ 영상을 자르는 것이 아니다. 틀만 키우면 영상도 그만큼 커진다. */
-  /* ★★★ lvh 는 주소창 **밑까지** 잡는 크기라 가장자리가 화면 밖으로 나간다.
-       「조절 버튼 자체가 짤려서 잘 안보여」 (2026-09-02) — 그래서 되돌린다.
-       dvh/dvw 는 **지금 눈에 보이는 만큼**이다. 그게 맞다. */
   width: 100dvh; height: 100dvw;
   max-width: none; max-height: none;
   transform: translate(-50%, -50%) rotate(90deg);
@@ -641,14 +632,10 @@ body.전체화면중 { overflow: hidden; }
 
 /* ★★★ 폰에서 찾기 칸을 누르면 화면이 확 당겨진다 (2026-09-02 · 사용자가 잡아냄)
      「강의 안에서 찾기 누르면 창이 확대 되는데 확대 되지 않게 해줘」 / 「핸드폰에서 그래」
-
-   사파리·크롬은 글자가 16px 보다 작은 칸에 손이 닿으면 **저절로 화면을 당긴다.**
-   글씨가 너무 작아 못 읽을까 봐 브라우저가 알아서 해 주는 짓이다. 끄는 스위치는 없다.
-   막는 길은 하나뿐 — 글자를 16px 로 키운다. 그러면 당길 까닭이 없어서 가만히 있다.
-
-   ★ 화면 전체 확대를 막는 길(user-scalable=no)로 가면 안 된다.
-     그건 눈이 나쁜 사람이 손으로 키우는 것까지 같이 막는다.
-     여기 하나 때문에 그걸 막을 수는 없다. */
+   사파리·크롬은 글자가 16px 보다 작은 칸에 손이 닿으면 저절로 화면을 당긴다.
+   끄는 스위치는 없다. 글자를 16px 로 키우면 당길 까닭이 없어져 가만히 있는다.
+   ★ 화면 전체 확대를 막는 길(user-scalable=no)로 가면 안 된다 —
+     눈이 나쁜 사람이 손으로 키우는 것까지 같이 막힌다. */
 @media (pointer: coarse) {
   .찾기줄 input { font-size: 16px; }
 }
@@ -851,39 +838,12 @@ body.전체화면중 { overflow: hidden; }
      · 왼쪽 위 → 화면 위쪽에 떠서 「세진과학」 로고와 겹쳤다
      · 오른쪽 위 → 마찬가지로 로고 위에 얹혔다
      ⇒ ✕(가운데) 바로 옆, 로고와 유튜브 아이콘 사이의 빈 자리로 옮긴다. */
-/* ★ 오른쪽으로 붙인다 (2026-09-03 · 사용자가 정함)
-     「x 버튼 맨 우측에 옮기고 자막도 오른쪽으로 붙여 옮겨」
-   ✕ 가 맨 오른쪽, 그 왼쪽에 자막. */
-.자막통 { position: absolute; top: 10px; left: auto; right: 58px; }
-.자막통 .자막판 { left: auto; right: 0; }   /* 오른쪽 끝이라 드롭바도 오른쪽 정렬 */
+.자막통 { position: absolute; top: 10px; left: 28%; }
 
-/* ★★★ 나가기 ✕ — 폰에서는 **오른쪽 변 한가운데** (2026-09-02 · 사용자가 정함)
-     「전체화면에서 x 버튼 위치 옮기자. 오른쪽 가운데로. 오른쪽 변 가운데」
-   ★ 단추가 영상통 안에 들어 있어서 눕혀도 같이 돌아간다 — 사람 눈엔 늘 오른쪽 가운데다. */
+/* 나가기 — 맨 위 가운데 */
 .전체단추.나가기 {
-  /* ★ 다시 맨 위 가운데다 (2026-09-02 · 사용자가 정함)
-       「x 버튼은 다시 화면 가운데 위에 배치해라」
-       오른쪽 변 가운데로 옮겼더니 「이러면 x버튼 사라진다」 — 되돌린다. */
-  position: absolute; top: 10px; right: 10px; left: auto;
-  transform: none;
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
   font-size: .95rem; min-width: 40px;
-}
-
-/* ★★★ 웹(마우스 쓰는 자리)은 딴판이다 (2026-09-02 · 사용자가 정함)
-     · 「웹에는 x를 그냥 없애라 이미 크롬엔 x가 있다」 → ✕ 를 아예 안 그린다
-     · 「웹에 자막 버튼 스피커 옆으로 옮겨놔라」   → 오른쪽 위 스피커 왼쪽으로
-   ★ 자리는 짐작이 아니다 — 브라우저를 띄워 내 눈으로 재고 잡았다.
-     유튜브 스피커·CC·설정이 오른쪽 위에 모여 있고, 스피커 왼쪽 끝이
-     오른쪽 가장자리에서 100px 쯤이다. 그 왼쪽에 붙인다. */
-@media (hover: hover) and (pointer: fine) {
-  .전체단추.나가기 { display: none; }
-  .자막통 { right: 118px; }        /* 웹은 유튜브 대신 우리 바를 쓰니 오른쪽 위가 빈다 */
-
-  .자막통 { left: auto; right: 176px; top: 10px; }
-
-  /* 단추가 오른쪽 끝에 붙었으니 드롭바도 오른쪽에 맞춰 편다.
-     안 그러면 화면 밖으로 삐져나간다. */
-  .자막통 .자막판 { left: auto; right: 0; }
 }
 
 .전체단추 {
@@ -1050,135 +1010,3 @@ body.전체화면중 { overflow: hidden; }
   .옆줄:hover { background: var(--판); }
   .옆줄.막힘:hover { background: none; }
 }
-
-
-/* ============================================================
-   ★★★ 전체화면에서 좌우로 당겨 딱 맞춘다
-   ============================================================
-
-   사용자가 정한 것 (2026-09-02):
-     「그냥 그대로 좌우만 잡아 당기라고」 「그냥 딱 맞춰봐」
-
-   영상은 1280×720 (16:9), 폰 화면은 그보다 길다(2.17:1).
-   유튜브가 제 비율을 지키려고 스스로 검은 띠를 그린다 — 남의 집이라 못 지운다.
-
-   ⇒ 유튜브 틀을 **16:9 그대로** 만들어 놓고 **좌우로만 늘린다.**
-     아무것도 안 잘린다. 대신 가로로 1.22배 넓어져 보인다.
-
-   ★ 늘리는 배수는 CSS 가 못 센다(길이끼리 나누기를 못 한다).
-     js/재생기.js 의 당김맞추기() 가 재서 --틀폭·--틀높이·--당김 에 적어 준다.
-   ★ 값이 아직 없으면 예전처럼 그냥 꽉 채운다(100%). 화면이 죽지 않는다. */
-
-.영상통.가짜전체화면 .화면칸,
-.영상통.가로눕히기 .화면칸,
-.영상통:fullscreen .화면칸 { position: relative; overflow: hidden; }
-
-.영상통.가짜전체화면 .화면칸 iframe,
-.영상통.가로눕히기 .화면칸 iframe,
-.영상통:fullscreen .화면칸 iframe {
-  position: absolute; top: 50%; left: 50%;
-  width:  var(--틀폭, 100%);
-  height: var(--틀높이, 100%);
-  max-width: none; max-height: none;
-  /* ★★★ 그냥 볼 때는 형이 맞춘 만큼 키우고, 조작판을 부르면 원래대로 돌아간다.
-       그래야 유튜브 재생바·설정 아이콘이 안 잘린다 (2026-09-02 · 사용자가 정함).
-     ★ --손확대 · --손옆 은 js/재생기.js 가 적어 준다 (없으면 1 과 0). */
-  transform: translate(-50%, -50%)
-             translateX(var(--손옆, 0px)) translateY(var(--손위, 0px))
-             scale(var(--손확대, 1));
-  transform-origin: center center;
-}
-
-
-/* ============================================================
-   ★★★ 우리 재생바 (2026-09-03 · 사용자가 정함)
-   ============================================================
-     「어쩔수 없다 그럼 가운데 버튼 빼고 니껄로 다 갈아 끼워라」
-
-   왜 갈아 끼웠나 — 영상을 키워 검은 띠를 없애면 유튜브 재생바·설정이
-   가장자리 밖으로 밀려나 잘린다. 「존나 다 짤리자나」 (2026-09-02).
-   유튜브 조작판을 끄면(controls=0) 잘릴 것이 없어진다.
-
-   ★ 우리 바는 화면칸 **밖**(형제)이라 영상을 키워도 안 잘린다. */
-
-/* ★★★ 가운데는 뚫어 둔다 (2026-09-03 · 사용자가 알아냄)
-     「가운데는 유튜브 버튼 아니냐? 이거 못없애자나 그래서 겹쳐서 생기는구나
-       그럼 가운데는 그냥 유튜브 버튼 남겨놔 그걸로 눌러서 정지 재생 하게」
-   유튜브 가운데 재생 단추는 controls=0 으로도 안 없어진다.
-   ⇒ 우리 덮개를 네 조각으로 나눠 **가운데만 비워** 그 단추가 눌리게 한다.
-     바깥 네 조각은 우리가 받는다 — 톡 누르면 조작판이 떴다 사라진다. */
-.톡덮개 { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
-.톡칸  { position: absolute; pointer-events: auto; }
-.톡칸.위   { left: 0; right: 0; top: 0;  bottom: calc(50% + 62px); }
-.톡칸.아래 { left: 0; right: 0; top: calc(50% + 62px); bottom: 0; }
-.톡칸.왼   { left: 0; width: calc(50% - 62px); top: calc(50% - 62px); height: 124px; }
-.톡칸.오른 { right: 0; width: calc(50% - 62px); top: calc(50% - 62px); height: 124px; }
-
-
-.우리바 {
-  position: absolute; left: 0; right: 0; bottom: 0; z-index: 7;
-  display: flex; align-items: center; gap: 9px;
-  padding: 26px 12px calc(9px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(to top, rgba(0,0,0,.80), rgba(0,0,0,.35) 55%, rgba(0,0,0,0));
-  transition: opacity .18s ease;
-}
-.우리바[hidden] { display: none; }
-.우리바 { touch-action: none; }   /* 바 위 손짓은 화면 넘김에 안 뺏긴다 */
-.우리바.쉬는중 { opacity: 0; pointer-events: none; }
-
-.바단추 {
-  background: none; border: 0; color: #e9eef3; cursor: pointer;
-  min-width: 32px; height: 32px; font-size: 1rem; line-height: 1;
-  border-radius: 7px; flex-shrink: 0;
-}
-.바단추.배속 { font-size: .82rem; font-weight: 700; min-width: 40px; }
-.바단추:active { background: rgba(211,216,222,.16); }
-
-.바시간 {
-  color: #cfd6de; font-size: .74rem; white-space: nowrap; flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-/* 재생 위치 줄 — 브라우저 기본 모양을 안 쓰고 직접 그린다 */
-.바줄 {
-  flex: 1; min-width: 60px; height: 30px; margin: 0;
-  -webkit-appearance: none; appearance: none; background: none; cursor: pointer;
-  /* ★★★ 손짓을 우리가 다 갖는다 (2026-09-03 · 사용자가 잡음 — 「줄 끌어서 이동 안되고」)
-       이 밖은 touch-action: pan-y 라 옆으로 끄는 손짓을 화면 넘김이 가로챈다.
-       줄 위에서는 none 으로 막아야 끝까지 우리가 받는다. */
-  touch-action: none;
-}
-.바줄::-webkit-slider-runnable-track {
-  height: 4px; border-radius: 2px; background: rgba(255,255,255,.32);
-}
-.바줄::-moz-range-track {
-  height: 4px; border-radius: 2px; background: rgba(255,255,255,.32);
-}
-.바줄::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 13px; height: 13px; border-radius: 50%; background: #ff2d55;
-  margin-top: -4.5px; border: 0;
-}
-.바줄::-moz-range-thumb {
-  width: 13px; height: 13px; border-radius: 50%; background: #ff2d55; border: 0;
-}
-
-.배속통 { position: relative; flex-shrink: 0; }
-.배속판 {
-  position: absolute; right: 0; bottom: calc(100% + 8px);
-  display: flex; flex-direction: column; gap: 3px;
-  background: rgba(10, 14, 19, .95); border: 1px solid rgba(211,216,222,.24);
-  border-radius: 9px; padding: 5px; min-width: 84px;
-  box-shadow: 0 8px 22px rgba(0,0,0,.55);
-}
-.배속판[hidden] { display: none; }
-.배속칸 {
-  background: none; border: 0; color: #e6ebf0; cursor: pointer;
-  text-align: center; padding: 7px 10px; border-radius: 6px;
-  font-size: .82rem; font-weight: 600; white-space: nowrap;
-}
-.배속칸.골랐음 { color: var(--악센트); }
-.배속칸:active { background: rgba(211,216,222,.14); }
-
-/* 자막이 재생바에 가리지 않게 — 바가 떠 있는 동안만 위로 올린다 */
-.영상통.조작판보임 .자막층 { bottom: calc(var(--자막바닥, 3%) + 52px); }

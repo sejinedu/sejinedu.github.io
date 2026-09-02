@@ -53,7 +53,6 @@ const 재생기 = (() => {
     try { 지금 = 플레이어.getCurrentTime(); } catch (오류) { return; }
     if (typeof 지금 !== "number") return;
     듣는이들.forEach(ㄷ => { try { ㄷ(지금); } catch (오류) {} });
-    try { 시간칠하기(지금); } catch (오류) {}
   }
 
   function 돌리기시작() { 돌리기멈춤(); 시계 = setInterval(시간알리기, 200); }
@@ -82,13 +81,6 @@ const 재생기 = (() => {
 
   const 단추칸     = document.getElementById("전체화면단추들");
   const 나가기단추 = document.getElementById("전체화면나가기");
-  const 톡덮개     = document.getElementById("톡덮개");
-  const 우리바     = document.getElementById("우리바");
-  const 바재생     = document.getElementById("바재생");
-  const 바시간     = document.getElementById("바시간");
-  const 바줄       = document.getElementById("바줄");
-  const 배속단추   = document.getElementById("배속단추");
-  const 배속판     = document.getElementById("배속판");
   const 작게단추   = document.getElementById("자막작게");
   const 크게단추   = document.getElementById("자막크게");
 
@@ -156,23 +148,16 @@ const 재생기 = (() => {
   // 세어 둔 것을 화면에 입힌다
   //  ★ 드롭바를 만지는 중이면 유튜브가 꺼져 있어도 우리 단추는 붙잡아 둔다.
   //    (「드롭바 조정할때는 버튼 사라지지 않게 해줘」)
-  //  조작판(우리 바 + 전체화면 단추)이 지금 쓸 수 있는 상태인가
-  function 조작판있나() {
-    return !!((단추칸 && !단추칸.hidden) || (우리바 && !우리바.hidden));
-  }
-
   function 입히기() {
-    if (!조작판있나()) return;
-    const 보일까 = 유튜브떠있나 || 드롭바열렸나() || 배속판열렸나();
-    if (단추칸 && !단추칸.hidden) 단추칸.classList.toggle("쉬는중", !보일까);
-    if (우리바 && !우리바.hidden) 우리바.classList.toggle("쉬는중", !보일까);
-    통.classList.toggle("조작판보임", 보일까);
-    if (!보일까) { 드롭바접기(); 배속판접기(); }
+    if (!단추칸 || 단추칸.hidden) return;
+    const 보일까 = 유튜브떠있나 || 드롭바열렸나();
+    단추칸.classList.toggle("쉬는중", !보일까);
+    if (!보일까) 드롭바접기();
   }
 
   function 사라질시계걸기(얼마) {
     clearTimeout(사라질시계);
-    if (!조작판있나()) return;
+    if (!단추칸 || 단추칸.hidden) return;
     // ★ 시계는 무조건 건다. 울릴 때 그때 도는지 보고 정한다 (2026-09-02 에 밟음).
     //   전체화면으로 넘어가는 순간엔 유튜브가 상태를 잠깐 흐리게 답한다.
     사라질시계 = setTimeout(() => {
@@ -194,7 +179,7 @@ const 재생기 = (() => {
   //    전에는 「가운데 단추였나」 를 가리려고 0.15초 기다렸다. 그게 엇박자를 냈다.
   //    이제 기다리지 않는다. 가운데 단추였을 때는 발맞추기가 뒤이어 바로잡는다.
   function 톡눌렸다() {
-    if (!조작판있나()) return;
+    if (!단추칸 || 단추칸.hidden) return;
     // ★ 우리 단추가 보이느냐가 아니라 **유튜브가 떠 있느냐**를 뒤집는다.
     //   그래야 드롭바 때문에 우리만 떠 있던 뒤에도 박자가 안 어긋난다.
     보이기(!유튜브떠있나, 톡눌렀을때);
@@ -220,12 +205,9 @@ const 재생기 = (() => {
   //  · 멈추면 보여 준다 (유튜브 조작판도 그때 떠 있다)
   //  · 다시 돌면 3초 뒤 사라지게 시계를 건다
   function 발맞추기(도나) {
-    if (!조작판있나()) return;
-    // ★★★ 멈춰 있으면 조작판을 계속 띄워 둔다 (2026-09-03 · 사용자가 잡음)
-    //   「일시정지를 누르고 화면을 누르면 니가 만든 버튼은 안사라진다」
-    //   이제 유튜브 조작판이 없으니 맞출 상대도 없다 — 우리가 곧 기준이다.
-    if (!도나) { clearTimeout(사라질시계); 유튜브떠있나 = true; 입히기(); }
-    else 보이기(true, 재생눌렀을때);
+    if (!단추칸 || 단추칸.hidden) return;
+    if (!도나) { clearTimeout(사라질시계); 단추칸.classList.remove("쉬는중"); }
+    else 보이기(true, 재생눌렀을때);        // 가운데 재생을 누른 것 — 1초 늦게 사라진다
   }
 
   function 나가기단추보이기() {
@@ -331,10 +313,9 @@ const 재생기 = (() => {
   //  ★ 전에는 전체화면에 들어간 뒤 다시 툭 하고 누웠다. 두 번 움직이니 끊겨 보였다.
   //    ⇒ 작은 화면의 영상 자리를 먼저 재 두고, 거기서부터 **한 동작으로** 이어 붙인다.
   //
-  //  ★★★ CSS 바뀜(transition)으로는 안 된다.
+  //  ★★★ CSS 바뀜으로는 안 된다.
   //    누울 때 상자가 position:fixed 로 갈아타서 자리가 통째로 바뀐다.
   //    그래서 앞뒤 그림을 직접 적어 주는 길(Web Animations)로 간다.
-  //    끝 그림은 CSS 가 가진 값과 **똑같게** 맞춰 둔다 — 그래야 끝나는 순간 안 튄다.
 
   const 돌기시간 = 320;
   const 돌기결  = "cubic-bezier(.2,.7,.2,1)";
@@ -347,15 +328,12 @@ const 재생기 = (() => {
     돌기움직임 = null;
   }
 
-  //  들어갈 때는 작은 그림 → 누운 그림, 나올 때는 그 반대
   function 눕는움직임(들어가나, 끝나면) {
     const 끝 = () => { if (typeof 끝나면 === "function") 끝나면(); };
     const 자리 = 눕기전자리;
     const 폭 = 통.offsetWidth, 높이 = 통.offsetHeight;
     if (!통.animate || !자리 || !자리.width || !폭 || !높이) { 끝(); return; }
 
-    // ★ 누운 상자는 top:50% left:50% 에 앉아 translate(-50%,-50%) 로 가운데를 맞춘다.
-    //   돌리는 기준점은 상자 가운데다. 그래서 셈도 그 기준으로 맞춰야 한다.
     const 가운데x = window.innerWidth / 2, 가운데y = window.innerHeight / 2;
     const 옆 = (자리.left + 자리.width / 2) - (가운데x + 폭 / 2);
     const 위 = (자리.top + 자리.height / 2) - (가운데y + 높이 / 2);
@@ -376,230 +354,16 @@ const 재생기 = (() => {
       );
       돌기움직임 = ㅁ;
       ㅁ.finished.then(마침, 마침);
-      // ★ 어떤 폰은 finished 가 안 오기도 한다. 버팀목을 하나 둔다.
       setTimeout(마침, 돌기시간 + 120);
     } catch (오류) { 마침(); }
   }
-
-  // ============================================================
-  //  좌우로 당긴다 — 자르지 않고 화면에 딱 맞춘다
-  // ============================================================
-  //
-  //  사용자가 정한 것 (2026-09-02):
-  //    「그냥 그대로 좌우만 잡아 당기라고」 「그냥 딱 맞춰봐」 「채우기 버튼 없애고」
-  //
-  //  ★ 왜 띠가 생기나 — 영상은 1280×720 (16:9) 이고 폰 화면은 그보다 길다(2.17:1).
-  //    유튜브가 제 비율을 지키려고 **스스로** 띠를 그린다. 남의 집 안이라 못 지운다.
-  //
-  //  ★ 잘라서 채우는 길은 접었다 — 위든 아래든 칠판이 날아간다.
-  //    ⇒ 대신 **틀을 16:9 로 만들어 놓고 좌우로만 늘린다.**
-  //      아무것도 안 잘린다. 대신 가로로 조금(2.17÷1.78 ≈ 1.22배) 넓어져 보인다.
-  //
-  //  ★★★ CSS 로는 못 센다 — 길이끼리 나누는 셈을 CSS 가 못 한다.
-  //    그래서 여기서 재서 --틀폭/--틀높이/--당김 에 적어 준다. CSS 는 그걸 가져다 쓴다.
-
-  // ============================================================
-  //  전체화면에서 얼마나 키울까 — 형이 폰에서 손으로 맞춘 값
-  // ============================================================
-  //
-  //  사용자가 정한 것 (2026-09-02, 임시 조절판으로 직접 맞춰 불러 줬다):
-  //    「확대 1.12 · 옆 -8 · 위 0」
-  //    「야 확대 더 올리지 마」 「오른쪽은 일부러 남긴거야」
-  //
-  //  ★ 더 채우려 들지 마라. 이게 정답이다.
-  //  ★ 크기를 왔다 갔다 시키지도 마라 — 「왤케 조잡스럽게 해놨어」 (2026-09-03).
-  //    한 크기로 가만히 둔다.
-
-  //  ★★★ 되돌렸다 (2026-09-03) — 「이러면 유튜브 버튼 이거 뭐시기거 존나 다 짤리자나」
-  //    키우면 유튜브 재생바·설정이 가장자리 밖으로 밀려나 잘린다.
-  //    **키우기와 유튜브 단추는 같이 못 간다.** 단추를 살린다.
-  //    → 검은 띠까지 없애려면 유튜브 조작판을 끄고(controls=0) 우리 재생바를
-  //      직접 만드는 길뿐이다. 그건 사용자가 정할 일이다.
-  //  ★ 유튜브 조작판을 껐으니 이제 키워도 잘릴 것이 없다 (2026-09-03).
-  //    형이 폰에서 손으로 맞춘 값 그대로 쓴다.
-  const 손확대 = 1.12;
-  const 손옆   = -8;
-
-  function 손입히기() {
-    통.style.setProperty("--손확대", String(손확대));
-    통.style.setProperty("--손옆", 손옆 + "px");
-  }
-  손입히기();
-
-  function 당김맞추기() {
-    const 켰나 = 통.classList.contains("가로눕히기") || 통.classList.contains("가짜전체화면") ||
-                 (!!(document.fullscreenElement || document.webkitFullscreenElement) &&
-                  window.matchMedia("(pointer: coarse)").matches);   /* 웹은 그대로 둔다 */
-    if (!켰나) {
-      ["--틀폭", "--틀높이", "--당김가로", "--당김세로"].forEach(ㄱ => 통.style.removeProperty(ㄱ));
-      return;
-    }
-    const 폭 = 통.clientWidth, 높이 = 통.clientHeight;
-    if (!폭 || !높이) return;
-
-    // ★★★ 저절로 당기지 않는다 (2026-09-02 · 사용자가 잡음)
-    //   「야 화면 비율은 왜 바꿧어」 — 기본값으로 당겨 놓은 것이 잘못이었다.
-    //   ⇒ 여기서는 **영상 비율 그대로(16:9)** 화면 안에 얌전히 넣기만 한다.
-    //     키우는 것은 아래 손확대 하나로만 한다.
-    let 틀폭, 틀높이;
-    const 가로배 = 1, 세로배 = 1;
-    if (폭 / 높이 >= 16 / 9) { 틀높이 = 높이; 틀폭 = 높이 * 16 / 9; }
-    else                     { 틀폭 = 폭;   틀높이 = 폭 * 9 / 16; }
-    통.style.setProperty("--틀폭", 틀폭 + "px");
-    통.style.setProperty("--틀높이", 틀높이 + "px");
-    통.style.setProperty("--당김가로", String(가로배));
-    통.style.setProperty("--당김세로", String(세로배));
-  }
-
-  //  ★ 자리가 잡힌 다음에 재야 한다. 바로 재면 옛 크기가 나온다.
-  function 이따가당김맞추기() {
-    requestAnimationFrame(() => requestAnimationFrame(당김맞추기));
-  }
-
-  window.addEventListener("resize", 이따가당김맞추기);
-  window.addEventListener("orientationchange", 이따가당김맞추기);
-
-  // ============================================================
-  //  우리 재생바 — 재생·이동·배속
-  // ============================================================
-  //
-  //  사용자가 정한 것 (2026-09-03):
-  //    「어쩔수 없다 그럼 가운데 버튼 빼고 니껄로 다 갈아 끼워라」
-  //
-  //  ★ 유튜브 조작판(controls=0)을 껐으므로 여기가 유일한 조작판이다.
-  //  ★ 화질은 못 만든다 — 유튜브가 바깥에서 화질 바꾸는 길을 막아 놨다. 자동뿐이다.
-
-  const 배속들 = [0.75, 1, 1.25, 1.5, 1.75, 2];
-  let 지금배속 = 1;
-  let 줄잡았나 = false;         // 재생 위치 줄을 손으로 끌고 있나
-
-  function 시각글(초) {
-    초 = Math.max(0, Math.floor(초 || 0));
-    const 시 = Math.floor(초 / 3600);
-    const 분 = Math.floor((초 % 3600) / 60);
-    const 남 = 초 % 60;
-    const 두자리 = ㄱ => (ㄱ < 10 ? "0" : "") + ㄱ;
-    return (시 ? 시 + ":" + 두자리(분) : String(분)) + ":" + 두자리(남);
-  }
-
-  function 돌고있나2() {
-    try { return 플레이어 && 플레이어.getPlayerState && 플레이어.getPlayerState() === 1; }
-    catch (오류) { return false; }
-  }
-
-  //  ★★★ 깜빡이지 않게 (2026-09-03 · 사용자가 잡음 — 「가운데 재생 멈춤 보였다 안보엿다 난잡하다」)
-  //    앞서는 「돌고 있나」 만 봤다. 그런데 유튜브는 받아오는 중(3)에도 「안 돈다」 고 답한다.
-  //    그 사이에 단추가 떴다 사라졌다 해서 난잡했다.
-  //    ⇒ **진짜로 멈춰 있을 때만** 띄운다. 받아오는 중이면 건드리지 않는다.
-  //    ⇒ 바가 숨어 있으면 같이 숨는다.
-  function 재생단추칠하기() {
-    const 돈다 = 돌고있나2();
-    if (바재생) { 바재생.textContent = 돈다 ? "❚❚" : "▶"; 바재생.setAttribute("aria-label", 돈다 ? "멈춤" : "재생"); }
-  }
-
-  function 재생껐켰() {
-    if (!플레이어) return;
-    try { 돌고있나2() ? 플레이어.pauseVideo() : 플레이어.playVideo(); } catch (오류) {}
-    setTimeout(재생단추칠하기, 120);
-  }
-
-  function 시간칠하기(지금) {
-    if (!우리바 || 우리바.hidden) return;
-    let 전체 = 0;
-    try { 전체 = 플레이어 && 플레이어.getDuration ? 플레이어.getDuration() : 0; } catch (오류) {}
-    if (바줄 && 전체 > 0) {
-      바줄.max = String(Math.floor(전체));
-      if (!줄잡았나) 바줄.value = String(Math.floor(지금));
-    }
-    if (바시간) 바시간.textContent = 시각글(지금) + " / " + 시각글(전체);
-  }
-
-  // ---------- 배속 ----------
-  function 배속판열렸나() { return !!(배속판 && !배속판.hidden); }
-  function 배속판접기() { if (배속판) 배속판.hidden = true; }
-
-  function 배속판채우기() {
-    if (!배속판) return;
-    배속판.replaceChildren();
-    배속들.forEach(ㅂ => {
-      const ㄷ = document.createElement("button");
-      ㄷ.type = "button";
-      ㄷ.className = "배속칸" + (ㅂ === 지금배속 ? " 골랐음" : "");
-      ㄷ.textContent = ㅂ + "×";
-      ㄷ.addEventListener("click", ㅇ => {
-        ㅇ.stopPropagation();
-        지금배속 = ㅂ;
-        try { if (플레이어 && 플레이어.setPlaybackRate) 플레이어.setPlaybackRate(ㅂ); } catch (오류) {}
-        if (배속단추) 배속단추.textContent = ㅂ + "×";
-        배속판접기();
-        배속판채우기();
-        보이기(true, 톡눌렀을때);
-      });
-      배속판.appendChild(ㄷ);
-    });
-  }
-
-  if (배속단추) 배속단추.addEventListener("click", ㅇ => {
-    ㅇ.stopPropagation();
-    if (!배속판) return;
-    const 열까 = 배속판.hidden;
-    배속판채우기();
-    배속판.hidden = !열까;
-    보이기(true, 톡눌렀을때);
-  });
-
-  // ---------- 단추들 ----------
-  if (바재생) 바재생.addEventListener("click", ㅇ => {
-    ㅇ.stopPropagation(); 재생껐켰(); 보이기(true, 재생눌렀을때);
-  });
-
-  if (바줄) {
-    // ★ 손가락을 이 줄에 **붙들어 둔다**. 안 그러면 조금만 벗어나도 끌기가 끊긴다.
-    const 잡기 = ㅇ => {
-      줄잡았나 = true;
-      clearTimeout(사라질시계);
-      if (ㅇ && ㅇ.pointerId !== undefined) {
-        try { 바줄.setPointerCapture(ㅇ.pointerId); } catch (오류) {}
-      }
-      if (ㅇ && ㅇ.stopPropagation) ㅇ.stopPropagation();
-    };
-    const 놓기 = ㅇ => {
-      if (!줄잡았나) return;
-      줄잡았나 = false;
-      if (ㅇ && ㅇ.pointerId !== undefined) {
-        try { 바줄.releasePointerCapture(ㅇ.pointerId); } catch (오류) {}
-      }
-      const 초 = parseFloat(바줄.value) || 0;
-      try { if (플레이어 && 플레이어.seekTo) 플레이어.seekTo(초, true); } catch (오류) {}
-      보이기(true, 톡눌렀을때);
-    };
-    ["pointerdown", "touchstart", "mousedown"].forEach(ㅇ => 바줄.addEventListener(ㅇ, 잡기));
-    ["pointerup", "touchend", "mouseup", "change"].forEach(ㅇ => 바줄.addEventListener(ㅇ, 놓기));
-    바줄.addEventListener("input", () => {
-      if (바시간) {
-        let 전체 = 0;
-        try { 전체 = 플레이어 && 플레이어.getDuration ? 플레이어.getDuration() : 0; } catch (오류) {}
-        바시간.textContent = 시각글(parseFloat(바줄.value) || 0) + " / " + 시각글(전체);
-      }
-    });
-    바줄.addEventListener("click", ㅇ => ㅇ.stopPropagation());
-  }
-
-  // ---------- 영상 위를 톡 누르면 ----------
-  //  ★ 유튜브 조작판을 껐으니 이 덮개가 손짓을 그대로 받는다.
-  //    전에는 손짓이 유튜브 틀 안으로 들어가 버려 눈길(focus)로 짐작해야 했다.
-  if (톡덮개) 톡덮개.addEventListener("click", ㅇ => {
-    ㅇ.stopPropagation();
-    톡눌렸다();
-  });
 
   function 전체화면바꾸기() {
     const 지금전체 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
                     통.classList.contains("가짜전체화면");
 
     if (지금전체) {
-      // ★★★ 누워 있었으면 **돌면서 작아진 다음에** 벗긴다 (2026-09-02 · 사용자가 정함)
-      //   그냥 벗기면 툴 하고 제자리로 돌아간다.
+      // ★ 누워 있었으면 돌면서 작아진 다음에 벗긴다
       const 누웠나 = 통.classList.contains("가로눕히기");
       let 끝냈나 = false;
       const 마무리 = () => {
@@ -608,7 +372,6 @@ const 재생기 = (() => {
         통.classList.remove("가짜전체화면", "가로눕히기");
         document.body.classList.remove("전체화면중");
         나가기단추숨기기();
-        당김맞추기();
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
         if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
@@ -644,17 +407,14 @@ const 재생기 = (() => {
         const 이미 = 통.classList.contains("가로눕히기");
         if (세로다 === 이미) return;              // 바뀔 게 없으면 건드리지 않는다
         통.classList.toggle("가로눕히기", 세로다);
-        // ★ 눕는 순간을 **한 동작으로** 이어 붙인다
-        if (세로다) 눕는움직임(true);
-        이따가당김맞추기();
+        if (세로다) 눕는움직임(true);            // 눕는 순간을 한 동작으로 이어 붙인다
       };
-      // ★ 빨리 보고 한 번에 눕힌다. 늦게 도는 폰을 위해 다시 본다.
       setTimeout(살펴보기, 140);
       setTimeout(살펴보기, 420);
       setTimeout(살펴보기, 900);      // 늦게 도는 폰도 있다
     };
 
-    // ★★★ 눈금은 **키우기 전에** 재 둔다. 뒤에 재면 이미 커진 자리가 나온다.
+    // ★ 눈금은 키우기 전에 재 둔다. 뒤에 재면 이미 커진 자리가 나온다.
     눕기전자리 = 통.getBoundingClientRect();
 
     const 부탁 = 통.requestFullscreen ? 통.requestFullscreen()
@@ -662,14 +422,13 @@ const 재생기 = (() => {
                                              : Promise.reject());
 
     Promise.resolve(부탁)
-      .then(() => { document.body.classList.add("전체화면중"); 나가기단추보이기(); 가로로돌리기(); 이따가당김맞추기(); })
+      .then(() => { document.body.classList.add("전체화면중"); 나가기단추보이기(); 가로로돌리기(); })
       .catch(() => {
         // ★ 아이폰처럼 못 키워 주는 자리 — CSS 로 꽉 채운다
         통.classList.add("가짜전체화면");
         document.body.classList.add("전체화면중");
         나가기단추보이기();
         가로로돌리기();
-        이따가당김맞추기();
       });
   }
 
@@ -688,7 +447,7 @@ const 재생기 = (() => {
   //  ★ 톡 누르면 드롭바가 열리고, 끌면 자리가 옮겨진다. 6px 이 그 기준이다.
 
   const 자막통 = document.querySelector(".자막통");
-  const 자리열쇠 = "세진과학.자막단추자리.v2";
+  const 자리열쇠 = "세진과학.자막단추자리.v1";
 
   function 자리쓰기(왼, 위) {
     if (!자막통) return;
@@ -818,9 +577,6 @@ const 재생기 = (() => {
 
   function 끄기() {
     돌리기멈춤();
-    if (우리바) { 우리바.hidden = true; 우리바.classList.remove("쉬는중"); }
-    배속판접기();
-    통.classList.remove("조작판보임");
     if (플레이어 && 플레이어.destroy) { try { 플레이어.destroy(); } catch (오류) {} }
     플레이어 = null;
     화면칸.replaceChildren();     // ★ 비워야 소리가 계속 나지 않는다
@@ -832,10 +588,7 @@ const 재생기 = (() => {
       끄기();
 
       const 틀 = document.createElement("iframe");
-      // ★★★ controls=0 — 유튜브 조작판을 끈다 (2026-09-03 · 사용자가 정함)
-      //   「어쩔수 없다 그럼 가운데 버튼 빼고 니껄로 다 갈아 끼워라」
-      //   영상을 키워 검은 띠를 없애면 유튜브 재생바·설정이 잘린다.
-      //   조작판을 끄면 잘릴 것이 없어진다. 우리 바는 영상 밖에 있어 안 잘린다.
+      // ★ controls=1 — 유튜브 재생바를 그대로 쓴다.
       //   enablejsapi=1 은 자막을 시간에 맞추려고 필요하다.
       틀.src = "https://www.youtube-nocookie.com/embed/" + 아이디 +
                // ★ modestbranding 은 뺐다 — 유튜브가 공식 폐기했고 아무 효과가 없다.
@@ -845,7 +598,7 @@ const 재생기 = (() => {
                //   그런데 사용자가 「유튜브 조작판은 냅두고 그냥 우리껀 자막 버튼만
                //   하나 심자」 고 정해서 되돌렸다. 우리 것은 자막 하나뿐이다.
                //   ★ CC 단추만 골라 없애는 길은 없다 — 남의 틀 안이라 손을 못 넣는다.
-               "?autoplay=1&rel=0&playsinline=1&controls=0&disablekb=1" +
+               "?autoplay=1&rel=0&playsinline=1" +
                "&iv_load_policy=3&cc_load_policy=0&enablejsapi=1" +
                // ★★★ 유튜브 자체 전체화면 단추를 없앤다 (2026-09-02 · 사용자가 폰에서 잡음)
                //   「작은 화면에선 자막이 나오는데, 전체화면을 하면 자막이 안나와」
@@ -859,15 +612,6 @@ const 재생기 = (() => {
       틀.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen";
       틀.allowFullscreen = true;
       화면칸.replaceChildren(틀);
-      if (우리바) { 우리바.hidden = false; 우리바.classList.remove("쉬는중"); }
-      지금배속 = 1;
-      if (배속단추) 배속단추.textContent = "1×";
-      배속판접기();
-      if (바줄) { 바줄.value = "0"; 바줄.max = "1000"; }
-      if (바시간) 바시간.textContent = "0:00 / 0:00";
-      유튜브떠있나 = true;
-      입히기();
-      사라질시계걸기(재생눌렀을때);
 
       const 됐나 = await API불러오기();
       if (!됐나) {
@@ -878,11 +622,10 @@ const 재생기 = (() => {
 
       플레이어 = new YT.Player(틀, {
         events: {
-          onReady: ㅇ => { 유튜브자막계속죽이기(ㅇ.target); 돌리기시작(); 재생단추칠하기(); },
+          onReady: ㅇ => { 유튜브자막계속죽이기(ㅇ.target); 돌리기시작(); },
           onStateChange: ㅇ => {
             유튜브자막계속죽이기(ㅇ.target);
             발맞추기(ㅇ.data === 1);       // 1 = 돌고 있다
-            재생단추칠하기();
           },
           onApiChange: ㅇ => 유튜브자막죽이기(ㅇ.target)   // 자막 덩어리가 붙는 바로 그때다
         }
