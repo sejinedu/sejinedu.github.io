@@ -855,6 +855,24 @@ body.전체화면중 { overflow: hidden; }
 /* ★★★ 나가기 ✕ — 폰에서는 **오른쪽 변 한가운데** (2026-09-02 · 사용자가 정함)
      「전체화면에서 x 버튼 위치 옮기자. 오른쪽 가운데로. 오른쪽 변 가운데」
    ★ 단추가 영상통 안에 들어 있어서 눕혀도 같이 돌아간다 — 사람 눈엔 늘 오른쪽 가운데다. */
+/* ★★★ 임시 조절판 — 자막 단추 맞은편(왼쪽 위) (2026-09-02)
+     사용자가 손으로 비율을 맞춰 보고 숫자를 알려 주면 그 값으로 굳히고 지운다. */
+.조절통 { position: absolute; top: 10px; left: 10px; }
+.조절판 {
+  position: absolute; left: 0; top: calc(100% + 7px);
+  display: flex; flex-direction: column; gap: 4px;
+  background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
+  border-radius: 9px; padding: 5px; min-width: 150px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.55);
+  backdrop-filter: blur(4px);
+}
+.조절판[hidden] { display: none; }
+.조절값 {
+  color: #7fe3c0; font-size: .8rem; font-weight: 700;
+  padding: 6px 10px; white-space: nowrap;
+  border-bottom: 1px solid rgba(211,216,222,.18); margin-bottom: 2px;
+}
+
 .전체단추.나가기 {
   /* ★ 다시 맨 위 가운데다 (2026-09-02 · 사용자가 정함)
        「x 버튼은 다시 화면 가운데 위에 배치해라」
@@ -872,6 +890,7 @@ body.전체화면중 { overflow: hidden; }
      오른쪽 가장자리에서 100px 쯤이다. 그 왼쪽에 붙인다. */
 @media (hover: hover) and (pointer: fine) {
   .전체단추.나가기 { display: none; }
+  .조절통 { display: none; }   /* 임시 조절판도 폰에서만 */
 
   .자막통 { left: auto; right: 176px; top: 10px; }
 
@@ -1074,6 +1093,9 @@ body.전체화면중 { overflow: hidden; }
   width:  var(--틀폭, 100%);
   height: var(--틀높이, 100%);
   max-width: none; max-height: none;
-  transform: translate(-50%, -50%) scale(var(--당김가로, 1), var(--당김세로, 1));
+  /* ★ --손배 · --손옆 은 임시 조절판이 만지는 값이다 (없으면 1 과 0) */
+  transform: translate(-50%, -50%)
+             translateX(var(--손옆, 0px))
+             scale(calc(var(--당김가로, 1) * var(--손배, 1)), var(--당김세로, 1));
   transform-origin: center center;
 }

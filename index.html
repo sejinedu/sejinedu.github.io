@@ -124,6 +124,23 @@
                     <button class="자막판칸" id="자막내리기" type="button">위치 내리기 ↓</button>
                   </div>
                 </span>
+                <!-- ★★★ 임시 조절판 (2026-09-02 · 사용자가 정함)
+                       「그 확대 비율을 내가 조절할수 있게 임시 버튼을 만들어놔
+                         그리고 내가 화면도 좌우로 움직일께
+                         그렇게 딱 맞추고 그다음 니가 그 비율로 만들어」
+                     ★ 숫자를 맞춘 뒤 화면에 뜬 값을 알려 주면 그 값으로 굳히고 이건 없앤다. -->
+                <span class="조절통">
+                  <button class="전체단추" id="조절단추" type="button" aria-haspopup="true">조절 ▾</button>
+                  <div class="조절판" id="조절판" hidden>
+                    <div class="조절값" id="조절값">—</div>
+                    <button class="자막판칸" id="가로넓게" type="button">가로 넓게 ▶◀ +</button>
+                    <button class="자막판칸" id="가로좁게" type="button">가로 좁게 ◀▶ −</button>
+                    <button class="자막판칸" id="옆왼쪽" type="button">왼쪽으로 ←</button>
+                    <button class="자막판칸" id="옆오른쪽" type="button">오른쪽으로 →</button>
+                    <button class="자막판칸" id="조절처음" type="button">처음으로 ↺</button>
+                  </div>
+                </span>
+
                 <button class="전체단추 나가기" id="전체화면나가기" type="button"
                         aria-label="전체화면 나가기">✕</button>
               </div>

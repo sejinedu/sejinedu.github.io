@@ -150,9 +150,9 @@ const 재생기 = (() => {
   //    (「드롭바 조정할때는 버튼 사라지지 않게 해줘」)
   function 입히기() {
     if (!단추칸 || 단추칸.hidden) return;
-    const 보일까 = 유튜브떠있나 || 드롭바열렸나();
+    const 보일까 = 유튜브떠있나 || 드롭바열렸나() || 조절판열렸나();
     단추칸.classList.toggle("쉬는중", !보일까);
-    if (!보일까) 드롭바접기();
+    if (!보일까) { 드롭바접기(); 조절판열기(false); }
   }
 
   function 사라질시계걸기(얼마) {
@@ -380,6 +380,71 @@ const 재생기 = (() => {
   //  ★★★ CSS 로는 못 센다 — 길이끼리 나누는 셈을 CSS 가 못 한다.
   //    그래서 여기서 재서 --틀폭/--틀높이/--당김 에 적어 준다. CSS 는 그걸 가져다 쓴다.
 
+  // ============================================================
+  //  임시 조절판 — 사람이 손으로 비율을 맞춘다
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-02):
+  //    「그 확대 비율을 내가 조절할수 있게 임시 버튼을 만들어놔
+  //      그리고 내가 화면도 좌우로 움직일께
+  //      그렇게 딱 맞추고 그다음 니가 그 비율로 만들어」
+  //
+  //  ★ 나는 형 화면을 못 본다. 그러니 손에 맡기는 편이 빠르다 (지침 2-10 과 같은 수).
+  //  ★ 맞춘 숫자는 화면에 크게 띄운다. 그 값을 받아 굳히고 이 판은 지운다.
+
+  const 조절단추 = document.getElementById("조절단추");
+  const 조절판   = document.getElementById("조절판");
+  const 조절값   = document.getElementById("조절값");
+  const 손열쇠   = "세진과학.손조절.v1";
+
+  let 손배 = 1;      // 좌우로 얼마나 더 늘릴지 (셈해 둔 값에 곱한다)
+  let 손옆 = 0;      // 좌우로 얼마나 밀지 (px)
+  let 지금가로배 = 1;  // 당김맞추기() 가 셈한 값
+
+  try {
+    const ㄱ = JSON.parse(localStorage.getItem(손열쇠) || "{}");
+    if (typeof ㄱ.배 === "number") 손배 = ㄱ.배;
+    if (typeof ㄱ.옆 === "number") 손옆 = ㄱ.옆;
+  } catch (오류) {}
+
+  function 손입히기() {
+    통.style.setProperty("--손배", String(손배));
+    통.style.setProperty("--손옆", 손옆 + "px");
+    if (조절값) {
+      조절값.textContent = "가로 " + (지금가로배 * 손배).toFixed(3) +
+                           "  ·  옆 " + Math.round(손옆) + "px";
+    }
+    try { localStorage.setItem(손열쇠, JSON.stringify({ 배: 손배, 옆: 손옆 })); }
+    catch (오류) {}
+  }
+
+  function 조절판열기(열까) {
+    if (!조절판) return;
+    조절판.hidden = !열까;
+    if (조절단추) 조절단추.textContent = 열까 ? "조절 ▴" : "조절 ▾";
+    if (열까) 손입히기();
+  }
+
+  function 조절판열렸나() { return !!(조절판 && !조절판.hidden); }
+
+  if (조절단추) 조절단추.addEventListener("click", ㅇ => {
+    ㅇ.stopPropagation();
+    조절판열기(조절판.hidden);
+  });
+
+  function 손단추(아이디, 할일) {
+    const ㄷ = document.getElementById(아이디);
+    if (!ㄷ) return;
+    ㄷ.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 할일(); 손입히기(); });
+  }
+  손단추("가로넓게", () => { 손배 = Math.min(2.5, 손배 + 0.02); });
+  손단추("가로좁게", () => { 손배 = Math.max(0.4, 손배 - 0.02); });
+  손단추("옆왼쪽",   () => { 손옆 -= 8; });
+  손단추("옆오른쪽", () => { 손옆 += 8; });
+  손단추("조절처음", () => { 손배 = 1; 손옆 = 0; });
+
+  손입히기();
+
   function 당김맞추기() {
     const 켰나 = 통.classList.contains("가로눕히기") || 통.classList.contains("가짜전체화면") ||
                  (!!(document.fullscreenElement || document.webkitFullscreenElement) &&
@@ -401,8 +466,10 @@ const 재생기 = (() => {
     }
     통.style.setProperty("--틀폭", 틀폭 + "px");
     통.style.setProperty("--틀높이", 틀높이 + "px");
+    지금가로배 = 가로배;
     통.style.setProperty("--당김가로", String(가로배));
     통.style.setProperty("--당김세로", String(세로배));
+    손입히기();          // 읽는 숫자를 새로 맞춘다
   }
 
   //  ★ 자리가 잡힌 다음에 재야 한다. 바로 재면 옛 크기가 나온다.
