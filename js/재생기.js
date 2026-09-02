@@ -531,27 +531,86 @@ const 재생기 = (() => {
     자막통.addEventListener("click", ㅇ => { if (끌었나) { ㅇ.stopPropagation(); ㅇ.preventDefault(); } }, true);
   })();
 
-  // 자막 위에서 아래로 쓸면 나간다 (눕혀 놨을 땐 「아래」 가 화면 왼쪽이다)
-  (function 자막에서쓸기() {
+  // ============================================================
+  //  아래로 쓸면 손을 따라 밀리다가 작아진다
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-03):
+  //    「전체화면에서 화면을 아래로 스와이프 하면 다시 작아지게 해줘
+  //      유튜브 처럼 말이야. 약간 아래로 밀리다가 작아지는거
+  //      내 손의 움직임을 따라가면서」
+  //
+  //  ★★★ 영상 위 손짓은 못 받는다. 유튜브 틀 안이고 남의 집이다 (지침 2-10).
+  //    그래서 **우리 것인 자리**에서만 받는다 — 위쪽 띠(쓸기칸)와 자막층.
+  //    유튜브 재생바와 가운데 단추는 안 덮는다.
+  //
+  //  ★ 눕혀 놨으면 보는 사람의 「아래」 는 화면 왼쪽이다. 그만큼 돌려서 센다.
+
+  (function 아래로쓸어닫기() {
+    const 쓸기칸 = document.getElementById("쓸기칸");
     const 자막층 = document.getElementById("자막층");
-    if (!자막층) return;
-    let 첫x = 0, 첫y = 0, 잡았나 = false;
+    const 닫는거리 = 90;      // 이만큼 밀면 닫는다
+    const 끌기시작 = 8;
 
-    자막층.addEventListener("pointerdown", ㅇ => {
-      첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 잡았나 = true;
-    }, { passive: true });
+    function 그리기(옆, 세로, 배) {
+      if (통.classList.contains("가로눕히기")) {
+        const 폭 = 통.offsetWidth, 높이 = 통.offsetHeight;
+        통.style.transform = "translate(" + (-폭 / 2 + 옆) + "px, " + (-높이 / 2 + 세로) +
+                             "px) rotate(90deg) scale(" + 배 + ")";
+      } else {
+        통.style.transform = "translate(" + 옆 + "px, " + 세로 + "px) scale(" + 배 + ")";
+      }
+    }
+    function 그림지우기() { 통.style.transform = ""; 통.style.transition = ""; }
 
-    자막층.addEventListener("pointerup", ㅇ => {
-      if (!잡았나) return;
-      잡았나 = false;
-      if (!전체화면중인가()) return;
-      const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
-      // 눕혀 놨으면 90도 돌려 놓은 것이라, 보는 사람의 「아래」 는 화면 왼쪽이다
-      const 눕혔나 = 통.classList.contains("가로눕히기");
-      const 아래로 = 눕혔나 ? -옆 : 세로;
-      const 옆으로 = 눕혔나 ? Math.abs(세로) : Math.abs(옆);
-      if (아래로 > 60 && 아래로 > 옆으로) 전체화면바꾸기();
-    }, { passive: true });
+    function 붙이기(요소) {
+      if (!요소) return;
+      let 첫x = 0, 첫y = 0, 잡았나 = false, 끌었나 = false;
+
+      요소.addEventListener("pointerdown", ㅇ => {
+        if (!전체화면중인가()) return;
+        첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 잡았나 = true; 끌었나 = false;
+        try { 요소.setPointerCapture(ㅇ.pointerId); } catch (오류) {}
+      });
+
+      요소.addEventListener("pointermove", ㅇ => {
+        if (!잡았나) return;
+        const 눕혔나 = 통.classList.contains("가로눕히기");
+        const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
+        const 아래로 = 눕혔나 ? -옆 : 세로;
+        const 옆으로 = 눕혔나 ? Math.abs(세로) : Math.abs(옆);
+        if (!끌었나) {
+          if (아래로 < 끌기시작 || 아래로 < 옆으로) return;   // 아래로 미는 것만 잡는다
+          끌었나 = true;
+          통.style.transition = "none";
+        }
+        const 길이 = 눕혔나 ? window.innerWidth : window.innerHeight;
+        const 배 = Math.max(.70, 1 - (아래로 / Math.max(1, 길이)) * 0.7);
+        그리기(옆, 세로, 배);
+      });
+
+      const 손뗌 = ㅇ => {
+        if (!잡았나) return;
+        잡았나 = false;
+        try { 요소.releasePointerCapture(ㅇ.pointerId); } catch (오류) {}
+        if (!끌었나) return;                       // 그냥 톡 누른 것
+        끌었나 = false;
+        const 눕혔나 = 통.classList.contains("가로눕히기");
+        const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
+        const 아래로 = 눕혔나 ? -옆 : 세로;
+
+        if (아래로 > 닫는거리) { 그림지우기(); 전체화면바꾸기(); return; }
+
+        // 덜 밀었으면 제자리로 스르륵 돌아간다
+        통.style.transition = "transform .2s ease";
+        그리기(0, 0, 1);
+        setTimeout(그림지우기, 230);
+      };
+      ["pointerup", "pointercancel"].forEach(이름 => 요소.addEventListener(이름, 손뗌));
+    }
+
+    붙이기(쓸기칸);
+    붙이기(자막층);
   })();
 
 

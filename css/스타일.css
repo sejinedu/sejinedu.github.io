@@ -1013,3 +1013,17 @@ body.전체화면중 { overflow: hidden; }
   .옆줄:hover { background: var(--판); }
   .옆줄.막힘:hover { background: none; }
 }
+
+
+/* ★★★ 아래로 쓸어 닫는 자리 (2026-09-03 · 사용자가 정함)
+     전체화면일 때만 나온다. 보는 사람 눈으로 「위쪽 띠」 다.
+     ★ 유튜브 재생바(아래)와 가운데 재생 단추는 안 덮는다.
+     ★ touch-action: none — 안 그러면 옆 화면 넘김이 손짓을 가로챈다. */
+.쓸기칸 { display: none; }
+.영상통.가로눕히기 .쓸기칸,
+.영상통.가짜전체화면 .쓸기칸,
+.영상통:fullscreen .쓸기칸 {
+  display: block;
+  position: absolute; left: 0; right: 0; top: 0; height: 17%;
+  z-index: 5; touch-action: none;
+}
