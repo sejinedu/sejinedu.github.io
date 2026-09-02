@@ -1051,8 +1051,8 @@ body.전체화면중 { overflow: hidden; }
 .쓸기판.왼   { display: none; }
 .쓸기판.오른 { display: none; }
 
-.쓸기판.위 { left: 0; right: 0; top: 0; height: 24%; }
+.쓸기판.위 { left: 0; right: 0; top: 0; height: 38%; }
 
 .영상통.가로눕히기 .쓸기판.위,
 .영상통.가짜전체화면 .쓸기판.위,
-.영상통:fullscreen .쓸기판.위 { left: 0; right: 0; top: 0; height: 20%; }
+.영상통:fullscreen .쓸기판.위 { left: 0; right: 0; top: 0; height: 34%; }
