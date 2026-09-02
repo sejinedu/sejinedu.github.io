@@ -330,6 +330,47 @@ const 재생기 = (() => {
   let 돌기움직임 = null;
   let 눕기전자리 = null;      // 전체화면 가기 전, 영상이 앉아 있던 자리
 
+  // ============================================================
+  //  눕힌 틀을 폰 화면에 **딱** 맞춘다
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-03):
+  //    「야 그냥 폰 좌우폭에 딱 못마추냐?」
+  //
+  //  ★ CSS 의 100dvh·100dvw 는 브라우저마다 조금씩 다르게 답한다.
+  //    그래서 지금 화면을 **직접 재서** px 로 박는다. 그러면 어긋날 자리가 없다.
+  //  ★ 눕혀 놓으면 가로·세로가 맞바뀐다 —
+  //    틀의 가로(=화면의 세로) · 틀의 세로(=화면의 가로).
+  //  ★ 손가락으로 화면을 벌려 놨을 수도 있다. 그때는 visualViewport 가 진짜 값을 안다.
+
+  function 눕힘자리맞추기() {
+    if (!통.classList.contains("가로눕히기")) {
+      ["width", "height", "left", "top"].forEach(ㄱ => 통.style.removeProperty(ㄱ));
+      return;
+    }
+    const ㅂ = window.visualViewport;
+    const 폭   = Math.round(ㅂ ? ㅂ.width  : window.innerWidth);
+    const 높이 = Math.round(ㅂ ? ㅂ.height : window.innerHeight);
+    if (!폭 || !높이) return;
+    const 왼끝 = Math.round(ㅂ ? ㅂ.offsetLeft : 0);
+    const 위끝 = Math.round(ㅂ ? ㅂ.offsetTop  : 0);
+
+    통.style.width  = 높이 + "px";      // 틀의 가로 = 화면의 세로
+    통.style.height = 폭 + "px";        // 틀의 세로 = 화면의 가로
+    통.style.left   = (왼끝 + 폭 / 2) + "px";
+    통.style.top    = (위끝 + 높이 / 2) + "px";
+  }
+
+  function 이따가자리맞추기() {
+    requestAnimationFrame(() => requestAnimationFrame(눕힘자리맞추기));
+  }
+  window.addEventListener("resize", 이따가자리맞추기);
+  window.addEventListener("orientationchange", 이따가자리맞추기);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", 이따가자리맞추기);
+    window.visualViewport.addEventListener("scroll", 이따가자리맞추기);
+  }
+
   function 돌기멈추기() {
     if (!돌기움직임) return;
     try { 돌기움직임.cancel(); } catch (오류) {}
@@ -378,6 +419,7 @@ const 재생기 = (() => {
         if (끝냈나) return; 끝냈나 = true;
         돌기멈추기();
         통.classList.remove("가짜전체화면", "가로눕히기");
+        눕힘자리맞추기();                        // ★ 박아 둔 자리를 지운다
         document.body.classList.remove("전체화면중");
         나가기단추숨기기();
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
@@ -415,6 +457,7 @@ const 재생기 = (() => {
         const 이미 = 통.classList.contains("가로눕히기");
         if (세로다 === 이미) return;              // 바뀔 게 없으면 건드리지 않는다
         통.classList.toggle("가로눕히기", 세로다);
+        눕힘자리맞추기();                        // ★ 재서 딱 맞춘다
         if (세로다) 눕는움직임(true);            // 눕는 순간을 한 동작으로 이어 붙인다
       };
       setTimeout(살펴보기, 140);
@@ -653,6 +696,7 @@ const 재생기 = (() => {
       const 아직 = !!(document.fullscreenElement || document.webkitFullscreenElement);
       if (!아직 && !통.classList.contains("가짜전체화면")) {
         통.classList.remove("가로눕히기");
+        눕힘자리맞추기();
         document.body.classList.remove("전체화면중");
         나가기단추숨기기();
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
