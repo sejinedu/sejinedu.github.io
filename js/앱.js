@@ -339,6 +339,10 @@ const 주인인가 = (() => {
   return ㅎ === "localhost" || ㅎ === "127.0.0.1" || ㅎ === "::1" || ㅎ === "";
 })();
 
+// ★ 화면(CSS)도 주인인지 알아야 한다.
+//   손님한테는 touch-action 을 풀어 줘야 폰에서 스크롤이 된다. (2026-09-02)
+if (주인인가) document.body.classList.add("주인");
+
 function 메뉴열기(마디, x, y) {
   if (!주인인가) return;                 // ★ 남의 화면에서는 안 뜬다
   메뉴띄우기(마디.이름, [
@@ -682,11 +686,14 @@ function 손붙이기(상자, 마디, 아래있나) {
 
     let 끌고있나 = false, 메뉴떴나 = false, 마지막 = null;
 
-    const 꾹시계 = setTimeout(() => {
+    // ★★★ 손님한테는 꾹 누르기 시계를 아예 안 돌린다 (2026-09-02 에 밟음)
+    //   전에는 시계는 돌면서 메뉴만 안 떴다. 그래서 천천히 누르면
+    //   「메뉴 떴다」 로 쳐 버려서 **고르기가 안 먹었다.** 폰에서 답답해진다.
+    const 꾹시계 = 주인인가 ? setTimeout(() => {
       if (끌고있나) return;
       메뉴떴나 = true;
       메뉴열기(마디, 시작.clientX, 시작.clientY);
-    }, 꾹누르는시간);
+    }, 꾹누르는시간) : null;
 
     const 움직임 = ㅇ => {
       if (메뉴떴나) return;
@@ -916,15 +923,17 @@ function 카드끌기붙이기(카드, ㅇ) {
 
     let 끌고있나 = false, 메뉴떴나 = false, 목표상자 = null;
 
-    const 꾹시계 = setTimeout(() => {
+    // ★ 손님한테는 꾹 누르기·끌기가 없다 — 폰에서 스크롤을 막으면 안 된다 (2026-09-02)
+    const 꾹시계 = 주인인가 ? setTimeout(() => {
       if (끌고있나) return;
       메뉴떴나 = true;
       카드메뉴열기(ㅇ, 시작.clientX, 시작.clientY);
-    }, 꾹누르는시간);
+    }, 꾹누르는시간) : null;
 
     const 움직임 = ㅁ => {
       if (메뉴떴나) return;
       if (!끌고있나) {
+        if (!주인인가) return;                 // ★ 손님은 못 끈다
         if (Math.abs(ㅁ.clientY - 시작.clientY) < 끌기시작거리 &&
             Math.abs(ㅁ.clientX - 시작.clientX) < 끌기시작거리) return;
         clearTimeout(꾹시계);

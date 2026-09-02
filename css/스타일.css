@@ -208,8 +208,14 @@ body.폭조절중 iframe { pointer-events: none; }   /* 영상 위로 끌어도 
   min-height: 38px; padding: 7px 9px; margin: 3px 0;
   border: 1px solid transparent; border-radius: 8px;
   font-size: .89rem; color: var(--글); line-height: 1.35;
-  user-select: none; -webkit-user-select: none; touch-action: none;
+  user-select: none; -webkit-user-select: none;
+  /* ★★★ 손님은 스크롤이 되어야 한다 (2026-09-02 · 사용자가 폰에서 잡음)
+       「목록을 하나 선택하고 그다음 위로 스와이프 하면 스크롤이 안움직인다」
+       touch-action:none 은 끌어 옮기려고 건 것인데, 스크롤까지 같이 막는다.
+       손님은 끌 일이 없으니 스크롤을 열어 준다. 끄는 건 주인일 때만 막는다. */
+  touch-action: pan-y;
 }
+body.주인 .상자 { touch-action: none; }
 .상자:hover { background: #141a22; }
 
 /* 과목 안에서는 단원이 층층이 들여쓰기로 펼쳐진다.
@@ -375,10 +381,12 @@ body.영상끄는중 .뒷막 { pointer-events: none; }
 .카드 {
   background: none; border: 0; padding: 0; text-align: left; color: inherit;
   display: flex; flex-direction: column; gap: 9px;
-  touch-action: none;
+  /* ★ 손님은 스크롤이 되어야 한다 — 위 .상자 와 같은 까닭 (2026-09-02) */
+  touch-action: pan-y;
   user-select: none; -webkit-user-select: none;
   -webkit-user-drag: none;
 }
+body.주인 .카드 { touch-action: none; }
 .카드 img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
 .카드그림 {
   position: relative;                 /* ★ 길이 딱지를 오른쪽 아래에 앉히려면 필요하다 */
