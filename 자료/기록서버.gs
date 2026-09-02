@@ -21,6 +21,15 @@
  *   5. 「배포」 를 누르고 나오는 **웹 앱 URL** 을 복사해서 알려 준다
  *
  * ★ 표는 저절로 만들어진다. 손으로 칸을 만들 필요 없다.
+ *
+ * ★★★ 깔아 둔 자리 (2026-09-02 · 다 끝났다)
+ *   · 계정   : tpwls233@gmail.com
+ *   · 표     : https://docs.google.com/spreadsheets/d/15isR1dB8NsyrNpdIk_oK8eRHaOl5ryWhp7Vys1MPg_U/edit
+ *   · 웹 앱  : https://script.google.com/macros/s/AKfycbxF2_GcR-atVwhTJTZqtYpCDnHfk_MDjuYQ_fhRsT1OuTgFXZYpmxWDXPrwOCdbDoF5/exec
+ *   → 이 주소를 js/기록소.js 의 「기록서버」 에 적어 두었다.
+ *
+ * ★ 글을 고치면 반드시 **배포 → 배포 관리 → 연필 → 버전 「새 버전」 → 배포** 을 다시 해야 바뀜다.
+ *   주소는 그대로다 — 새 배포를 만들면 주소가 바뀌니 「연필」 로 고쳐라.
  */
 
 var 표이름 = "기록";
