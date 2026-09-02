@@ -1099,10 +1099,25 @@ body.전체화면중 { overflow: hidden; }
   width:  var(--틀폭, 100%);
   height: var(--틀높이, 100%);
   max-width: none; max-height: none;
-  /* ★ --손배 · --손옆 은 임시 조절판이 만지는 값이다 (없으면 1 과 0) */
+  /* ★★★ 그냥 볼 때는 형이 맞춘 만큼 키우고, 조작판을 부르면 원래대로 돌아간다.
+       그래야 유튜브 재생바·설정 아이콘이 안 잘린다 (2026-09-02 · 사용자가 정함).
+     ★ --손확대 · --손옆 · --손위 는 임시 조절판이 만지는 값이다 (없으면 1 과 0). */
   transform: translate(-50%, -50%)
              translateX(var(--손옆, 0px)) translateY(var(--손위, 0px))
-             scale(calc(var(--당김가로, 1) * var(--손배, 1) * var(--손확대, 1)),
-                   calc(var(--당김세로, 1) * var(--손확대, 1)));
+             scale(var(--손확대, 1));
   transform-origin: center center;
+  transition: transform .22s ease;
+}
+
+/* ★★★ 조작판이 떠 있는 동안은 **키우지 않는다** (2026-09-02 · 사용자가 정함)
+     「또 유튜브 재생바 설정 아이콘 이딴거 다 날리지 말고」
+   키운 채로 두면 유튜브 재생바·설정이 가장자리 밖으로 밀려나 잘린다.
+   손을 대는 순간 원래 크기(1배)로 되돌아가 단추가 전부 보인다.
+   손을 떼고 조작판이 사라지면 다시 스르륵 커진다. */
+.영상통.조작판떴다.가짜전체화면 .화면칸 iframe,
+.영상통.조작판떴다.가로눕히기 .화면칸 iframe,
+.영상통.조작판떴다:fullscreen .화면칸 iframe {
+  transform: translate(-50%, -50%)
+             translateX(var(--손옆, 0px)) translateY(var(--손위, 0px))
+             scale(1);
 }
