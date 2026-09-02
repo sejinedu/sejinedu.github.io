@@ -81,7 +81,6 @@ const 재생기 = (() => {
 
   const 단추칸     = document.getElementById("전체화면단추들");
   const 나가기단추 = document.getElementById("전체화면나가기");
-  const 채움단추   = document.getElementById("채움단추");
   const 작게단추   = document.getElementById("자막작게");
   const 크게단추   = document.getElementById("자막크게");
 
@@ -365,33 +364,54 @@ const 재생기 = (() => {
   }
 
   // ============================================================
-  //  채우기 — 검은 띠를 없앨지 말지 고른다
+  //  좌우로 당긴다 — 자르지 않고 화면에 딱 맞춘다
   // ============================================================
   //
   //  사용자가 정한 것 (2026-09-02):
-  //    「야 전체화면에 좌우 폭 꽉 채워줘」 → 채우면 위아래가 8% 씩 잘린다
-  //    「이건 너무 차서 위아래 다 짤렸자나」 → 그래서 **고를 수 있게** 만든다
+  //    「그냥 그대로 좌우만 잡아 당기라고」 「그냥 딱 맞춰봐」 「채우기 버튼 없애고」
   //
-  //  ★ 고른 값은 이 브라우저에 담아 둔다. 다음에 열어도 그대로다.
-  //  ★ 기본은 「맞추기」 다 — 칠판이 안 잘리는 쪽이 먼저다.
+  //  ★ 왜 띠가 생기나 — 영상은 1280×720 (16:9) 이고 폰 화면은 그보다 길다(2.17:1).
+  //    유튜브가 제 비율을 지키려고 **스스로** 띠를 그린다. 남의 집 안이라 못 지운다.
+  //
+  //  ★ 잘라서 채우는 길은 접었다 — 위든 아래든 칠판이 날아간다.
+  //    ⇒ 대신 **틀을 16:9 로 만들어 놓고 좌우로만 늘린다.**
+  //      아무것도 안 잘린다. 대신 가로로 조금(2.17÷1.78 ≈ 1.22배) 넓어져 보인다.
+  //
+  //  ★★★ CSS 로는 못 센다 — 길이끼리 나누는 셈을 CSS 가 못 한다.
+  //    그래서 여기서 재서 --틀폭/--틀높이/--당김 에 적어 준다. CSS 는 그걸 가져다 쓴다.
 
-  const 채움열쇠 = "세진과학.꽉채움.v1";
-  let 꽉채울까 = false;
+  function 당김맞추기() {
+    const 켰나 = 통.classList.contains("가로눕히기") || 통.classList.contains("가짜전체화면") ||
+                 (!!(document.fullscreenElement || document.webkitFullscreenElement) &&
+                  window.matchMedia("(pointer: coarse)").matches);   /* 웹은 그대로 둔다 */
+    if (!켰나) {
+      ["--틀폭", "--틀높이", "--당김가로", "--당김세로"].forEach(ㄱ => 통.style.removeProperty(ㄱ));
+      return;
+    }
+    const 폭 = 통.clientWidth, 높이 = 통.clientHeight;
+    if (!폭 || !높이) return;
 
-  try { 꽉채울까 = localStorage.getItem(채움열쇠) === "1"; } catch (오류) {}
-
-  function 채움입히기() {
-    통.classList.toggle("꽉채움", 꽉채울까);
-    if (채움단추) 채움단추.textContent = 꽉채울까 ? "맞추기" : "채우기";
+    let 틀폭, 틀높이, 가로배 = 1, 세로배 = 1;
+    if (폭 / 높이 >= 16 / 9) {          // 상자가 영상보다 넓다 → 좌우로 당긴다
+      틀높이 = 높이; 틀폭 = 높이 * 16 / 9;
+      가로배 = 폭 / 틀폭;
+    } else {                            // 상자가 더 길쭉하다 → 위아래로 당긴다
+      틀폭 = 폭; 틀높이 = 폭 * 9 / 16;
+      세로배 = 높이 / 틀높이;
+    }
+    통.style.setProperty("--틀폭", 틀폭 + "px");
+    통.style.setProperty("--틀높이", 틀높이 + "px");
+    통.style.setProperty("--당김가로", String(가로배));
+    통.style.setProperty("--당김세로", String(세로배));
   }
-  채움입히기();
 
-  if (채움단추) 채움단추.addEventListener("click", ㅇ => {
-    ㅇ.stopPropagation();
-    꽉채울까 = !꽉채울까;
-    채움입히기();
-    try { localStorage.setItem(채움열쇠, 꽉채울까 ? "1" : "0"); } catch (오류) {}
-  });
+  //  ★ 자리가 잡힌 다음에 재야 한다. 바로 재면 옛 크기가 나온다.
+  function 이따가당김맞추기() {
+    requestAnimationFrame(() => requestAnimationFrame(당김맞추기));
+  }
+
+  window.addEventListener("resize", 이따가당김맞추기);
+  window.addEventListener("orientationchange", 이따가당김맞추기);
 
   function 전체화면바꾸기() {
     const 지금전체 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
@@ -408,6 +428,7 @@ const 재생기 = (() => {
         통.classList.remove("가짜전체화면", "가로눕히기");
         document.body.classList.remove("전체화면중");
         나가기단추숨기기();
+        당김맞추기();
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
         if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
@@ -445,6 +466,7 @@ const 재생기 = (() => {
         통.classList.toggle("가로눕히기", 세로다);
         // ★ 눕는 순간을 **한 동작으로** 이어 붙인다
         if (세로다) 눕는움직임(true);
+        이따가당김맞추기();
       };
       // ★ 빨리 보고 한 번에 눕힌다. 늦게 도는 폰을 위해 다시 본다.
       setTimeout(살펴보기, 140);
@@ -460,13 +482,14 @@ const 재생기 = (() => {
                                              : Promise.reject());
 
     Promise.resolve(부탁)
-      .then(() => { document.body.classList.add("전체화면중"); 나가기단추보이기(); 가로로돌리기(); })
+      .then(() => { document.body.classList.add("전체화면중"); 나가기단추보이기(); 가로로돌리기(); 이따가당김맞추기(); })
       .catch(() => {
         // ★ 아이폰처럼 못 키워 주는 자리 — CSS 로 꽉 채운다
         통.classList.add("가짜전체화면");
         document.body.classList.add("전체화면중");
         나가기단추보이기();
         가로로돌리기();
+        이따가당김맞추기();
       });
   }
 

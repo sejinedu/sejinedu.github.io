@@ -856,16 +856,12 @@ body.전체화면중 { overflow: hidden; }
      「전체화면에서 x 버튼 위치 옮기자. 오른쪽 가운데로. 오른쪽 변 가운데」
    ★ 단추가 영상통 안에 들어 있어서 눕혀도 같이 돌아간다 — 사람 눈엔 늘 오른쪽 가운데다. */
 .전체단추.나가기 {
-  position: absolute; top: 50%; right: 10px; left: auto;
-  transform: translateY(-50%);
+  /* ★ 다시 맨 위 가운데다 (2026-09-02 · 사용자가 정함)
+       「x 버튼은 다시 화면 가운데 위에 배치해라」
+       오른쪽 변 가운데로 옮겼더니 「이러면 x버튼 사라진다」 — 되돌린다. */
+  position: absolute; top: 10px; left: 50%; right: auto;
+  transform: translateX(-50%);
   font-size: .95rem; min-width: 40px;
-}
-
-/* ★ 채우기 단추 — ✕ 맞은편, 왼쪽 변 한가운데 */
-.전체단추.채움 {
-  position: absolute; top: 50%; left: 10px; right: auto;
-  transform: translateY(-50%);
-  font-size: .78rem; min-width: 40px;
 }
 
 /* ★★★ 웹(마우스 쓰는 자리)은 딴판이다 (2026-09-02 · 사용자가 정함)
@@ -876,8 +872,6 @@ body.전체화면중 { overflow: hidden; }
      오른쪽 가장자리에서 100px 쯤이다. 그 왼쪽에 붙인다. */
 @media (hover: hover) and (pointer: fine) {
   .전체단추.나가기 { display: none; }
-  /* 웹 화면은 16:9 라 띠가 안 생긴다 — 채우기가 필요 없다 */
-  .전체단추.채움 { display: none; }
 
   .자막통 { left: auto; right: 176px; top: 10px; }
 
@@ -1053,37 +1047,33 @@ body.전체화면중 { overflow: hidden; }
 
 
 /* ============================================================
-   ★★★ 채우기 — 유튜브가 그리는 검은 띠를 없앤다
+   ★★★ 전체화면에서 좌우로 당겨 딱 맞춘다
    ============================================================
 
    사용자가 정한 것 (2026-09-02):
-     「야 전체화면에 좌우 폭 꽉 채워줘」
-     「재생 안하고 전체화면 하면 꽉 차는데 재생 누르는 순간 다시 작아진다」
+     「그냥 그대로 좌우만 잡아 당기라고」 「그냥 딱 맞춰봐」
 
-   ★ 왜 띠가 생기나 — 틀은 화면만큼 크다(2.07:1). 그런데 영상은 16:9(1.78:1) 다.
-     유튜브가 영상 실제 비율에 맞춰 **스스로** 띠를 그린다. 그 띠는 남의 집 안이라 못 지운다.
-   ⇒ 유튜브 틀을 화면보다 크게 만들고 넘치는 부분을 잘라 낸다.
-     잘리는 양은 위아래 각 8% 다.
+   영상은 1280×720 (16:9), 폰 화면은 그보다 길다(2.17:1).
+   유튜브가 제 비율을 지키려고 스스로 검은 띠를 그린다 — 남의 집이라 못 지운다.
 
-   ★ 아래를 바닥에 붙인다 — 그래야 유튜브 재생바가 안 잘린다.
-     넘치는 것은 전부 위쪽으로 보낸다.
-   ★ 화면칸만 자른다. 자막과 단추는 화면칸 밖(형제)이라 안 잘린다.
-   ★★★ 눕힌 것을 **뒤에** 둔다. 두 클래스가 같이 붙는 자리라 뒤엣것이 이겨야 맞다. */
+   ⇒ 유튜브 틀을 **16:9 그대로** 만들어 놓고 **좌우로만 늘린다.**
+     아무것도 안 잘린다. 대신 가로로 1.22배 넓어져 보인다.
 
-.영상통.꽉채움 .화면칸 { position: relative; overflow: hidden; }
+   ★ 늘리는 배수는 CSS 가 못 센다(길이끼리 나누기를 못 한다).
+     js/재생기.js 의 당김맞추기() 가 재서 --틀폭·--틀높이·--당김 에 적어 준다.
+   ★ 값이 아직 없으면 예전처럼 그냥 꽉 채운다(100%). 화면이 죽지 않는다. */
 
-.영상통.꽉채움.가짜전체화면 .화면칸 iframe {
-  position: absolute; bottom: 0; top: auto; left: 50%;
-  transform: translateX(-50%);
-  width:  max(100vw, calc(100lvh * 16 / 9));
-  height: max(100lvh, calc(100vw * 9 / 16));
+.영상통.가짜전체화면 .화면칸,
+.영상통.가로눕히기 .화면칸,
+.영상통:fullscreen .화면칸 { position: relative; overflow: hidden; }
+
+.영상통.가짜전체화면 .화면칸 iframe,
+.영상통.가로눕히기 .화면칸 iframe,
+.영상통:fullscreen .화면칸 iframe {
+  position: absolute; top: 50%; left: 50%;
+  width:  var(--틀폭, 100%);
+  height: var(--틀높이, 100%);
   max-width: none; max-height: none;
-}
-
-.영상통.꽉채움.가로눕히기 .화면칸 iframe {
-  position: absolute; bottom: 0; top: auto; left: 50%;
-  transform: translateX(-50%);
-  width:  max(100lvh, calc(100lvw * 16 / 9));
-  height: max(100lvw, calc(100lvh * 9 / 16));
-  max-width: none; max-height: none;
+  transform: translate(-50%, -50%) scale(var(--당김가로, 1), var(--당김세로, 1));
+  transform-origin: center center;
 }
