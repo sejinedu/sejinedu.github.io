@@ -212,8 +212,10 @@ body.폭조절중 iframe { pointer-events: none; }   /* 영상 위로 끌어도 
   /* ★★★ 손님은 스크롤이 되어야 한다 (2026-09-02 · 사용자가 폰에서 잡음)
        「목록을 하나 선택하고 그다음 위로 스와이프 하면 스크롤이 안움직인다」
        touch-action:none 은 끌어 옮기려고 건 것인데, 스크롤까지 같이 막는다.
-       손님은 끌 일이 없으니 스크롤을 열어 준다. 끄는 건 주인일 때만 막는다. */
-  touch-action: pan-y;
+       손님은 끌 일이 없으니 스크롤을 열어 준다. 끄는 건 주인일 때만 막는다.
+     ★ pan-y 로 위아래만 열었더니 좌우가 막혔다 — 「좌우 스와이프도 되게 해라」.
+       auto 로 다 열어 준다. 브라우저 뒤로가기 쓸기도 같이 살아난다. */
+  touch-action: auto;
 }
 body.주인 .상자 { touch-action: none; }
 .상자:hover { background: #141a22; }
@@ -381,8 +383,9 @@ body.영상끄는중 .뒷막 { pointer-events: none; }
 .카드 {
   background: none; border: 0; padding: 0; text-align: left; color: inherit;
   display: flex; flex-direction: column; gap: 9px;
-  /* ★ 손님은 스크롤이 되어야 한다 — 위 .상자 와 같은 까닭 (2026-09-02) */
-  touch-action: pan-y;
+  /* ★ 손님은 스크롤이 되어야 한다 — 위 .상자 와 같은 까닭 (2026-09-02)
+     ★ 좌우도 연다 (auto). 위아래만 열면 뒤로가기 쓸기가 막힌다. */
+  touch-action: auto;
   user-select: none; -webkit-user-select: none;
   -webkit-user-drag: none;
 }
