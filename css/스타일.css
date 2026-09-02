@@ -800,3 +800,36 @@ body.전체화면중 { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ★ 서랍을 손가락으로 끄는 동안은 미끄러지는 효과를 끈다 (2026-09-02)
+     「좀 스므스하게 손가락 따라가면서 움직이게 해줘」
+     transition 이 켜져 있으면 손가락보다 늦게 따라와서 끈적하게 느껴진다.
+     손을 뗄 때 이 표를 떼면, 그때부터 다시 스르륵 미끄러진다. */
+.왼쪽.손따라감 { transition: none !important; }
+.뒷막 { transition: opacity .2s ease; }
+
+/* ---------- 전체화면에서 쓰는 단추들 ---------- */
+/* ★ 사용자가 폰에서 잡은 것 (2026-09-02) —
+     「전체 화면에서 다시 되돌아 가는 방법이 없다」
+     「이 상황에서 자막 크기를 줄일 방법도 없다」
+     「자막 뜬 상태에서 설정 누르면 설정이 자막에 가린다」
+   ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다 — 삐뚤지 않다.
+   ★ 유튜브 틀 위에 얹혀야 눌린다. */
+.전체화면단추들 {
+  position: absolute; top: 10px; right: 10px; z-index: 6;
+  display: flex; flex-direction: row; gap: 6px;
+  /* ★ 안 그러면 단추가 세로로 쌓인다 (2026-09-02 에 밟음 — 34×184 로 나왔다) */
+  width: max-content; white-space: nowrap;
+}
+.전체화면단추들[hidden] { display: none; }
+.전체단추 {
+  flex-shrink: 0;
+  background: rgba(10, 14, 19, .72); border: 1px solid rgba(211,216,222,.28);
+  color: #e6ebf0; border-radius: 8px;
+  min-width: 40px; height: 34px; padding: 0 9px;
+  font-size: .8rem; font-weight: 600; line-height: 1;
+  backdrop-filter: blur(3px);
+}
+.전체단추:active { background: rgba(10, 14, 19, .92); }
+.전체단추.나가기 { font-size: .95rem; min-width: 36px; }
+.전체단추.꺼짐 { color: var(--흐린글); border-color: rgba(211,216,222,.15); }

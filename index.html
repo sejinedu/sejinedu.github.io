@@ -101,6 +101,20 @@
             <div class="화면칸" id="화면칸"></div>
 
             <div class="자막층" id="자막층" hidden></div>
+
+            <!-- ★★★ 전체화면에서 쓰는 단추들 (2026-09-02 · 사용자가 폰에서 잡음)
+                   「전체 화면에서 다시 되돌아 가는 방법이 없다」
+                   「이 상황에서 자막 크기를 줄일 방법도 없다」
+                 전체화면일 때만 보인다. 평소에는 없다.
+                 ★ 영상 위(유튜브 틀 위)에 얹혀 있어야 눌린다.
+                 ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다 — 삐뚤지 않다. -->
+            <div class="전체화면단추들" id="전체화면단추들" hidden>
+              <button class="전체단추" id="자막껐켰" type="button" aria-label="자막 켜고 끄기">자막</button>
+              <button class="전체단추" id="자막작게" type="button" aria-label="자막 작게">가−</button>
+              <button class="전체단추" id="자막크게" type="button" aria-label="자막 크게">가＋</button>
+              <button class="전체단추 나가기" id="전체화면나가기" type="button"
+                      aria-label="전체화면 나가기">✕</button>
+            </div>
           </div>
 
           <!-- ★ 우리 단추는 영상 밖에 둔다. 재생바는 유튜브 것을 그대로 쓴다.

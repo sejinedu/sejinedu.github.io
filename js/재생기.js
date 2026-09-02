@@ -60,6 +60,154 @@ const 재생기 = (() => {
 
   let API준비 = null;
 
+  // ============================================================
+  //  전체화면에서 쓰는 단추들
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-02, 폰에서 잡아냄):
+  //    「전체 화면에서 다시 되돌아 가는 방법이 없다.
+  //      화면을 아래로 스와이프 하면 되돌아 가게 해줘 유튜브 처럼」
+  //    「이 상황에서 자막 크기를 줄일 방법도 없다」
+  //
+  //  ★★★ 영상 위에서는 손짓을 못 받는다 (2026-09-02 에 알아냄)
+  //    영상은 유튜브 틀(iframe) 이 그린다. 그 위에서 손가락을 움직이면
+  //    그 손짓은 **유튜브 안으로 들어가 버리고 우리한테는 안 온다.**
+  //    남의 집 안에서 일어난 일이라 우리가 들을 수가 없다.
+  //    그래서 「화면 아무 데나 아래로 쓸기」 는 만들 수가 없다.
+  //  ⇒ 대신 두 가지를 둔다 —
+  //    ① 눈에 보이는 단추 (영상 위에 얹는다. 이건 확실히 눌린다)
+  //    ② 우리 자막 위에서 아래로 쓸기 (자막은 우리 것이라 손짓이 온다)
+  //  ★ ESC 나 폰 뒤로가기로도 나간다.
+
+  const 단추칸     = document.getElementById("전체화면단추들");
+  const 나가기단추 = document.getElementById("전체화면나가기");
+  const 작게단추   = document.getElementById("자막작게");
+  const 크게단추   = document.getElementById("자막크게");
+
+  function 나가기단추보이기() { if (단추칸) 단추칸.hidden = false; }
+  function 나가기단추숨기기() { if (단추칸) 단추칸.hidden = true; }
+
+  // 전체화면 상태인가
+  function 전체화면중인가() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+           통.classList.contains("가짜전체화면") ||
+           통.classList.contains("가로눕히기");
+  }
+
+  if (나가기단추) 나가기단추.addEventListener("click", ㅇ => {
+    ㅇ.stopPropagation();
+    if (전체화면중인가()) 전체화면바꾸기();
+  });
+
+  // ★ 자막 크기 — 자막 모듈이 가진 목록을 그대로 쓴다. 두 벌로 만들지 않는다.
+  function 자막크기옮기기(쪽) {
+    if (typeof 자막 === "undefined" || !자막.크기목록) return;
+    const 목록 = 자막.크기목록();
+    const 지금 = 자막.지금크기();
+    let 자리 = 목록.findIndex(ㄱ => Math.abs(ㄱ.값 - 지금) < 0.001);
+    if (자리 < 0) 자리 = 1;
+    자리 = Math.max(0, Math.min(목록.length - 1, 자리 + 쪽));
+    자막.크기바꾸기(목록[자리].값);
+  }
+  if (작게단추) 작게단추.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 자막크기옮기기(-1); });
+  if (크게단추) 크게단추.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 자막크기옮기기(+1); });
+
+  // ★★★ 자막 잠깐 끄기 (2026-09-02 · 사용자가 폰에서 잡음)
+  //   「자막 뜬 상태에서 설정 누르면 설정이 자막에 가린다」
+  //   유튜브 설정창은 유튜브 틀 **안에서** 뜨고, 우리 자막은 그 틀 **위에** 얹혀 있다.
+  //   그러니 우리 자막이 위를 덮는 게 당연하다 — 순서를 바꿀 수가 없다.
+  //   ⇒ 잠깐 끌 수 있게 한다. 설정 만지는 동안만 끄면 된다.
+  const 껐켰단추 = document.getElementById("자막껐켰");
+  if (껐켰단추) 껐켰단추.addEventListener("click", ㅇ => {
+    ㅇ.stopPropagation();
+    if (typeof 자막 === "undefined" || !자막.켜고끄기) return;
+    const 켜졌나 = 자막.켜고끄기();
+    껐켰단추.classList.toggle("꺼짐", !켜졌나);
+    껐켰단추.textContent = 켜졌나 ? "자막" : "자막✕";
+  });
+
+  function 전체화면바꾸기() {
+    const 지금전체 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+                    통.classList.contains("가짜전체화면");
+
+    if (지금전체) {
+      통.classList.remove("가짜전체화면", "가로눕히기");
+      document.body.classList.remove("전체화면중");
+      나가기단추숨기기();
+      try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
+      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      return;
+    }
+
+    // ★★★ 가로로 채운다 (2026-09-02 · 사용자가 정함)
+    //   「화면 꽉 안찬다 … 그래도 꽉차게 나오게 해라 유튜브는 가능하다」
+    //
+    //   ① 먼저 폰한테 「가로로 돌려라」 하고 부탁한다.
+    //   ② 폰에 회전 잠금이 걸려 있으면 그 부탁이 씹힌다.
+    //     그때는 **우리가 직접 화면을 눕힌다** (CSS 로 90도).
+    //     유튜브도 이 수를 쓴다. 세로 화면을 꽉 채우게 된다.
+    //   ★ 부탁이 먹었는지는 조금 기다렸다가 화면 모양을 보고 판단한다.
+    //     lock() 이 성공을 알려 줘도 실제로 안 돌아가는 폰이 있다.
+    const 가로로돌리기 = () => {
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock("landscape").catch(() => {});
+        }
+      } catch (오류) { /* 데스크톱은 원래 안 된다 */ }
+
+      // 화면이 진짜로 가로가 됐나 보고, 아니면 우리가 눕힌다
+      const 살펴보기 = () => {
+        const 세로다 = window.innerHeight > window.innerWidth;
+        const 전체인가 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+                        통.classList.contains("가짜전체화면") ||
+                        통.classList.contains("가로눕히기");
+        if (!전체인가) return;
+        통.classList.toggle("가로눕히기", 세로다);
+      };
+      setTimeout(살펴보기, 350);
+      setTimeout(살펴보기, 900);      // 늦게 도는 폰도 있다
+    };
+
+    const 부탁 = 통.requestFullscreen ? 통.requestFullscreen()
+               : (통.webkitRequestFullscreen ? (통.webkitRequestFullscreen(), Promise.resolve())
+                                             : Promise.reject());
+
+    Promise.resolve(부탁)
+      .then(() => { document.body.classList.add("전체화면중"); 나가기단추보이기(); 가로로돌리기(); })
+      .catch(() => {
+        // ★ 아이폰처럼 못 키워 주는 자리 — CSS 로 꽉 채운다
+        통.classList.add("가짜전체화면");
+        document.body.classList.add("전체화면중");
+        나가기단추보이기();
+        가로로돌리기();
+      });
+  }
+
+  // 자막 위에서 아래로 쓸면 나간다 (눕혀 놨을 땐 「아래」 가 화면 왼쪽이다)
+  (function 자막에서쓸기() {
+    const 자막층 = document.getElementById("자막층");
+    if (!자막층) return;
+    let 첫x = 0, 첫y = 0, 잡았나 = false;
+
+    자막층.addEventListener("pointerdown", ㅇ => {
+      첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 잡았나 = true;
+    }, { passive: true });
+
+    자막층.addEventListener("pointerup", ㅇ => {
+      if (!잡았나) return;
+      잡았나 = false;
+      if (!전체화면중인가()) return;
+      const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
+      // 눕혀 놨으면 90도 돌려 놓은 것이라, 보는 사람의 「아래」 는 화면 왼쪽이다
+      const 눕혔나 = 통.classList.contains("가로눕히기");
+      const 아래로 = 눕혔나 ? -옆 : 세로;
+      const 옆으로 = 눕혔나 ? Math.abs(세로) : Math.abs(옆);
+      if (아래로 > 60 && 아래로 > 옆으로) 전체화면바꾸기();
+    }, { passive: true });
+  })();
+
+
   // ★ 사람이 ESC 나 폰 몸짓으로 전체화면을 빠져나갈 때도 뒤처리를 한다 (2026-09-02)
   //   안 그러면 「전체화면중」 표가 남아서 화면이 안 굴러간다.
   ["fullscreenchange", "webkitfullscreenchange"].forEach(이름 => {
@@ -68,6 +216,7 @@ const 재생기 = (() => {
       if (!아직 && !통.classList.contains("가짜전체화면")) {
         통.classList.remove("가로눕히기");
         document.body.classList.remove("전체화면중");
+        나가기단추숨기기();
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
       }
     });
@@ -160,61 +309,7 @@ const 재생기 = (() => {
     //  ★★★ 아이폰은 영상 말고는 전체화면을 안 시켜 준다.
     //    그래서 안 되면 CSS 로 화면을 꽉 채우는 길을 따로 둔다(가짜전체화면).
     //    둘 다 자막이 따라오므로 보기에는 똑같다.
-    전체화면() {
-      const 지금전체 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
-                      통.classList.contains("가짜전체화면");
-
-      if (지금전체) {
-        통.classList.remove("가짜전체화면", "가로눕히기");
-        document.body.classList.remove("전체화면중");
-        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
-        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        return;
-      }
-
-      // ★★★ 가로로 채운다 (2026-09-02 · 사용자가 정함)
-      //   「화면 꽉 안찬다 … 그래도 꽉차게 나오게 해라 유튜브는 가능하다」
-      //
-      //   ① 먼저 폰한테 「가로로 돌려라」 하고 부탁한다.
-      //   ② 폰에 회전 잠금이 걸려 있으면 그 부탁이 씹힌다.
-      //     그때는 **우리가 직접 화면을 눕힌다** (CSS 로 90도).
-      //     유튜브도 이 수를 쓴다. 세로 화면을 꽉 채우게 된다.
-      //   ★ 부탁이 먹었는지는 조금 기다렸다가 화면 모양을 보고 판단한다.
-      //     lock() 이 성공을 알려 줘도 실제로 안 돌아가는 폰이 있다.
-      const 가로로돌리기 = () => {
-        try {
-          if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock("landscape").catch(() => {});
-          }
-        } catch (오류) { /* 데스크톱은 원래 안 된다 */ }
-
-        // 화면이 진짜로 가로가 됐나 보고, 아니면 우리가 눕힌다
-        const 살펴보기 = () => {
-          const 세로다 = window.innerHeight > window.innerWidth;
-          const 전체인가 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
-                          통.classList.contains("가짜전체화면") ||
-                          통.classList.contains("가로눕히기");
-          if (!전체인가) return;
-          통.classList.toggle("가로눕히기", 세로다);
-        };
-        setTimeout(살펴보기, 350);
-        setTimeout(살펴보기, 900);      // 늦게 도는 폰도 있다
-      };
-
-      const 부탁 = 통.requestFullscreen ? 통.requestFullscreen()
-                 : (통.webkitRequestFullscreen ? (통.webkitRequestFullscreen(), Promise.resolve())
-                                               : Promise.reject());
-
-      Promise.resolve(부탁)
-        .then(() => { document.body.classList.add("전체화면중"); 가로로돌리기(); })
-        .catch(() => {
-          // ★ 아이폰처럼 못 키워 주는 자리 — CSS 로 꽉 채운다
-          통.classList.add("가짜전체화면");
-          document.body.classList.add("전체화면중");
-          가로로돌리기();
-        });
-    },
+    전체화면: () => 전체화면바꾸기(),
 
     // 자막이 시간을 받아 가는 자리
     시간듣기(ㄷ) { 듣는이들.push(ㄷ); },

@@ -1618,59 +1618,100 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
 //   ★ 위아래 스크롤을 잡아먹으면 안 된다. 그래서 옆으로 확실히 더 갔을 때만 닫는다.
 //     (가로로 40px 넘게 갔고, 그 움직임이 세로보다 1.5배 이상 클 때)
 //   ★ 오른쪽으로 쓸면 아무 일도 없다 — 실수로 닫히는 것만 막으면 된다.
-(function 서랍쓸기붙이기() {
-  const 옆으로기준 = 40;      // 이만큼은 가야 닫는다
-  const 옆세로비 = 1.5;       // 세로보다 이만큼 더 옆으로 가야 한다
-  let 첫x = 0, 첫y = 0, 보는중 = false;
+// ============================================================
+//  서랍을 손가락으로 끈다
+// ============================================================
+//
+//  사용자가 정한 것 (2026-09-02):
+//    「오른쪽 왼쪽 스와이프 하면 너무 빠르게 닫히고 열리는데
+//      좀 스므스하게 손가락 따라가면서 움직이게 해줘」
+//
+//  ★ 전에는 일정 거리를 넘는 **그 순간** 탁 닫아 버렸다. 손을 떼기도 전에.
+//    이제는 손가락을 그대로 따라 움직이고, **손을 뗄 때** 갈지 말지 정한다.
+//
+//  ★★★ 위아래 스크롤을 잡아먹으면 안 된다.
+//    처음 몇 픽셀을 보고 「옆으로 가는 손짓인지」 를 먼저 정한다(방향 잠금).
+//    세로로 정해지면 그 뒤로는 아무것도 안 한다.
+//
+//  ★ 왼쪽으로 끌면 서랍이 따라 닫히고, 오른쪽으로 끌면 한 층 위로 나간다.
+//    나가기는 화면이 통째로 바뀌는 일이라 손가락을 따라 그리지 않는다.
+//    대신 **손을 뗄 때** 간다 — 끌자마자 홱 넘어가면 놀란다.
+
+(function 서랍끌기붙이기() {
+  const 잠글거리 = 8;        // 이만큼 움직여야 방향을 정한다
+  const 옆세로비 = 1.2;      // 세로보다 이만큼 더 옆으로 가야 「옆」 이다
+  const 닫을비율 = 0.3;      // 서랍 폭의 이만큼 넘게 끌면 닫는다
+  const 홱기준 = 0.5;        // 이보다 빠르게 튕기면 거리와 상관없이 닫는다 (px/ms)
+  const 나가기거리 = 55;     // 오른쪽으로 이만큼 넘게 끌면 한 층 위로
+
+  let 첫x = 0, 첫y = 0, 첫때 = 0;
+  let 방향 = null;           // null | "옆" | "세로"
+  let 서랍이었나 = false;
+  let 잡았나 = false;
+  let 마지막옆 = 0;
+
+  const 서랍폭 = () => 왼쪽칸.getBoundingClientRect().width || 300;
+
+  function 손따라(옆) {
+    // 왼쪽으로만 따라간다. 오른쪽으로는 조금만 밀린다(고무줄).
+    const 옮김 = 옆 < 0 ? 옆 : 옆 * 0.25;
+    왼쪽칸.style.transform = "translateX(" + 옮김 + "px)";
+    // 뒷막도 같이 옅어진다 — 얼마나 닫혔는지 눈에 보인다
+    const 남은 = Math.max(0, 1 + Math.min(0, 옆) / 서랍폭());
+    뒷막.style.opacity = String(남은);
+  }
+
+  function 놓아주기() {
+    왼쪽칸.classList.remove("손따라감");
+    왼쪽칸.style.transform = "";
+    뒷막.style.opacity = "";
+  }
 
   왼쪽칸.addEventListener("pointerdown", ㅇ => {
-    if (!왼쪽칸.classList.contains("열림")) return;   // 서랍일 때만
-    첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 보는중 = true;
+    첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 첫때 = Date.now();
+    방향 = null; 잡았나 = true; 마지막옆 = 0;
+    서랍이었나 = 왼쪽칸.classList.contains("열림");
   }, { passive: true });
 
   왼쪽칸.addEventListener("pointermove", ㅇ => {
-    if (!보는중) return;
+    if (!잡았나) return;
     const 옆 = ㅇ.clientX - 첫x;
-    const 세로 = Math.abs(ㅇ.clientY - 첫y);
-    if (옆 < -옆으로기준 && Math.abs(옆) > 세로 * 옆세로비) {
-      보는중 = false;
-      쓸어닫은때 = Date.now();     // ★ 손 뗄 때 단원이 같이 골라지지 않게
-      서랍닫기();
+    const 세로 = ㅇ.clientY - 첫y;
+    마지막옆 = 옆;
+
+    if (!방향) {
+      if (Math.abs(옆) < 잠글거리 && Math.abs(세로) < 잠글거리) return;
+      방향 = (Math.abs(옆) > Math.abs(세로) * 옆세로비) ? "옆" : "세로";
+      if (방향 === "옆" && 서랍이었나) 왼쪽칸.classList.add("손따라감");
     }
+    if (방향 !== "옆") return;
+    if (서랍이었나) 손따라(옆);
   }, { passive: true });
+
+  function 손뗌() {
+    if (!잡았나) return;
+    잡았나 = false;
+    const 옆 = 마지막옆;
+    const 걸린때 = Math.max(1, Date.now() - 첫때);
+    const 빠르기 = Math.abs(옆) / 걸린때;
+
+    if (방향 !== "옆") { 놓아주기(); return; }
+
+    if (서랍이었나) {
+      놓아주기();                                   // 먼저 손을 놓고
+      const 닫을까 = (옆 < -서랍폭() * 닫을비율) || (옆 < -20 && 빠르기 > 홱기준);
+      if (닫을까) { 쓸어닫은때 = Date.now(); 서랍닫기(); return; }
+    }
+
+    // 오른쪽으로 확실히 끌었으면 한 층 위로
+    if (옆 > 나가기거리 && 빠르기 > 0.05) {
+      쓸어닫은때 = Date.now();
+      층나가기();
+    }
+  }
 
   ["pointerup", "pointercancel"].forEach(이름 =>
-    왼쪽칸.addEventListener(이름, () => { 보는중 = false; }, { passive: true }));
-
-  // ★★★ 오른쪽으로 쓸면 한 층 위로 (2026-09-02 · 사용자가 정함)
-  //   「단원 나오는 화면에서 오른쪽 스와이프 하면 과목 선택으로 가게 해라」
-  //
-  //   ★ 서랍이 열려 있을 때는 안 한다 — 그때 오른쪽 쓸기는 아무 뜻이 없어야 한다.
-  //   ★ 맨 위(과목 목록)에서는 갈 데가 없으니 안 한다.
-  //   ★★★ 서랍이 열려 있어도 한다 (2026-09-02 에 밟음)
-  //     「단원선택에서 오른쪽 쓸기로 하면 과목 선택으로 안간다」
-  //     폰에서는 **단원 목록이 곧 서랍**이다. 늘 「열림」 이다.
-  //     그런데 「열려 있으면 하지 마라」 로 막아 놨더니 폰에선 영영 안 먹었다.
-  //     ⇒ 왼쪽으로 쓸면 닫고, 오른쪽으로 쓸면 한 층 위로. 둘 다 서랍에서 쓴다.
-  let 첫x2 = 0, 첫y2 = 0, 보는중2 = false;
-
-  왼쪽칸.addEventListener("pointerdown", ㅇ => {
-    첫x2 = ㅇ.clientX; 첫y2 = ㅇ.clientY; 보는중2 = true;
-  }, { passive: true });
-
-  왼쪽칸.addEventListener("pointermove", ㅇ => {
-    if (!보는중2) return;
-    const 옆 = ㅇ.clientX - 첫x2;
-    const 세로 = Math.abs(ㅇ.clientY - 첫y2);
-    if (옆 > 옆으로기준 && Math.abs(옆) > 세로 * 옆세로비) {
-      보는중2 = false;
-      쓸어닫은때 = Date.now();       // 손 뗄 때 단원이 같이 골라지지 않게
-      층나가기();                    // 한 층 위로
-    }
-  }, { passive: true });
-
-  ["pointerup", "pointercancel"].forEach(이름 =>
-    왼쪽칸.addEventListener(이름, () => { 보는중2 = false; }, { passive: true }));
+    왼쪽칸.addEventListener(이름, 손뗌, { passive: true }));
 })();
 
 // ============================================================
