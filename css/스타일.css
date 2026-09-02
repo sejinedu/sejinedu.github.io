@@ -1024,6 +1024,17 @@ body.전체화면중 { overflow: hidden; }
 .영상통.가짜전체화면 .쓸기칸,
 .영상통:fullscreen .쓸기칸 {
   display: block;
-  position: absolute; left: 0; right: 0; top: 0; height: 17%;
-  z-index: 5; touch-action: none;
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
 }
+
+/* ★★★ 받을 수 있는 자리를 최대한 넓힌다 (2026-09-03 · 사용자가 잡음)
+     「위쪽에서만 감지 되는거 같애. 그냥 화면 아무곳이나 잡고 아래로 내리면」
+
+   비워 두는 곳은 딱 둘이다 —
+     · 아래 22% … 유튜브 재생바. 여기를 덮으면 이동·재생을 못 한다
+     · 가운데 기둥 … 유튜브 가운데 재생 단추. 톡 눌러 조작판 부르는 자리이기도 하다
+   나머지 위·왼쪽·오른쪽은 전부 우리가 받는다. */
+.쓸기판 { position: absolute; pointer-events: auto; touch-action: none; }
+.쓸기판.위   { left: 0; right: 0; top: 0; height: 30%; }
+.쓸기판.왼   { left: 0; width: 30%; top: 30%; bottom: 22%; }
+.쓸기판.오른 { right: 0; width: 30%; top: 30%; bottom: 22%; }

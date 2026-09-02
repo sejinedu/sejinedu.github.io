@@ -565,12 +565,14 @@ const 재생기 = (() => {
 
     function 붙이기(요소) {
       if (!요소) return;
-      let 첫x = 0, 첫y = 0, 잡았나 = false, 끌었나 = false;
+      let 첫x = 0, 첫y = 0, 잡았나 = false, 끌었나 = false, 잡은것 = null;
 
       요소.addEventListener("pointerdown", ㅇ => {
         if (!전체화면중인가()) return;
         첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 잡았나 = true; 끌었나 = false;
-        try { 요소.setPointerCapture(ㅇ.pointerId); } catch (오류) {}
+        // ★ 실제로 눌린 조각에 손가락을 붙들어 둔다 (쓸기칸 자체는 손짓을 안 받는다)
+        잡은것 = (ㅇ.target && ㅇ.target.setPointerCapture) ? ㅇ.target : 요소;
+        try { 잡은것.setPointerCapture(ㅇ.pointerId); } catch (오류) {}
       });
 
       요소.addEventListener("pointermove", ㅇ => {
@@ -592,7 +594,7 @@ const 재생기 = (() => {
       const 손뗌 = ㅇ => {
         if (!잡았나) return;
         잡았나 = false;
-        try { 요소.releasePointerCapture(ㅇ.pointerId); } catch (오류) {}
+        try { (잡은것 || 요소).releasePointerCapture(ㅇ.pointerId); } catch (오류) {}
         if (!끌었나) return;                       // 그냥 톡 누른 것
         끌었나 = false;
         const 눕혔나 = 통.classList.contains("가로눕히기");
