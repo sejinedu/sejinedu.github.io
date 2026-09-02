@@ -109,13 +109,24 @@
                  ★ 영상 위(유튜브 틀 위)에 얹혀 있어야 눌린다.
                  ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다 — 삐뚤지 않다. -->
             <div class="전체화면단추들" id="전체화면단추들" hidden>
-              <button class="전체단추" id="자막껐켰" type="button" aria-label="자막 켜고 끄기">자막</button>
-              <button class="전체단추" id="자막내리기" type="button" aria-label="자막 내리기">↓</button>
-              <button class="전체단추" id="자막올리기" type="button" aria-label="자막 올리기">↑</button>
-              <button class="전체단추" id="자막작게" type="button" aria-label="자막 작게">가−</button>
-              <button class="전체단추" id="자막크게" type="button" aria-label="자막 크게">가＋</button>
-              <button class="전체단추 나가기" id="전체화면나가기" type="button"
-                      aria-label="전체화면 나가기">✕</button>
+              <button class="손잡이" id="단추손잡이" type="button" aria-label="자막 손질 열기">가</button>
+              <div class="단추속" id="단추속">
+                <!-- 자막 단추를 누르면 드롭바가 뜬다 (2026-09-02 · 사용자가 정함)
+                     「자막 버튼 클릭하면 드롭바 생기면서 자막 끄기 켜기 있고,
+                       자막 위치 올리기, 자막 위치 내리기, 뜨게 해줘」 -->
+                <span class="자막통">
+                  <button class="전체단추" id="자막메뉴단추" type="button" aria-haspopup="true">자막 ▾</button>
+                  <div class="자막판" id="자막판" hidden>
+                    <button class="자막판칸" id="자막껐켰" type="button">자막 끄기</button>
+                    <button class="자막판칸" id="자막올리기" type="button">위치 올리기 ↑</button>
+                    <button class="자막판칸" id="자막내리기" type="button">위치 내리기 ↓</button>
+                  </div>
+                </span>
+                <button class="전체단추" id="자막작게" type="button" aria-label="자막 작게">가−</button>
+                <button class="전체단추" id="자막크게" type="button" aria-label="자막 크게">가＋</button>
+                <button class="전체단추 나가기" id="전체화면나가기" type="button"
+                        aria-label="전체화면 나가기">✕</button>
+              </div>
             </div>
           </div>
 

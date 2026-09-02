@@ -84,8 +84,42 @@ const 재생기 = (() => {
   const 작게단추   = document.getElementById("자막작게");
   const 크게단추   = document.getElementById("자막크게");
 
-  function 나가기단추보이기() { if (단추칸) 단추칸.hidden = false; }
-  function 나가기단추숨기기() { if (단추칸) 단추칸.hidden = true; }
+  // ★★★ 손잡이 하나로 폈다 접었다 (2026-09-02 · 사용자가 정함)
+  //   「니가 만든거는 안없어져」
+  //   「요기능도 쓸때가 있으니까 냅두고, 니가 만든건 이거랑 안겹치게 만들고
+  //     한번 터치하면 생기고 다시 터치하면 사라지게 해」
+  //
+  //   ★ 유튜브 아이콘(소리·자막·설정)은 그대로 둔다. 쓸 데가 있다고 했다.
+  //     그래서 자리를 **왼쪽 가운데**로 옮겼다 — 유튜브가 거기는 안 쓴다.
+  //   ★ 평소에는 작은 손잡이(가) 하나만 있다. 누르면 펴지고 다시 누르면 접힌다.
+  //     아주 없애지는 않는다 — 없애면 되부를 길이 없어 갇힌다.
+  //   ★ 영상 위의 손짓은 유튜브 틀이 삼켜서 우리한테 안 온다.
+  //     그래서 「영상을 누르면 같이 사라지게」 는 만들 수가 없다. 손잡이로 대신한다.
+
+  const 손잡이 = document.getElementById("단추손잡이");
+
+  function 펼치기(펼까) {
+    if (!단추칸) return;
+    단추칸.classList.toggle("펼침", 펼까);
+    if (!펼까) 자막판열기(false);          // 접으면 드롭바도 같이 닫는다
+    if (손잡이) 손잡이.setAttribute("aria-label", 펼까 ? "자막 손질 닫기" : "자막 손질 열기");
+  }
+
+  if (손잡이) 손잡이.addEventListener("click", ㅇ => {
+    ㅇ.stopPropagation();
+    펼치기(!단추칸.classList.contains("펼침"));
+  });
+
+  function 나가기단추보이기() {
+    if (!단추칸) return;
+    단추칸.hidden = false;
+    펼치기(false);              // ★ 처음에는 접힌 채로. 손잡이만 보인다.
+  }
+  function 나가기단추숨기기() {
+    if (!단추칸) return;
+    단추칸.hidden = true;
+    펼치기(false);
+  }
 
   // 전체화면 상태인가
   function 전체화면중인가() {
@@ -133,13 +167,29 @@ const 재생기 = (() => {
   //   유튜브 설정창은 유튜브 틀 **안에서** 뜨고, 우리 자막은 그 틀 **위에** 얹혀 있다.
   //   그러니 우리 자막이 위를 덮는 게 당연하다 — 순서를 바꿀 수가 없다.
   //   ⇒ 잠깐 끌 수 있게 한다. 설정 만지는 동안만 끄면 된다.
+  // ★ 자막 단추를 누르면 드롭바 (2026-09-02 · 사용자가 정함)
+  //   「자막 버튼 클릭하면 드롭바 생기면서 자막 끄기 켜기 있고,
+  //     자막 위치 올리기, 자막 위치 내리기, 뜨게 해줘」
+  const 자막메뉴단추 = document.getElementById("자막메뉴단추");
+  const 자막판 = document.getElementById("자막판");
   const 껐켰단추 = document.getElementById("자막껐켰");
+
+  function 자막판열기(열까) {
+    if (!자막판) return;
+    자막판.hidden = !열까;
+    if (자막메뉴단추) 자막메뉴단추.textContent = 열까 ? "자막 ▴" : "자막 ▾";
+  }
+
+  if (자막메뉴단추) 자막메뉴단추.addEventListener("click", ㅇ => {
+    ㅇ.stopPropagation();
+    자막판열기(자막판.hidden);
+  });
+
   if (껐켰단추) 껐켰단추.addEventListener("click", ㅇ => {
     ㅇ.stopPropagation();
     if (typeof 자막 === "undefined" || !자막.켜고끄기) return;
     const 켜졌나 = 자막.켜고끄기();
-    껐켰단추.classList.toggle("꺼짐", !켜졌나);
-    껐켰단추.textContent = 켜졌나 ? "자막" : "자막✕";
+    껐켰단추.textContent = 켜졌나 ? "자막 끄기" : "자막 켜기";
   });
 
   function 전체화면바꾸기() {

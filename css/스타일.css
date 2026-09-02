@@ -820,16 +820,39 @@ body.전체화면중 { overflow: hidden; }
 /* ★ 사용자가 폰에서 잡은 것 (2026-09-02) —
      「전체 화면에서 다시 되돌아 가는 방법이 없다」
      「이 상황에서 자막 크기를 줄일 방법도 없다」
-     「자막 뜬 상태에서 설정 누르면 설정이 자막에 가린다」
-   ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다 — 삐뚤지 않다.
-   ★ 유튜브 틀 위에 얹혀야 눌린다. */
+     「니가 만든거는 안없어져 … 한번 터치하면 생기고 다시 터치하면 사라지게 해」
+     「요기능도 쓸때가 있으니까 냅두고, 니가 만든건 이거랑 안겹치게」
+
+   ★★★ 자리를 왼쪽 가운데로 잡았다.
+     유튜브는 위(제목)·아래(재생바)·오른쪽 위(소리·자막·설정)를 쓴다.
+     왼쪽 가운데는 유튜브가 안 쓰는 자리라 겹치지 않는다.
+   ★ 영상통 안에 있으니 눕혀 놨을 때 영상과 같이 돌아간다 — 삐뚤지 않다. */
 .전체화면단추들 {
-  position: absolute; top: 10px; right: 10px; z-index: 6;
-  display: flex; flex-direction: row; gap: 6px;
-  /* ★ 안 그러면 단추가 세로로 쌓인다 (2026-09-02 에 밟음 — 34×184 로 나왔다) */
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  z-index: 6; display: flex; align-items: center; gap: 6px;
   width: max-content; white-space: nowrap;
 }
 .전체화면단추들[hidden] { display: none; }
+
+/* 평소에는 손잡이 하나만. 누르면 펴진다. */
+.손잡이 {
+  flex-shrink: 0;
+  background: rgba(10, 14, 19, .55); border: 1px solid rgba(211,216,222,.22);
+  color: #e6ebf0; border-radius: 999px;
+  width: 34px; height: 34px; padding: 0;
+  font-size: .82rem; font-weight: 700; line-height: 1;
+  backdrop-filter: blur(3px);
+}
+.손잡이:active { background: rgba(10, 14, 19, .85); }
+
+.단추속 {
+  display: flex; gap: 6px;
+  max-width: 0; overflow: hidden; opacity: 0;
+  transition: max-width .26s cubic-bezier(.32,.72,0,1), opacity .2s ease;
+}
+.전체화면단추들.펼침 .단추속 { max-width: 60vmax; opacity: 1; }
+.전체화면단추들.펼침 .손잡이 { background: rgba(10, 14, 19, .85); }
+
 .전체단추 {
   flex-shrink: 0;
   background: rgba(10, 14, 19, .72); border: 1px solid rgba(211,216,222,.28);
@@ -842,12 +865,6 @@ body.전체화면중 { overflow: hidden; }
 .전체단추.나가기 { font-size: .95rem; min-width: 36px; }
 .전체단추.꺼짐 { color: var(--흐린글); border-color: rgba(211,216,222,.15); }
 
-/* ★ 오른쪽으로 끌 때 단원 목록이 손가락을 따라 밀린다 (2026-09-02)
-     「단원에서 스와이프하면 이제 나와야 할 창이 슬그머니 나오게 해라」
-     끄는 동안은 미끄러짐을 끄고(손가락보다 늦으면 끈적하다),
-     손을 떼면 다시 스르륵 제자리로 간다. */
-.나무칸 { transition: transform .18s ease, opacity .18s ease; }
-.나무칸.손따라감 { transition: none !important; }
 
 /* ★★★ 전체화면이 스르륵 돌면서 커진다 (2026-09-02 · 사용자가 정함)
      「전체화면 누르면 좀 스무스 하게 회전 되면서 화면이 확장 되게 해줘.
@@ -880,3 +897,21 @@ body.전체화면중 { overflow: hidden; }
 }
 .미끄럼 { position: relative; }
 .뒷장칸 { opacity: .85; }
+
+/* 자막 드롭바 (2026-09-02 · 「자막 버튼 클릭하면 드롭바 생기면서」) */
+.자막통 { position: relative; flex-shrink: 0; }
+.자막판 {
+  position: absolute; left: 0; top: calc(100% + 6px);
+  display: flex; flex-direction: column; gap: 4px;
+  background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
+  border-radius: 9px; padding: 5px; min-width: 128px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.55);
+  backdrop-filter: blur(4px);
+}
+.자막판[hidden] { display: none; }
+.자막판칸 {
+  background: none; border: 0; color: #e6ebf0;
+  text-align: left; padding: 8px 10px; border-radius: 6px;
+  font-size: .82rem; font-weight: 600; white-space: nowrap;
+}
+.자막판칸:active { background: rgba(211,216,222,.14); }
