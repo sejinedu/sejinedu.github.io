@@ -100,7 +100,29 @@
           <div class="영상통" id="영상통">
             <div class="화면칸" id="화면칸"></div>
 
+            <!-- ★★★ 톡 잡는 덮개 (2026-09-03 · 사용자가 정함)
+                   「가운데 버튼 빼고 니껄로 다 갈아 끼워라」
+                 유튜브 조작판을 껐으니(controls=0) 영상 위 손짓을 우리가 직접 받는다.
+                 전에는 유튜브 틀 안으로 손짓이 들어가 버려서 못 받았다 — 이제 그 문제가 없다. -->
+            <div class="톡덮개" id="톡덮개"></div>
+
             <div class="자막층" id="자막층" hidden></div>
+
+            <!-- 가운데 재생 단추 — 멈춰 있을 때만 뜬다 -->
+            <button class="가운데재생" id="가운데재생" type="button" hidden aria-label="재생">▶</button>
+
+            <!-- ★★★ 우리 재생바 (2026-09-03 · 사용자가 정함)
+                   유튜브 재생바를 껐다. 그래야 영상을 키워도 잘릴 단추가 없다. -->
+            <div class="우리바" id="우리바" hidden>
+              <button class="바단추" id="바재생" type="button" aria-label="재생">▶</button>
+              <span class="바시간" id="바시간">0:00 / 0:00</span>
+              <input class="바줄" id="바줄" type="range" min="0" max="1000" value="0" step="1"
+                     aria-label="재생 위치">
+              <span class="배속통">
+                <button class="바단추 배속" id="배속단추" type="button">1×</button>
+                <div class="배속판" id="배속판" hidden></div>
+              </span>
+            </div>
 
 
             <!-- ★★★ 전체화면에서 쓰는 단추들 (2026-09-02 · 사용자가 폰에서 잡음)

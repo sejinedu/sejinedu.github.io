@@ -1083,3 +1083,89 @@ body.전체화면중 { overflow: hidden; }
              scale(var(--손확대, 1));
   transform-origin: center center;
 }
+
+
+/* ============================================================
+   ★★★ 우리 재생바 (2026-09-03 · 사용자가 정함)
+   ============================================================
+     「어쩔수 없다 그럼 가운데 버튼 빼고 니껄로 다 갈아 끼워라」
+
+   왜 갈아 끼웠나 — 영상을 키워 검은 띠를 없애면 유튜브 재생바·설정이
+   가장자리 밖으로 밀려나 잘린다. 「존나 다 짤리자나」 (2026-09-02).
+   유튜브 조작판을 끄면(controls=0) 잘릴 것이 없어진다.
+
+   ★ 우리 바는 화면칸 **밖**(형제)이라 영상을 키워도 안 잘린다. */
+
+.톡덮개 { position: absolute; inset: 0; z-index: 4; }
+
+.가운데재생 {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 7; width: 62px; height: 62px; border-radius: 50%;
+  background: rgba(10, 14, 19, .60); border: 1px solid rgba(211,216,222,.24);
+  color: #fff; font-size: 1.4rem; line-height: 1; padding-left: 4px;
+  backdrop-filter: blur(3px);
+}
+.가운데재생[hidden] { display: none; }
+
+.우리바 {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 7;
+  display: flex; align-items: center; gap: 9px;
+  padding: 26px 12px calc(9px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(0,0,0,.80), rgba(0,0,0,.35) 55%, rgba(0,0,0,0));
+  transition: opacity .18s ease;
+}
+.우리바[hidden] { display: none; }
+.우리바.쉬는중 { opacity: 0; pointer-events: none; }
+
+.바단추 {
+  background: none; border: 0; color: #e9eef3; cursor: pointer;
+  min-width: 32px; height: 32px; font-size: 1rem; line-height: 1;
+  border-radius: 7px; flex-shrink: 0;
+}
+.바단추.배속 { font-size: .82rem; font-weight: 700; min-width: 40px; }
+.바단추:active { background: rgba(211,216,222,.16); }
+
+.바시간 {
+  color: #cfd6de; font-size: .74rem; white-space: nowrap; flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 재생 위치 줄 — 브라우저 기본 모양을 안 쓰고 직접 그린다 */
+.바줄 {
+  flex: 1; min-width: 60px; height: 26px; margin: 0;
+  -webkit-appearance: none; appearance: none; background: none; cursor: pointer;
+}
+.바줄::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px; background: rgba(255,255,255,.32);
+}
+.바줄::-moz-range-track {
+  height: 4px; border-radius: 2px; background: rgba(255,255,255,.32);
+}
+.바줄::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; border-radius: 50%; background: #ff2d55;
+  margin-top: -4.5px; border: 0;
+}
+.바줄::-moz-range-thumb {
+  width: 13px; height: 13px; border-radius: 50%; background: #ff2d55; border: 0;
+}
+
+.배속통 { position: relative; flex-shrink: 0; }
+.배속판 {
+  position: absolute; right: 0; bottom: calc(100% + 8px);
+  display: flex; flex-direction: column; gap: 3px;
+  background: rgba(10, 14, 19, .95); border: 1px solid rgba(211,216,222,.24);
+  border-radius: 9px; padding: 5px; min-width: 84px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.55);
+}
+.배속판[hidden] { display: none; }
+.배속칸 {
+  background: none; border: 0; color: #e6ebf0; cursor: pointer;
+  text-align: center; padding: 7px 10px; border-radius: 6px;
+  font-size: .82rem; font-weight: 600; white-space: nowrap;
+}
+.배속칸.골랐음 { color: var(--악센트); }
+.배속칸:active { background: rgba(211,216,222,.14); }
+
+/* 자막이 재생바에 가리지 않게 — 바가 떠 있는 동안만 위로 올린다 */
+.영상통.조작판보임 .자막층 { bottom: calc(var(--자막바닥, 3%) + 52px); }
