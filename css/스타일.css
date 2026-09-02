@@ -838,10 +838,11 @@ body.전체화면중 { overflow: hidden; }
    ★ 사용자가 잡아 줬다 — 「스피커 위치가 우측상단에 있다」 (2026-09-02).
      처음엔 아래 왼쪽으로 잡았는데 틀렸다. 스피커·CC·설정이 오른쪽 위에 모여 있다.
      그 왼쪽에 붙인다. 위에 있으니 드롭바를 아래로 열 자리가 넉넉하다. */
-/* ★ 왼쪽 위로 옮겼다 (2026-09-02 · 「자막 위치는 스피커 위치랑 겹친다」)
-     오른쪽 위에는 유튜브가 스피커·CC·설정을 놓는다. 폭이 기기마다 달라
-     옆에 붙이면 언제든 겹친다. 왼쪽 위는 유튜브가 안 쓴다. */
-.자막통 { position: absolute; left: 10px; top: 10px; }
+/* ★ 오른쪽 위 (2026-09-02 · 「자막 버튼 지금 좌측 상단에 잇다. 우측으로 옮겨놔」)
+     ★ 나는 유튜브 틀 안을 못 본다. 남의 집이라 들여다볼 수가 없다.
+       스피커가 어디 있는지는 사용자가 보내 준 사진으로만 안다.
+       겹치면 말해 달라고 해서 숫자를 옮기는 수밖에 없다. */
+.자막통 { position: absolute; right: 10px; top: 10px; }
 
 /* 나가기 — 맨 위 가운데 */
 .전체단추.나가기 {
@@ -867,7 +868,7 @@ body.전체화면중 { overflow: hidden; }
 .자막판 {
   /* ★ 아래로 연다 — 「드롭바는 아래로 뜨게 해」.
        단추가 위에 있으니 아래로 열 자리가 넉넉하다. */
-  position: absolute; left: 0; top: calc(100% + 7px);
+  position: absolute; right: 0; top: calc(100% + 7px);
   display: flex; flex-direction: column; gap: 4px;
   background: rgba(10, 14, 19, .93); border: 1px solid rgba(211,216,222,.24);
   border-radius: 9px; padding: 5px; min-width: 128px;
