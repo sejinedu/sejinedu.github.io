@@ -871,6 +871,7 @@ body.전체화면중 { overflow: hidden; }
   box-shadow: 0 8px 22px rgba(0,0,0,.55);
   backdrop-filter: blur(4px);
 }
+.조절판 { max-height: 74vh; overflow-y: auto; }
 .조절판[hidden] { display: none; }
 .조절값 {
   color: #7fe3c0; font-size: .8rem; font-weight: 700;
@@ -1100,7 +1101,8 @@ body.전체화면중 { overflow: hidden; }
   max-width: none; max-height: none;
   /* ★ --손배 · --손옆 은 임시 조절판이 만지는 값이다 (없으면 1 과 0) */
   transform: translate(-50%, -50%)
-             translateX(var(--손옆, 0px))
-             scale(calc(var(--당김가로, 1) * var(--손배, 1)), var(--당김세로, 1));
+             translateX(var(--손옆, 0px)) translateY(var(--손위, 0px))
+             scale(calc(var(--당김가로, 1) * var(--손배, 1) * var(--손확대, 1)),
+                   calc(var(--당김세로, 1) * var(--손확대, 1)));
   transform-origin: center center;
 }

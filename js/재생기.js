@@ -397,25 +397,34 @@ const 재생기 = (() => {
   const 조절값   = document.getElementById("조절값");
   const 손열쇠   = "세진과학.손조절.v1";
 
-  let 손배 = 1;      // 좌우로 얼마나 더 늘릴지 (셈해 둔 값에 곱한다)
-  let 손옆 = 0;      // 좌우로 얼마나 밀지 (px)
+  let 손확대 = 1;    // 가로세로 **같이** 키운다 (진짜 확대)
+  let 손배 = 1;      // 가로만 더 늘린다
+  let 손옆 = 0;      // 좌우로 밀기 (px)
+  let 손위 = 0;      // 위아래로 밀기 (px)
   let 지금가로배 = 1;  // 당김맞추기() 가 셈한 값
 
   try {
     const ㄱ = JSON.parse(localStorage.getItem(손열쇠) || "{}");
+    if (typeof ㄱ.확대 === "number") 손확대 = ㄱ.확대;
     if (typeof ㄱ.배 === "number") 손배 = ㄱ.배;
     if (typeof ㄱ.옆 === "number") 손옆 = ㄱ.옆;
+    if (typeof ㄱ.위 === "number") 손위 = ㄱ.위;
   } catch (오류) {}
 
   function 손입히기() {
+    통.style.setProperty("--손확대", String(손확대));
     통.style.setProperty("--손배", String(손배));
     통.style.setProperty("--손옆", 손옆 + "px");
+    통.style.setProperty("--손위", 손위 + "px");
     if (조절값) {
-      조절값.textContent = "가로 " + (지금가로배 * 손배).toFixed(3) +
-                           "  ·  옆 " + Math.round(손옆) + "px";
+      조절값.textContent =
+        "확대 " + 손확대.toFixed(2) +
+        " · 옆 " + Math.round(손옆) +
+        " · 위 " + Math.round(손위);
     }
-    try { localStorage.setItem(손열쇠, JSON.stringify({ 배: 손배, 옆: 손옆 })); }
-    catch (오류) {}
+    try {
+      localStorage.setItem(손열쇠, JSON.stringify({ 확대: 손확대, 배: 손배, 옆: 손옆, 위: 손위 }));
+    } catch (오류) {}
   }
 
   function 조절판열기(열까) {
@@ -437,11 +446,13 @@ const 재생기 = (() => {
     if (!ㄷ) return;
     ㄷ.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 할일(); 손입히기(); });
   }
-  손단추("가로넓게", () => { 손배 = Math.min(2.5, 손배 + 0.02); });
-  손단추("가로좁게", () => { 손배 = Math.max(0.4, 손배 - 0.02); });
+  손단추("확대크게", () => { 손확대 = Math.min(3, 손확대 + 0.02); });
+  손단추("확대작게", () => { 손확대 = Math.max(0.5, 손확대 - 0.02); });
   손단추("옆왼쪽",   () => { 손옆 -= 8; });
   손단추("옆오른쪽", () => { 손옆 += 8; });
-  손단추("조절처음", () => { 손배 = 1; 손옆 = 0; });
+  손단추("위로밀기",   () => { 손위 -= 8; });
+  손단추("아래로밀기", () => { 손위 += 8; });
+  손단추("조절처음", () => { 손확대 = 1; 손배 = 1; 손옆 = 0; 손위 = 0; });
 
   손입히기();
 
