@@ -800,29 +800,3 @@ body.전체화면중 { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-
-/* ---------- 카카오톡 안에서 열었을 때 ---------- */
-/* ★ 사용자가 정한 것 (2026-09-02) — 「기본 내가 카톡으로 url을 준다 말이다」
-     카톡 브라우저는 진짜 전체화면을 막아 놨다. 우리가 못 고친다.
-     그래서 크롬·사파리로 넘어가는 단추를 띄운다. */
-.카톡알림 {
-  position: fixed; left: 10px; right: 10px; bottom: 12px; z-index: 9000;
-  display: flex; align-items: center; gap: 9px;
-  background: #16202a; border: 1px solid var(--악센트흐림);
-  border-radius: 11px; padding: 10px 11px;
-  box-shadow: 0 6px 22px rgba(0,0,0,.5);
-  font-size: .84rem; color: var(--글);
-}
-.카톡글 { flex: 1; line-height: 1.4; }
-.카톡글 b { color: var(--악센트); }
-.카톡열기 {
-  flex-shrink: 0;
-  background: var(--악센트); border: 0; color: #06100e;
-  font-weight: 700; font-size: .82rem;
-  padding: 8px 12px; border-radius: 8px; white-space: nowrap;
-}
-.카톡닫기 {
-  flex-shrink: 0;
-  background: none; border: 0; color: var(--흐린글);
-  font-size: .95rem; padding: 6px 4px; line-height: 1;
-}

@@ -1807,59 +1807,5 @@ if (있나("자막공장")) 자막공장.다되면알려줘(아이디 => {
 왼쪽그리기();
 격자그리기();
 
-// ============================================================
-//  카카오톡 안에서 열었을 때 — 진짜 브라우저로 넘겨 준다
-// ============================================================
-//
-//  사용자가 정한 것 (2026-09-02):
-//    「기본 내가 카톡으로 url을 준다 말이다」
-//
-//  ★★★ 왜 있나
-//    카카오톡 안의 브라우저는 **진짜 전체화면을 막아 놨다.**
-//    그래서 전체화면을 눌러도 위에 주소창·카카오 껍데기가 그대로 남는다.
-//    이건 우리 화면 문제가 아니라 그 브라우저가 안 해 주는 것이라 CSS 로는 못 고친다.
-//
-//    그런데 학생들은 **카톡으로 받은 링크를 그냥 누른다.** 그게 보통이다.
-//    ⇒ 카톡 브라우저인 걸 알아채고, 크롬·사파리로 넘어가는 단추를 띄운다.
-//
-//  ★ 저절로 넘기지는 않는다. 갑자기 딴 앱이 열리면 놀란다.
-//    한 번 닫으면 그 뒤로는 안 띄운다.
-
-(function 카톡이면알려주기() {
-  const 손 = navigator.userAgent || "";
-  const 카톡인가 = /KAKAOTALK/i.test(손);
-  if (!카톡인가) return;
-
-  const 닫은열쇠 = "세진과학.카톡알림닫음.v1";
-  try { if (localStorage.getItem(닫은열쇠)) return; } catch (오류) {}
-
-  const 안드로이드 = /Android/i.test(손);
-  const 줄 = document.createElement("div");
-  줄.className = "카톡알림";
-  줄.innerHTML =
-    '<span class="카톡글">카카오톡에서는 <b>전체화면</b>이 안 됩니다</span>' +
-    '<button class="카톡열기" type="button">브라우저로 열기</button>' +
-    '<button class="카톡닫기" type="button" aria-label="닫기">✕</button>';
-  document.body.appendChild(줄);
-
-  줄.querySelector(".카톡열기").addEventListener("click", () => {
-    const 주소 = location.href;
-    if (안드로이드) {
-      // 안드로이드는 크롬으로 곧장 넘길 수 있다
-      const 껍질없는주소 = 주소.replace(/^https?:\/\//, "");
-      location.href = "intent://" + 껍질없는주소 +
-                      "#Intent;scheme=https;package=com.android.chrome;end";
-    } else {
-      // 아이폰은 카카오한테 「밖에서 열어 달라」 고 부탁한다
-      location.href = "kakaotalk://web/openExternal?url=" + encodeURIComponent(주소);
-    }
-  });
-
-  줄.querySelector(".카톡닫기").addEventListener("click", () => {
-    줄.remove();
-    try { localStorage.setItem(닫은열쇠, "1"); } catch (오류) {}
-  });
-})();
-
 // ★ 파수꾼에게 「앱이 끝까지 돌았다」 고 알린다 (index.html 이 지켜본다)
 window.앱다됐다 = true;
