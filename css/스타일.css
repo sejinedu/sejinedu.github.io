@@ -980,3 +980,10 @@ body.전체화면중 { overflow: hidden; }
 .자막통 { touch-action: none; }
 .자막통.끄는중 { opacity: .75; }
 .자막통.끄는중 .전체단추 { border-color: var(--악센트); }
+
+/* ★ 갈래 단추 — 과학 · 수학 (2026-09-02 · 사용자가 정함)
+     「크기는 딱 여기 통합과학2 사이즈로 만들어라.
+       화면 넘어갈때 이거 두개 큰 제목은 라인 좀 맞춰서 이물감 없게 해라」
+   ★ .층이름 을 그대로 물려받아 크기가 같다. 나란히만 놓는다. */
+.갈래줄 { display: flex; gap: 6px; }
+.층이름.갈래 { flex: 1; text-align: center; justify-content: center; }
