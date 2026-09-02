@@ -302,17 +302,88 @@ const 재생기 = (() => {
     껐켰단추.textContent = 켜졌나 ? "자막 끄기" : "자막 켜기";
   });
 
+  // ============================================================
+  //  전체화면으로 — **돌면서** 커지고, 돌면서 작아진다
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-02):
+  //    「전체화면으로 넘어갈때 회전하면서 스므스 하게 움직이게 해.
+  //      그리고 반대로 작아질때도.」
+  //
+  //  ★ 전에는 전체화면에 들어간 뒤 다시 툭 하고 누웠다. 두 번 움직이니 끊겨 보였다.
+  //    ⇒ 작은 화면의 영상 자리를 먼저 재 두고, 거기서부터 **한 동작으로** 이어 붙인다.
+  //
+  //  ★★★ CSS 바뀜(transition)으로는 안 된다.
+  //    누울 때 상자가 position:fixed 로 갈아타서 자리가 통째로 바뀐다.
+  //    그래서 앞뒤 그림을 직접 적어 주는 길(Web Animations)로 간다.
+  //    끝 그림은 CSS 가 가진 값과 **똑같게** 맞춰 둔다 — 그래야 끝나는 순간 안 튄다.
+
+  const 돌기시간 = 320;
+  const 돌기결  = "cubic-bezier(.2,.7,.2,1)";
+  let 돌기움직임 = null;
+  let 눕기전자리 = null;      // 전체화면 가기 전, 영상이 앉아 있던 자리
+
+  function 돌기멈추기() {
+    if (!돌기움직임) return;
+    try { 돌기움직임.cancel(); } catch (오류) {}
+    돌기움직임 = null;
+  }
+
+  //  들어갈 때는 작은 그림 → 누운 그림, 나올 때는 그 반대
+  function 눕는움직임(들어가나, 끝나면) {
+    const 끝 = () => { if (typeof 끝나면 === "function") 끝나면(); };
+    const 자리 = 눕기전자리;
+    const 폭 = 통.offsetWidth, 높이 = 통.offsetHeight;
+    if (!통.animate || !자리 || !자리.width || !폭 || !높이) { 끝(); return; }
+
+    // ★ 누운 상자는 top:50% left:50% 에 앉아 translate(-50%,-50%) 로 가운데를 맞춘다.
+    //   돌리는 기준점은 상자 가운데다. 그래서 셈도 그 기준으로 맞춰야 한다.
+    const 가운데x = window.innerWidth / 2, 가운데y = window.innerHeight / 2;
+    const 옆 = (자리.left + 자리.width / 2) - (가운데x + 폭 / 2);
+    const 위 = (자리.top + 자리.height / 2) - (가운데y + 높이 / 2);
+    const 가로배 = Math.max(.02, 자리.width / 폭);
+    const 세로배 = Math.max(.02, 자리.height / 높이);
+
+    const 작게 = "translate(" + 옆 + "px, " + 위 + "px) rotate(0deg) scale(" + 가로배 + ", " + 세로배 + ")";
+    const 크게 = "translate(" + (-폭 / 2) + "px, " + (-높이 / 2) + "px) rotate(90deg) scale(1, 1)";
+
+    돌기멈추기();
+    let 한번 = false;
+    const 마침 = () => { if (한번) return; 한번 = true; 끝(); };
+    try {
+      const ㅁ = 통.animate(
+        들어가나 ? [{ transform: 작게 }, { transform: 크게 }]
+                 : [{ transform: 크게 }, { transform: 작게 }],
+        { duration: 돌기시간, easing: 돌기결, fill: 들어가나 ? "none" : "forwards" }
+      );
+      돌기움직임 = ㅁ;
+      ㅁ.finished.then(마침, 마침);
+      // ★ 어떤 폰은 finished 가 안 오기도 한다. 버팀목을 하나 둔다.
+      setTimeout(마침, 돌기시간 + 120);
+    } catch (오류) { 마침(); }
+  }
+
   function 전체화면바꾸기() {
     const 지금전체 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
                     통.classList.contains("가짜전체화면");
 
     if (지금전체) {
-      통.classList.remove("가짜전체화면", "가로눕히기");
-      document.body.classList.remove("전체화면중");
-      나가기단추숨기기();
-      try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
-      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      // ★★★ 누워 있었으면 **돌면서 작아진 다음에** 벗긴다 (2026-09-02 · 사용자가 정함)
+      //   그냥 벗기면 툴 하고 제자리로 돌아간다.
+      const 누웠나 = 통.classList.contains("가로눕히기");
+      let 끝냈나 = false;
+      const 마무리 = () => {
+        if (끝냈나) return; 끝냈나 = true;
+        돌기멈추기();
+        통.classList.remove("가짜전체화면", "가로눕히기");
+        document.body.classList.remove("전체화면중");
+        나가기단추숨기기();
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      };
+      if (누웠나) 눕는움직임(false, 마무리);
+      else 마무리();
       return;
     }
 
@@ -339,11 +410,20 @@ const 재생기 = (() => {
                         통.classList.contains("가짜전체화면") ||
                         통.classList.contains("가로눕히기");
         if (!전체인가) return;
+        const 이미 = 통.classList.contains("가로눕히기");
+        if (세로다 === 이미) return;              // 바뀔 게 없으면 건드리지 않는다
         통.classList.toggle("가로눕히기", 세로다);
+        // ★ 눕는 순간을 **한 동작으로** 이어 붙인다
+        if (세로다) 눕는움직임(true);
       };
-      setTimeout(살펴보기, 350);
+      // ★ 빨리 보고 한 번에 눕힌다. 늦게 도는 폰을 위해 다시 본다.
+      setTimeout(살펴보기, 140);
+      setTimeout(살펴보기, 420);
       setTimeout(살펴보기, 900);      // 늦게 도는 폰도 있다
     };
+
+    // ★★★ 눈금은 **키우기 전에** 재 둔다. 뒤에 재면 이미 커진 자리가 나온다.
+    눕기전자리 = 통.getBoundingClientRect();
 
     const 부탁 = 통.requestFullscreen ? 통.requestFullscreen()
                : (통.webkitRequestFullscreen ? (통.webkitRequestFullscreen(), Promise.resolve())
