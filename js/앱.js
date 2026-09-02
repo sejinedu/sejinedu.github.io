@@ -1291,25 +1291,46 @@ function 크기판그리기() {
 
   // --- 자막 높이 ---
   //  사용자가 정한 것 (2026-09-02):
-  //    「자막이 너무 위에 있어 자막 위치 조절할수 있게 해봐」
-  //    「자막 밀기는 필요 없을듯 없애라」 ⇒ 밀기 자리를 높이가 물려받았다.
+  //    「자막 높이 맨아래 아래 조금위 가운데쯤 위 이렇게 뜨는데
+  //      그냥 화살표 버튼으로 만들어」
+  //    ⇒ 이름을 다섯 개 늘어놓지 않는다. 화살표 둘로 올리고 내린다.
   const 높이머리 = document.createElement("div");
   높이머리.className = "판머리 위줄";
   높이머리.textContent = "자막 높이";
   크기판.appendChild(높이머리);
 
-  자막.높이목록().forEach(ㅋ => {
-    const 단 = document.createElement("button");
-    단.type = "button";
-    단.className = "크기단추" + (Math.abs(자막.지금높이() - ㅋ.값) < 0.01 ? " 골랐음" : "");
-    단.textContent = ㅋ.이름;
-    단.addEventListener("click", ㅈ => {
-      ㅈ.stopPropagation();
-      자막.높이바꾸기(ㅋ.값);
-      크기판그리기();
-    });
-    크기판.appendChild(단);
-  });
+  const 높이줄 = document.createElement("div");
+  높이줄.className = "높이줄";
+
+  const 높이옮기기 = 쪽 => {
+    const 목록 = 자막.높이목록();
+    let 자리 = 목록.findIndex(ㄱ => Math.abs(ㄱ.값 - 자막.지금높이()) < 0.01);
+    if (자리 < 0) 자리 = 0;
+    자리 = Math.max(0, Math.min(목록.length - 1, 자리 + 쪽));
+    자막.높이바꾸기(목록[자리].값);
+    크기판그리기();
+  };
+
+  const 높이단추 = (글자, 쪽, 라벨) => {
+    const ㅂ = document.createElement("button");
+    ㅂ.type = "button";
+    ㅂ.className = "높이단추";
+    ㅂ.textContent = 글자;
+    ㅂ.setAttribute("aria-label", 라벨);
+    ㅂ.addEventListener("click", ㅈ => { ㅈ.stopPropagation(); 높이옮기기(쪽); });
+    return ㅂ;
+  };
+
+  높이줄.appendChild(높이단추("↓", -1, "자막 내리기"));
+
+  const 지금이름 = document.createElement("span");
+  지금이름.className = "높이이름";
+  const ㅎ = 자막.높이목록().find(ㄱ => Math.abs(ㄱ.값 - 자막.지금높이()) < 0.01);
+  지금이름.textContent = ㅎ ? ㅎ.이름 : (자막.지금높이() + "%");
+  높이줄.appendChild(지금이름);
+
+  높이줄.appendChild(높이단추("↑", +1, "자막 올리기"));
+  크기판.appendChild(높이줄);
 }
 
 // ---------- 강의 안에서 찾기 ----------
