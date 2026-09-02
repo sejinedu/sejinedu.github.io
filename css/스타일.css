@@ -496,6 +496,27 @@ body.영상끄는중 .뒷막 { pointer-events: none; }
   font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: 11%;
 }
 
+/* ★★★ 가짜 전체화면 (2026-09-02 · 사용자가 폰에서 잡아냄)
+   「그냥 가로로 회전하면서 폰 화면을 꽉 채워야 하는데 그게 안된다」
+
+   아이폰 사파리는 영상 말고는 전체화면을 안 시켜 준다.
+   진짜 전체화면이 거절당하면 이걸 씌워서 화면을 꽉 채운다.
+   ★ 영상통을 통째로 키우는 것이라 자막이 그대로 따라온다.
+     (유튜브 자체 전체화면으로 가면 자막이 안 따라와서 사라진다) */
+.영상통.가짜전체화면 {
+  position: fixed; inset: 0; z-index: 9999;
+  width: 100vw; height: 100vh;
+  height: 100dvh;                       /* 폰 주소창까지 덮는다 */
+  border-radius: 0; background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+.영상통.가짜전체화면 .화면칸 { width: 100vw; height: 100dvh; aspect-ratio: auto; }
+.영상통.가짜전체화면 .자막층 {
+  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: 11%;
+}
+/* 뒤에 깔린 것이 스크롤되지 않게 */
+body.전체화면중 { overflow: hidden; }
+
 /* ---------- 영상 밑 단추줄 ---------- */
 /* ★★★ 우리 단추는 영상 「밖」 에 둔다 (2026-09-02 에 밟음)
      한때 유튜브 재생바를 끄고(controls=0) 우리 재생바를 영상 위에 그렸다.

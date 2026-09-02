@@ -59,6 +59,18 @@ const 재생기 = (() => {
   function 돌리기멈춤() { if (시계) { clearInterval(시계); 시계 = null; } }
 
   let API준비 = null;
+
+  // ★ 사람이 ESC 나 폰 몸짓으로 전체화면을 빠져나갈 때도 뒤처리를 한다 (2026-09-02)
+  //   안 그러면 「전체화면중」 표가 남아서 화면이 안 굴러간다.
+  ["fullscreenchange", "webkitfullscreenchange"].forEach(이름 => {
+    document.addEventListener(이름, () => {
+      const 아직 = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!아직 && !통.classList.contains("가짜전체화면")) {
+        document.body.classList.remove("전체화면중");
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
+      }
+    });
+  });
   function API불러오기() {
     if (API준비) return API준비;
     API준비 = new Promise(풀기 => {
@@ -94,6 +106,13 @@ const 재생기 = (() => {
                //   문서 확인함: 「이 매개변수는 지원 중단되었으며 효과가 없습니다」 (2026-09-02)
                "?autoplay=1&rel=0&playsinline=1" +
                "&iv_load_policy=3&cc_load_policy=0&enablejsapi=1" +
+               // ★★★ 유튜브 자체 전체화면 단추를 없앤다 (2026-09-02 · 사용자가 폰에서 잡음)
+               //   「작은 화면에선 자막이 나오는데, 전체화면을 하면 자막이 안나와」
+               //   유튜브 전체화면으로 가면 화면이 유튜브 틀 **안으로** 들어간다.
+               //   우리 자막은 틀 밖에 얹혀 있어서 딸려 들어가지 못한다. 그래서 사라진다.
+               //   ⇒ 유튜브 단추를 없애고, 우리 전체화면만 쓰게 한다.
+               //     우리 것은 영상통을 통째로 키우니 자막이 같이 간다.
+               "&fs=0" +
                "&origin=" + encodeURIComponent(location.origin);
       틀.title = 제목 || "강의 영상";
       틀.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen";
@@ -125,10 +144,55 @@ const 재생기 = (() => {
       try { 플레이어.seekTo(Math.max(0, 초), true); 플레이어.playVideo(); } catch (오류) {}
     },
 
+    // ============================================================
+    //  전체화면 — 폰에서는 가로로 돌려서 꽉 채운다
+    // ============================================================
+    //
+    //  사용자가 정한 것 (2026-09-02, 폰에서 잡아냄):
+    //    「전체화면을 하면 자막이 안나와」
+    //    「그냥 가로로 회전하면서 폰 화면을 꽉 채워야 하는데 그게 안된다」
+    //
+    //  ★ 유튜브 자체 전체화면은 안 쓴다 (fs=0 으로 단추를 없앴다).
+    //    거기로 가면 화면이 유튜브 틀 안으로 들어가서 우리 자막이 못 따라간다.
+    //    영상통을 통째로 키워야 자막이 같이 간다.
+    //
+    //  ★★★ 아이폰은 영상 말고는 전체화면을 안 시켜 준다.
+    //    그래서 안 되면 CSS 로 화면을 꽉 채우는 길을 따로 둔다(가짜전체화면).
+    //    둘 다 자막이 따라오므로 보기에는 똑같다.
     전체화면() {
-      // ★ 유튜브 자체 전체화면으로 가면 우리 자막이 안 따라온다. 영상통을 통째로 키운다.
-      if (document.fullscreenElement) document.exitFullscreen();
-      else if (통.requestFullscreen) 통.requestFullscreen();
+      const 지금전체 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+                      통.classList.contains("가짜전체화면");
+
+      if (지금전체) {
+        통.classList.remove("가짜전체화면");
+        document.body.classList.remove("전체화면중");
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        return;
+      }
+
+      // 가로로 돌린다 — 폰에서만 먹는다. 안 되면 그냥 넘어간다.
+      const 가로로돌리기 = () => {
+        try {
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock("landscape").catch(() => {});
+          }
+        } catch (오류) { /* 데스크톱은 원래 안 된다 */ }
+      };
+
+      const 부탁 = 통.requestFullscreen ? 통.requestFullscreen()
+                 : (통.webkitRequestFullscreen ? (통.webkitRequestFullscreen(), Promise.resolve())
+                                               : Promise.reject());
+
+      Promise.resolve(부탁)
+        .then(() => { document.body.classList.add("전체화면중"); 가로로돌리기(); })
+        .catch(() => {
+          // ★ 아이폰처럼 못 키워 주는 자리 — CSS 로 꽉 채운다
+          통.classList.add("가짜전체화면");
+          document.body.classList.add("전체화면중");
+          가로로돌리기();
+        });
     },
 
     // 자막이 시간을 받아 가는 자리
