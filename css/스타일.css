@@ -629,6 +629,20 @@ body.전체화면중 { overflow: hidden; }
 }
 .찾기줄 input::placeholder { color: #4d5763; }
 .찾기줄 input:focus { outline: none; border-color: var(--악센트); }
+
+/* ★★★ 폰에서 찾기 칸을 누르면 화면이 확 당겨진다 (2026-09-02 · 사용자가 잡아냄)
+     「강의 안에서 찾기 누르면 창이 확대 되는데 확대 되지 않게 해줘」 / 「핸드폰에서 그래」
+
+   사파리·크롬은 글자가 16px 보다 작은 칸에 손이 닿으면 **저절로 화면을 당긴다.**
+   글씨가 너무 작아 못 읽을까 봐 브라우저가 알아서 해 주는 짓이다. 끄는 스위치는 없다.
+   막는 길은 하나뿐 — 글자를 16px 로 키운다. 그러면 당길 까닭이 없어서 가만히 있다.
+
+   ★ 화면 전체 확대를 막는 길(user-scalable=no)로 가면 안 된다.
+     그건 눈이 나쁜 사람이 손으로 키우는 것까지 같이 막는다.
+     여기 하나 때문에 그걸 막을 수는 없다. */
+@media (pointer: coarse) {
+  .찾기줄 input { font-size: 16px; }
+}
 .찾기셈 { flex-shrink: 0; font-size: .78rem; color: var(--흐린글); }
 
 .찾은것 { display: flex; flex-direction: column; max-height: 300px; overflow-y: auto; }
