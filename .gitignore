@@ -22,3 +22,6 @@ CLAUDE.md
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 올리는 단추 (형 컴퓨터에서만 쓴다)
+올리기.bat
