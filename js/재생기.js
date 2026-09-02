@@ -326,6 +326,97 @@ const 재생기 = (() => {
       });
   }
 
+  // ============================================================
+  //  자막 단추를 손으로 끌어다 놓는다
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-02):
+  //    「와씨 니가 이 화면을 못보면 너무 빡센데?」
+  //
+  //  ★★★ 나는 유튜브 틀 안을 못 본다. 남의 집이라 브라우저가 막아 놨다.
+  //    로고가 어디 있는지, 스피커가 어디 있는지 모른다.
+  //    그래서 자리를 왼쪽·오른쪽으로 몇 번이나 옮기며 사용자를 고생시켰다.
+  //  ⇒ 내가 짐작하기를 그만둔다. **사람이 끌어다 놓는다.**
+  //    한 번 놓으면 그 자리를 기억한다. 기기마다 달라도 각자 맞추면 된다.
+  //  ★ 톡 누르면 드롭바가 열리고, 끌면 자리가 옮겨진다. 6px 이 그 기준이다.
+
+  const 자막통 = document.querySelector(".자막통");
+  const 자리열쇠 = "세진과학.자막단추자리.v1";
+
+  function 자리쓰기(왼, 위) {
+    if (!자막통) return;
+    자막통.style.left = 왼 + "%";
+    자막통.style.top = 위 + "%";
+    자막통.style.right = "auto";
+  }
+
+  (function 담긴자리쓰기() {
+    try {
+      const ㄱ = JSON.parse(localStorage.getItem(자리열쇠) || "null");
+      if (ㄱ && typeof ㄱ.왼 === "number" && typeof ㄱ.위 === "number") 자리쓰기(ㄱ.왼, ㄱ.위);
+    } catch (오류) {}
+  })();
+
+  if (자막통) (function 끌게하기() {
+    const 끌기시작 = 6;
+    let 첫x = 0, 첫y = 0, 끌었나 = false, 잡았나 = false;
+    let 처음왼 = 0, 처음위 = 0, 통네모 = null;
+
+    자막통.addEventListener("pointerdown", ㅇ => {
+      if (!전체화면중인가()) return;
+      통네모 = 통.getBoundingClientRect();
+      if (!통네모.width || !통네모.height) return;
+      첫x = ㅇ.clientX; 첫y = ㅇ.clientY;
+      // ★ 지금 자리는 style 에 적힌 값을 그대로 쓴다.
+      //   화면에서 재면 돌아간 값이라 뒤섞인다.
+      처음왼 = parseFloat(자막통.style.left) || 28;
+      처음위 = parseFloat(자막통.style.top) || 1;
+      잡았나 = true; 끌었나 = false;
+      try { 자막통.setPointerCapture(ㅇ.pointerId); } catch (오류) {}
+    });
+
+    자막통.addEventListener("pointermove", ㅇ => {
+      if (!잡았나 || !통네모) return;
+      const 옆 = ㅇ.clientX - 첫x, 세로 = ㅇ.clientY - 첫y;
+      if (!끌었나 && Math.abs(옆) < 끌기시작 && Math.abs(세로) < 끌기시작) return;
+      끌었나 = true;
+      자막통.classList.add("끄는중");
+      if (자막판) 자막판.hidden = true;
+
+      // ★★★ 눕혀 놨으면 화면과 영상의 방향이 다르다 (2026-09-02)
+      //   영상통을 90도 돌려 놨으므로, 화면에서 오른쪽으로 민 것은
+      //   영상 안에서는 「위로」 민 것이다. 그만큼 돌려서 셈한다.
+      //   ★ 통네모(화면에서 잰 크기)는 이미 돌아간 뒤의 크기다.
+      //     그래서 눕혔을 때는 가로·세로를 바꿔 나눠야 한다.
+      const 눕혔나 = 통.classList.contains("가로눕히기");
+      let 밀린왼, 밀린위;
+      if (눕혔나) {
+        밀린왼 = 세로 / 통네모.height * 100;
+        밀린위 = -옆 / 통네모.width * 100;
+      } else {
+        밀린왼 = 옆 / 통네모.width * 100;
+        밀린위 = 세로 / 통네모.height * 100;
+      }
+      자리쓰기(Math.max(0, Math.min(92, 처음왼 + 밀린왼)),
+              Math.max(0, Math.min(92, 처음위 + 밀린위)));
+    });
+
+    const 손뗌 = ㅇ => {
+      if (!잡았나) return;
+      잡았나 = false;
+      자막통.classList.remove("끄는중");
+      try { 자막통.releasePointerCapture(ㅇ.pointerId); } catch (오류) {}
+      if (!끌었나) return;                 // 톡 누른 것 — 드롭바가 알아서 열린다
+      const 왼 = parseFloat(자막통.style.left) || 0;
+      const 위 = parseFloat(자막통.style.top) || 0;
+      try { localStorage.setItem(자리열쇠, JSON.stringify({ 왼, 위 })); } catch (오류) {}
+    };
+    ["pointerup", "pointercancel"].forEach(이름 => 자막통.addEventListener(이름, 손뗌));
+
+    // 끌었으면 그 눌림으로 드롭바가 열리지 않게 막는다
+    자막통.addEventListener("click", ㅇ => { if (끌었나) { ㅇ.stopPropagation(); ㅇ.preventDefault(); } }, true);
+  })();
+
   // 자막 위에서 아래로 쓸면 나간다 (눕혀 놨을 땐 「아래」 가 화면 왼쪽이다)
   (function 자막에서쓸기() {
     const 자막층 = document.getElementById("자막층");
