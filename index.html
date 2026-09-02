@@ -251,6 +251,15 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
               "자료/영상목록.js",
               "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/자막.js", "js/앱.js"];
 
+  // ★★★ 주인인가 — 여기서 딱 한 번만 정한다 (2026-09-02)
+  //   내 컴퓨터에서 연 것만 주인이다. 밖에 올린 사이트는 손님이라 보기만 된다.
+  //   ★ 나무.js · 영상창고.js · 앱.js 가 다 같이 본다.
+  //     여러 군데서 따로 판단하면 한쪽만 고쳐져 어긋난다 (지침서 6절 21번).
+  window.주인인가 = (function () {
+    var ㅎ = location.hostname;
+    return ㅎ === "localhost" || ㅎ === "127.0.0.1" || ㅎ === "::1" || ㅎ === "";
+  })();
+
   스크립트("js/판.js?t=" + Date.now(), function () {
 
     var 판 = window.판;

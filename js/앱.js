@@ -269,7 +269,19 @@ function 고르기(아이디, 아래있나) {
 
   왼쪽그리기();
   상태밀기();                     // 뒤로 단추가 되짚을 수 있게
-  if (!아래있나) 서랍닫기();      // 폰에서 잎을 고르면 서랍을 닫아 영상이 보이게
+
+  // ★★★ 영상이 있을 때만 서랍을 닫는다 (2026-09-02 · 사용자가 정함)
+  //   「영상 없는 단원 클릭하면 그냥 단원 목록 닫히면서 닫히는데
+  //     영상 업는 단원 클릭 되면 그냥 좀 냅둬라」
+  //
+  //   서랍을 닫는 까닭은 **영상을 보여 주려고**다.
+  //   보여 줄 영상이 없는데 닫으면 빈 화면만 남고, 다시 열어야 한다.
+  //   ⇒ 볼 게 있을 때만 비켜 준다.
+  if (!아래있나) {
+    const ㅊ = 나무.찾기(아이디);          // { 마디, 부모 } 로 준다
+    const 몇개 = (ㅊ && ㅊ.마디) ? 영상수(ㅊ.마디) : 0;
+    if (몇개 > 0) 서랍닫기();
+  }
 }
 
 function 영상수(마디) {
@@ -334,14 +346,17 @@ function 메뉴띄우기(이름, 줄들, x, y) {
 //  ★ 이건 자물쇠가 아니라 실수 막이다. 남의 화면에서 고쳐 봐야
 //    그 사람 브라우저에만 남고 형 파일은 안 바뀐다.
 //    그래도 학생이 헷갈리게 만들면 안 되니 아예 안 보이게 한다.
-const 주인인가 = (() => {
-  const ㅎ = location.hostname;
-  return ㅎ === "localhost" || ㅎ === "127.0.0.1" || ㅎ === "::1" || ㅎ === "";
-})();
+//  ★ 판단은 index.html 이 한 번만 한다. 여기서는 받아 쓴다 (지침서 6절 21번).
+const 주인인가 = !!window.주인인가;
 
 // ★ 화면(CSS)도 주인인지 알아야 한다.
 //   손님한테는 touch-action 을 풀어 줘야 폰에서 스크롤이 된다. (2026-09-02)
 if (주인인가) document.body.classList.add("주인");
+
+// ★ 옆으로 쓸어서 서랍을 닫은 바로 그때 (2026-09-02)
+//   쓸고 손을 떼면 그 단원이 「눌렸다」 로 잡혀서 같이 골라져 버린다.
+//   서랍만 닫히길 바랐는데 화면까지 넘어가면 놀란다. 잠깐 동안은 고르기를 건너뛴다.
+let 쓸어닫은때 = 0;
 
 function 메뉴열기(마디, x, y) {
   if (!주인인가) return;                 // ★ 남의 화면에서는 안 뜬다
@@ -736,6 +751,8 @@ function 손붙이기(상자, 마디, 아래있나) {
       나무칸.querySelectorAll(".상자").forEach(ㅅ => ㅅ.classList.remove("위로", "아래로", "안으로"));
 
       if (메뉴떴나) return;
+      // ★ 옆으로 쓸어서 서랍을 닫은 직후라면 고르지 않는다 (2026-09-02)
+      if (Date.now() - 쓸어닫은때 < 450) return;
       if (!끌고있나) { 고르기(아이디, 아래있나); return; }
       if (!마지막) return;
 
@@ -1594,6 +1611,63 @@ function 서랍닫기() { 왼쪽칸.classList.remove("열림"); 뒷막.hidden = 
   if (왼쪽칸.classList.contains("열림")) 서랍닫기(); else 서랍열기();
 });
 뒷막.addEventListener("click", 서랍닫기);
+
+// ★★★ 왼쪽으로 쓸면 서랍이 닫힌다 (2026-09-02 · 사용자가 정함)
+//   「과목 선택하고 단원선택 영역을 왼쪽으로 스와이프 하면 왼쪽으로 사라지게 하라고」
+//
+//   ★ 위아래 스크롤을 잡아먹으면 안 된다. 그래서 옆으로 확실히 더 갔을 때만 닫는다.
+//     (가로로 40px 넘게 갔고, 그 움직임이 세로보다 1.5배 이상 클 때)
+//   ★ 오른쪽으로 쓸면 아무 일도 없다 — 실수로 닫히는 것만 막으면 된다.
+(function 서랍쓸기붙이기() {
+  const 옆으로기준 = 40;      // 이만큼은 가야 닫는다
+  const 옆세로비 = 1.5;       // 세로보다 이만큼 더 옆으로 가야 한다
+  let 첫x = 0, 첫y = 0, 보는중 = false;
+
+  왼쪽칸.addEventListener("pointerdown", ㅇ => {
+    if (!왼쪽칸.classList.contains("열림")) return;   // 서랍일 때만
+    첫x = ㅇ.clientX; 첫y = ㅇ.clientY; 보는중 = true;
+  }, { passive: true });
+
+  왼쪽칸.addEventListener("pointermove", ㅇ => {
+    if (!보는중) return;
+    const 옆 = ㅇ.clientX - 첫x;
+    const 세로 = Math.abs(ㅇ.clientY - 첫y);
+    if (옆 < -옆으로기준 && Math.abs(옆) > 세로 * 옆세로비) {
+      보는중 = false;
+      쓸어닫은때 = Date.now();     // ★ 손 뗄 때 단원이 같이 골라지지 않게
+      서랍닫기();
+    }
+  }, { passive: true });
+
+  ["pointerup", "pointercancel"].forEach(이름 =>
+    왼쪽칸.addEventListener(이름, () => { 보는중 = false; }, { passive: true }));
+
+  // ★★★ 오른쪽으로 쓸면 한 층 위로 (2026-09-02 · 사용자가 정함)
+  //   「단원 나오는 화면에서 오른쪽 스와이프 하면 과목 선택으로 가게 해라」
+  //
+  //   ★ 서랍이 열려 있을 때는 안 한다 — 그때 오른쪽 쓸기는 아무 뜻이 없어야 한다.
+  //   ★ 맨 위(과목 목록)에서는 갈 데가 없으니 안 한다.
+  let 첫x2 = 0, 첫y2 = 0, 보는중2 = false;
+
+  왼쪽칸.addEventListener("pointerdown", ㅇ => {
+    if (왼쪽칸.classList.contains("열림")) return;   // 서랍으로 떠 있으면 딴 몸짓이다
+    첫x2 = ㅇ.clientX; 첫y2 = ㅇ.clientY; 보는중2 = true;
+  }, { passive: true });
+
+  왼쪽칸.addEventListener("pointermove", ㅇ => {
+    if (!보는중2) return;
+    const 옆 = ㅇ.clientX - 첫x2;
+    const 세로 = Math.abs(ㅇ.clientY - 첫y2);
+    if (옆 > 옆으로기준 && Math.abs(옆) > 세로 * 옆세로비) {
+      보는중2 = false;
+      쓸어닫은때 = Date.now();       // 손 뗄 때 단원이 같이 골라지지 않게
+      층나가기();                    // 한 층 위로
+    }
+  }, { passive: true });
+
+  ["pointerup", "pointercancel"].forEach(이름 =>
+    왼쪽칸.addEventListener(이름, () => { 보는중2 = false; }, { passive: true }));
+})();
 
 // ============================================================
 //  업데이트

@@ -66,6 +66,7 @@ const 재생기 = (() => {
     document.addEventListener(이름, () => {
       const 아직 = !!(document.fullscreenElement || document.webkitFullscreenElement);
       if (!아직 && !통.classList.contains("가짜전체화면")) {
+        통.classList.remove("가로눕히기");
         document.body.classList.remove("전체화면중");
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
       }
@@ -164,7 +165,7 @@ const 재생기 = (() => {
                       통.classList.contains("가짜전체화면");
 
       if (지금전체) {
-        통.classList.remove("가짜전체화면");
+        통.classList.remove("가짜전체화면", "가로눕히기");
         document.body.classList.remove("전체화면중");
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (오류) {}
         if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
@@ -172,13 +173,33 @@ const 재생기 = (() => {
         return;
       }
 
-      // 가로로 돌린다 — 폰에서만 먹는다. 안 되면 그냥 넘어간다.
+      // ★★★ 가로로 채운다 (2026-09-02 · 사용자가 정함)
+      //   「화면 꽉 안찬다 … 그래도 꽉차게 나오게 해라 유튜브는 가능하다」
+      //
+      //   ① 먼저 폰한테 「가로로 돌려라」 하고 부탁한다.
+      //   ② 폰에 회전 잠금이 걸려 있으면 그 부탁이 씹힌다.
+      //     그때는 **우리가 직접 화면을 눕힌다** (CSS 로 90도).
+      //     유튜브도 이 수를 쓴다. 세로 화면을 꽉 채우게 된다.
+      //   ★ 부탁이 먹었는지는 조금 기다렸다가 화면 모양을 보고 판단한다.
+      //     lock() 이 성공을 알려 줘도 실제로 안 돌아가는 폰이 있다.
       const 가로로돌리기 = () => {
         try {
           if (screen.orientation && screen.orientation.lock) {
             screen.orientation.lock("landscape").catch(() => {});
           }
         } catch (오류) { /* 데스크톱은 원래 안 된다 */ }
+
+        // 화면이 진짜로 가로가 됐나 보고, 아니면 우리가 눕힌다
+        const 살펴보기 = () => {
+          const 세로다 = window.innerHeight > window.innerWidth;
+          const 전체인가 = !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+                          통.classList.contains("가짜전체화면") ||
+                          통.classList.contains("가로눕히기");
+          if (!전체인가) return;
+          통.classList.toggle("가로눕히기", 세로다);
+        };
+        setTimeout(살펴보기, 350);
+        setTimeout(살펴보기, 900);      // 늦게 도는 폰도 있다
       };
 
       const 부탁 = 통.requestFullscreen ? 통.requestFullscreen()

@@ -514,7 +514,7 @@ body.주인 .카드 { touch-action: none; }
    진짜 전체화면이 거절당하면 이걸 씌워서 화면을 꽉 채운다.
    ★ 영상통을 통째로 키우는 것이라 자막이 그대로 따라온다.
      (유튜브 자체 전체화면으로 가면 자막이 안 따라와서 사라진다) */
-.영상통.가짜전체화면 {
+.영상통.가짜전체화면, .보기 .영상통.가짜전체화면 {
   position: fixed; inset: 0; z-index: 9999;
   width: 100vw; height: 100vh;
   height: 100dvh;                       /* 폰 주소창까지 덮는다 */
@@ -527,6 +527,32 @@ body.주인 .카드 { touch-action: none; }
 }
 /* 뒤에 깔린 것이 스크롤되지 않게 */
 body.전체화면중 { overflow: hidden; }
+
+/* ★★★ 폰이 세로로 잠겨 있어도 꽉 채운다 (2026-09-02 · 사용자가 정함)
+   「화면 꽉 안찬다. 내가 휴대폰에서 잠금을 해놓긴 했는데,
+     그래도 꽉차게 나오게 해라 유튜브는 가능하다」
+
+   폰 화면 회전 잠금이 걸려 있으면 screen.orientation.lock 이 안 먹는다.
+   그러면 세로 화면 한가운데 16:9 영상이 조그맣게 뜬다.
+   ⇒ 유튜브가 하는 것과 같은 수를 쓴다 — **우리가 화면을 직접 눕힌다.**
+     가로·세로를 맞바꿔 크기를 주고 90도 돌리면 세로 화면을 꽉 채운다.
+   ★ 자막층도 영상통 안에 있으니 같이 돌아간다. 따로 손댈 것 없다. */
+.영상통.가로눕히기, .보기 .영상통.가로눕히기 {
+  position: fixed; top: 50%; left: 50%;
+  width: 100dvh; height: 100dvw;
+  max-width: none; max-height: none;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center center;
+  border-radius: 0; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.영상통.가로눕히기 .화면칸 {
+  width: 100%; height: 100%; aspect-ratio: auto;
+}
+.영상통.가로눕히기 .자막층 {
+  font-size: calc(clamp(22px, 4.2vh, 44px) * var(--자막배율)); bottom: 11%;
+}
 
 /* ---------- 영상 밑 단추줄 ---------- */
 /* ★★★ 우리 단추는 영상 「밖」 에 둔다 (2026-09-02 에 밟음)

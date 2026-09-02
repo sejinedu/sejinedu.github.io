@@ -17,6 +17,15 @@ const 나무 = (() => {
   const 깊은복사 = ㄱ => JSON.parse(JSON.stringify(ㄱ));
 
   function 불러오기() {
+    // ★★★ 손님은 서랍을 안 본다 — 파일이 진짜다 (2026-09-02 · 사용자가 잡음)
+    //   「폰에서 움직이다가 단원 순서가 바뀌었는데 그대로다?
+    //     컴퓨터 화면하고 폰 화면이 단원 목록이 차이가 난다?」
+    //
+    //   단원 나무도 브라우저 서랍에 따로 쌓인다. 그래서 기기마다 달라진다.
+    //   손님은 고칠 수도 없으니 서랍에 남은 것은 묵은 찌꺼기일 뿐이다.
+    //   ⇒ 손님은 무조건 파일(js/단원.js)을 쓴다. 새로고침하면 바로 맞춰진다.
+    if (!window.주인인가) return 깊은복사(window.첫단원나무 || []);
+
     try {
       const 담긴것 = localStorage.getItem(열쇠);
       if (담긴것) return JSON.parse(담긴것);
@@ -27,9 +36,25 @@ const 나무 = (() => {
     return 깊은복사(window.첫단원나무 || []);
   }
 
+  // 서버한테 「파일에 적어 둬라」 하고 보낸다.
+  //  ★ 서버가 없으면 그냥 넘어간다. 서랍에는 담겼으니 화면은 그대로 돈다.
+  function 파일에적기() {
+    try {
+      fetch("/단원나무", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 시각: Date.now(), 나무: 지금 })
+      }).then(ㄷ => ㄷ.json())
+        .then(ㄱ => { if (!ㄱ || !ㄱ.됐나) console.warn("단원을 파일에 못 적었다", ㄱ); })
+        .catch(() => { /* 서버 없는 자리 */ });
+    } catch (오류) { /* fetch 자체가 막힌 자리 */ }
+  }
+
   function 저장() {
+    if (!window.주인인가) return;          // 손님은 아무것도 안 담는다
     try { localStorage.setItem(열쇠, JSON.stringify(지금)); }
     catch (오류) { console.warn("단원을 못 담았다", 오류); }
+    파일에적기();                          // ★ 파일로도 내려 적는다 — 남들도 같은 걸 본다
   }
 
   지금 = 불러오기();
