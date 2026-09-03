@@ -548,8 +548,13 @@ body.주인 .카드 { touch-action: none; }
 /* 전체화면일 때는 영상이 가운데 오게 */
 .영상통:fullscreen { border-radius: 0; display: flex; align-items: center; justify-content: center; }
 .영상통:fullscreen .화면칸 { width: 100vw; height: 100vh; aspect-ratio: auto; }
+/* ★★★ 전체화면에도 **같은 천장**을 씌운다 (2026-09-04 · 여기가 진짜 범인이었다)
+     사용자가 「한줄로 해라」 를 열 번 넘게 짚었는데 안 고쳐지던 까닭 —
+     평소 자막칸에는 천장을 씌워 놓고 **전체화면 규칙에는 안 씌웠다.**
+     사용자는 전체화면으로 보고 있었으니 내가 고친 게 하나도 안 먹었다.
+     ⇒ 전체화면·가짜전체화면·가로눕히기 세 군데 다 2.0cqw 로 막는다. */
 .영상통:fullscreen .자막층 {
-  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
+  font-size: max(18px, min(calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)), 2.0cqw)); bottom: var(--자막바닥, 3%);
 }
 
 /* ★★★ 가짜 전체화면 (2026-09-02 · 사용자가 폰에서 잡아냄)
@@ -568,7 +573,7 @@ body.주인 .카드 { touch-action: none; }
 }
 .영상통.가짜전체화면 .화면칸 { width: 100vw; height: 100dvh; aspect-ratio: auto; }
 .영상통.가짜전체화면 .자막층 {
-  font-size: calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
+  font-size: max(18px, min(calc(clamp(22px, 2.5vw, 44px) * var(--자막배율)), 2.0cqw)); bottom: var(--자막바닥, 3%);
 }
 /* 뒤에 깔린 것이 스크롤되지 않게 */
 body.전체화면중 { overflow: hidden; }
@@ -606,7 +611,7 @@ body.전체화면중 { overflow: hidden; }
   width: 100%; height: 100%; aspect-ratio: auto;
 }
 .영상통.가로눕히기 .자막층 {
-  font-size: calc(clamp(22px, 4.2vh, 44px) * var(--자막배율)); bottom: var(--자막바닥, 3%);
+  font-size: max(18px, min(calc(clamp(22px, 4.2vh, 44px) * var(--자막배율)), 2.0cqw)); bottom: var(--자막바닥, 3%);
 }
 
 /* ---------- 영상 밑 단추줄 ---------- */

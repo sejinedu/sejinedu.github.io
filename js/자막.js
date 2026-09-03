@@ -187,6 +187,45 @@ const 자막 = (() => {
   //    ⇒ 브라우저는 진짜 폭을 안다. **그려 보고 재면 된다.**
   //      숨은 칸에 똑같은 모양으로 그려서 폭을 재고, 넘치는지 본다.
 
+  //  ★★★ 글씨 크기를 **자바스크립트가 재서 못박는다** (2026-09-04)
+  //
+  //    사용자가 「한줄로 해라」 를 열 번 넘게 짚었는데 안 고쳐졌다.
+  //    까닭 — CSS 에 `min(..., 2.0cqw)` 로 천장을 씌웠는데
+  //    **전체화면에서는 먹고 웹 화면에서는 안 먹었다.**
+  //    cqw(컨테이너 단위) 가 어느 칸을 기준으로 잡는지가 상황마다 달랐다.
+  //
+  //    ⇒ 단위 짐작을 그만둔다. **자막칸 폭을 재서 크기를 직접 정한다.**
+  //      한글 마흔여덟 자가 들어가는 크기로 못박으면 어디서든 똑같다.
+  //    ★ 줄마다 바뀌는 게 아니다 — 화면 폭이 정해지면 크기도 하나로 고정이다.
+  //      (사용자: 「자막크기가 변하냐? 어쩔땐 작고 어쩔땐 크다」 — 그건 안 한다)
+
+  const 한줄에넣을글자 = 48;
+  let 앞선통폭 = -1;
+
+  function 글씨크기맞추기(꼭) {
+    const 통 = 자막층.parentElement;
+    const 통폭 = 통 ? 통.clientWidth : 0;
+    if (!통폭) return;
+    if (!꼭 && Math.abs(통폭 - 앞선통폭) < 2) return;
+    앞선통폭 = 통폭;
+    const ㅁ = getComputedStyle(자막층);
+    const 안쪽 = (parseFloat(ㅁ.paddingLeft) || 0) + (parseFloat(ㅁ.paddingRight) || 0);
+    let 몫 = 0.96;
+    const ㅊ = ㅁ.maxWidth;
+    if (ㅊ && ㅊ.indexOf("%") > 0) 몫 = (parseFloat(ㅊ) || 96) / 100;
+    const 쓸폭 = Math.max(0, 통폭 * 몫 - 안쪽);
+    자막층.style.fontSize =
+      Math.max(14, 쓸폭 / (한줄에넣을글자 * 0.98)).toFixed(2) + "px";
+  }
+
+  try {
+    if (window.ResizeObserver && 자막층.parentElement) {
+      new ResizeObserver(() => 글씨크기맞추기(false)).observe(자막층.parentElement);
+    }
+    window.addEventListener("resize", () => 글씨크기맞추기(true));
+    document.addEventListener("fullscreenchange", () => 글씨크기맞추기(true));
+  } catch (오류) { /* 못 걸어도 그릴 때마다 잰다 */ }
+
   function 쓸수있는폭() {
     const 통 = 자막층.parentElement;
     const 통폭 = 통 ? 통.clientWidth : 0;
@@ -324,6 +363,7 @@ const 자막 = (() => {
   }
 
   function 자막그리기(글) {
+    글씨크기맞추기(false);
     const 여러쪽 = 여러줄로(글);
     if (!여러쪽) return 감싸기(글);
     return 여러쪽.map(감싸기).join("<br>");
