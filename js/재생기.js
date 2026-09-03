@@ -608,6 +608,18 @@ const 재생기 = (() => {
   //  ⇒ 우리가 받아서 대신 눌러 준다.
   //  ★ 글 쓰는 칸(강의 안에서 찾기 등)에 눈길이 있으면 건드리지 않는다.
 
+  //  ★ 유튜브 틀에 눈길을 넘긴다 (웹에서만 뜻이 있다)
+  function 눈길넘기기() {
+    try {
+      if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+      const 틀 = 화면칸 && 화면칸.querySelector("iframe");
+      if (틀 && 틀.focus) 틀.focus();
+    } catch (오류) {}
+  }
+
+  //  영상통 어디를 눌러도 눈길을 넘긴다 — 덮개가 눌림을 먹어도 이건 통한다
+  통.addEventListener("pointerdown", 눈길넘기기, true);
+
   function 글쓰는중인가() {
     const ㄴ = document.activeElement;
     if (!ㄴ) return false;
@@ -821,14 +833,16 @@ const 재생기 = (() => {
       화면칸.replaceChildren(틀);
 
       // ★★★ 웹에서는 유튜브 틀에 눈길을 준다 (2026-09-03 · 사용자가 정함)
-      //   「웹에서 유튜브 틀로해」
-      //   유튜브는 제 틀에 눈길(focus)이 있을 때만 글쇠를 듣는다.
-      //   눈길을 넘겨주면 스페이스·화살표·F 같은 유튜브 본래 글쇠가 전부 먹는다.
+      //   「웹에서 유튜브 틀로해」 「키보드가 안먹어. 원래는 먹었는데」
+      //
+      //   ★★★ 왜 안 먹게 됐나 — 우리 쓸기 덮개가 영상 위를 덮고 있다.
+      //     영상을 눌러도 그 눌림을 덮개가 먹으니 **유튜브 틀이 눈길을 못 받는다.**
+      //     유튜브는 제 틀에 눈길이 있을 때만 글쇠를 듣는다. 그래서 죽어 버렸다.
+      //   ⇒ 영상 언저리를 누르면 **우리가 눈길을 유튜브한테 넘겨준다.**
       //   ★ 폰은 안 한다 — 손으로 만지는 자리라 눈길이 의미가 없다.
       try {
         if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-          [300, 1200].forEach(ㄷ => setTimeout(() => { try { 틀.focus(); } catch (오류) {} }, ㄷ));
-          화면칸.addEventListener("click", () => { try { 틀.focus(); } catch (오류) {} });
+          [300, 1200].forEach(ㄷ => setTimeout(눈길넘기기, ㄷ));
         }
       } catch (오류) {}
 
