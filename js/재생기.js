@@ -596,6 +596,63 @@ const 재생기 = (() => {
   //
   //  ★ 눕혀 놨으면 보는 사람의 「아래」 는 화면 왼쪽이다. 그만큼 돌려서 센다.
 
+  // ============================================================
+  //  글쇠(키보드)로 다루기 — 웹에서 쓴다
+  // ============================================================
+  //
+  //  사용자가 정한 것 (2026-09-03):
+  //    「야 웹에서 재생바가 키보드 안먹는다」
+  //
+  //  ★ 까닭 — 글쇠는 유튜브 틀이 아니라 **우리 페이지**가 받는다.
+  //    유튜브는 제 틀에 눈길(focus)이 있을 때만 글쇠를 듣는다. 그래서 아무 일도 없었다.
+  //  ⇒ 우리가 받아서 대신 눌러 준다.
+  //  ★ 글 쓰는 칸(강의 안에서 찾기 등)에 눈길이 있으면 건드리지 않는다.
+
+  function 글쓰는중인가() {
+    const ㄴ = document.activeElement;
+    if (!ㄴ) return false;
+    const 이름 = (ㄴ.tagName || "").toUpperCase();
+    return 이름 === "INPUT" || 이름 === "TEXTAREA" || ㄴ.isContentEditable;
+  }
+
+  function 뛰어넘기(초) {
+    if (!플레이어 || !플레이어.getCurrentTime || !플레이어.seekTo) return;
+    try {
+      const 지금 = 플레이어.getCurrentTime() || 0;
+      플레이어.seekTo(Math.max(0, 지금 + 초), true);
+    } catch (오류) {}
+  }
+
+  document.addEventListener("keydown", ㅇ => {
+    if (!플레이어) return;
+    if (글쓰는중인가()) return;
+    if (ㅇ.ctrlKey || ㅇ.altKey || ㅇ.metaKey) return;
+
+    const 글쇠 = ㅇ.key;
+    let 먹었나 = true;
+
+    if (글쇠 === " " || 글쇠 === "Spacebar" || 글쇠 === "k" || 글쇠 === "K") 재생껐켰();
+    else if (글쇠 === "ArrowRight") 뛰어넘기(5);
+    else if (글쇠 === "ArrowLeft")  뛰어넘기(-5);
+    else if (글쇠 === "l" || 글쇠 === "L") 뛰어넘기(10);
+    else if (글쇠 === "j" || 글쇠 === "J") 뛰어넘기(-10);
+    else if (글쇠 === "f" || 글쇠 === "F") 전체화면바꾸기();
+    else if (글쇠 === "m" || 글쇠 === "M") {
+      try { 플레이어.isMuted && 플레이어.isMuted() ? 플레이어.unMute() : 플레이어.mute(); }
+      catch (오류) {}
+    }
+    else if (글쇠 === "ArrowUp" || 글쇠 === "ArrowDown") {
+      try {
+        const 지금 = 플레이어.getVolume ? 플레이어.getVolume() : 100;
+        const 새것 = Math.max(0, Math.min(100, 지금 + (글쇠 === "ArrowUp" ? 5 : -5)));
+        if (플레이어.setVolume) 플레이어.setVolume(새것);
+      } catch (오류) {}
+    }
+    else 먹었나 = false;
+
+    if (먹었나) { ㅇ.preventDefault(); ㅇ.stopPropagation(); }
+  });
+
   //  톡 누르면 재생/정지
   function 재생껐켰() {
     if (!플레이어) return;
