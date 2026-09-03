@@ -498,7 +498,11 @@ body.주인 .카드 { touch-action: none; }
        넘지 않게 천장을 씌운다. 96% / 30자 ≈ 3.1cqw 다.
        ★ 줄마다 변하는 게 아니다 — 화면 폭이 정해지면 크기도 하나로 고정이다.
        ★ 폰처럼 좁은 화면에서 너무 작아지지 않게 15px 바닥을 둔다. */
-  font-size: max(15px, min(calc(clamp(17px, 2.9cqw, 34px) * var(--자막배율)), 3.1cqw));
+  /* ★★★ 30자는 아슬아슬해서 31자짜리가 또 넘쳤다 (2026-09-04)
+       사용자: 「이런거 한문장으로 해라 좀. 아까부터 계속 지적한다 내가」
+     한 줄에 **38자**가 들어가게 잡는다. 96% / 38 ≈ 2.5cqw.
+     선생님 문장은 30자 넘는 게 18%뿐이니 이러면 거의 다 한 줄이다. */
+  font-size: max(15px, min(calc(clamp(17px, 2.9cqw, 34px) * var(--자막배율)), 2.5cqw));
   font-weight: 600; line-height: 1.4; letter-spacing: -.01em;
   padding: 5px 13px; border-radius: 6px; text-align: center;
   text-shadow: 0 1px 3px rgba(0,0,0,.9);
