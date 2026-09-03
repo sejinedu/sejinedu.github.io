@@ -635,7 +635,15 @@ const 재생기 = (() => {
     } catch (오류) {}
   }
 
+  //  ★ 웹에서는 우리가 안 끼어든다 — 유튜브 본래 글쇠를 그대로 쓴다 (2026-09-03)
+  //    「웹은 그냥 유튜브 오리지날로 냅둬」
+  const 마우스자리 = (() => {
+    try { return window.matchMedia("(hover: hover) and (pointer: fine)").matches; }
+    catch (오류) { return false; }
+  })();
+
   document.addEventListener("keydown", ㅇ => {
+    if (마우스자리) return;
     if (!플레이어) return;
     if (글쓰는중인가()) return;
     if (ㅇ.ctrlKey || ㅇ.altKey || ㅇ.metaKey) return;

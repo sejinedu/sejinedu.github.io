@@ -1048,6 +1048,13 @@ body.전체화면중 { overflow: hidden; }
    나머지 위·왼쪽·오른쪽은 전부 우리가 받는다. */
 .쓸기판 { position: absolute; pointer-events: auto; touch-action: none; }
 
+/* ★★★ 웹은 유튜브 그대로 둔다 (2026-09-03 · 사용자가 정함)
+     「야 웹은 그냥 유튜브 오리지날로 냅둬」
+   덮개를 깔면 눌림도 글쇠 눈길도 우리가 가로챈다. 웹에서는 아예 안 깐다. */
+@media (hover: hover) and (pointer: fine) {
+  .쓸기칸 { display: none !important; }
+}
+
 /* ★★★ 터치는 유튜브에게 돌려준다 (2026-09-03 · 사용자가 정함)
      「이러면 안되는데 터치 하면 그냥 재생바 사라져야 하는데」
 
