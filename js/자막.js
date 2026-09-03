@@ -172,24 +172,27 @@ const 자막 = (() => {
   //  한 줄에 몇 글자나 들어가나 — 자막칸 폭과 글자 크기를 재서 본다.
   //  ★★★ 이걸 안 재면 한 줄에 넉넉히 들어갈 자막까지 둘로 쪼갠다 (2026-09-03 에 밟음).
   //    한글은 글자 하나가 글자 크기와 거의 같은 폭을 먹는다. 조금 넉넉하게 잡는다.
-  //  ★★★ 어느 폭을 재느냐가 핵심이다 (2026-09-03 · 사용자가 잡아 줌)
+  //  ★★★ **글자를 세지 않는다. 진짜 폭을 잰다.** (2026-09-04 · 사용자가 뿌리를 짚음)
   //
-  //    전에는 `자막층.clientWidth` 를 썼다. **이게 틀렸다.**
-  //    자막층은 글에 맞춰 오그라드는 칸이라, clientWidth 는
-  //    「지금 쓸 수 있는 폭」 이 아니라 **바로 앞 자막이 차지했던 폭**이다.
-  //    앞 자막이 짧았으면 폭이 작게 재지고 → 한 줄에 몇 자 안 들어간다고 착각하고
-  //    → 멀쩡한 한 문장을 둘로 쪼갠다. 그러고는 넘친 쪽이 「…」 로 잘렸다 —
-  //        「소리는 / 사람한테 v로 날라오...」
-  //      진짜 자막은 「소리는 사람한테 v로 날라오는 거고 근데 이제」 였다.
+  //    「글자수로 지금 제한 걸고 있냐?」  — 그렇다. 그게 문제였다.
   //
-  //    ⇒ **담는 칸(영상통)의 폭**을 재고, 거기에 자막칸이 쓸 수 있는 몫을 곱한다.
+  //    여태 이렇게 했다 —
+  //        한 줄 글자 수 = 자막칸 폭 ÷ (글자 크기 × 0.98)
+  //      즉 **한글 한 글자 = 글자 크기만큼 넓다** 고 가정했다.
+  //      그런데 v = fλ 같은 수식은 KaTeX 가 그려서 **한글보다 훨씬 넓다.**
+  //      「v = fλ입니다 그랬을 때 저 v는 음원의 속력이 되는 거고」 는
+  //      글자로 31자인데 실제로는 40자쯤 먹는다.
+  //      그래서 38 로 잡든 48 로 잡든 계속 어긋났다. 사용자가 열 번 넘게 짚었다.
+  //
+  //    ⇒ 브라우저는 진짜 폭을 안다. **그려 보고 재면 된다.**
+  //      숨은 칸에 똑같은 모양으로 그려서 폭을 재고, 넘치는지 본다.
+
   function 쓸수있는폭() {
     const 통 = 자막층.parentElement;
     const 통폭 = 통 ? 통.clientWidth : 0;
-    if (!통폭) return 자막층.clientWidth;      // 통을 못 찾으면 옛 방식이라도
+    if (!통폭) return 0;
     const ㅁ = getComputedStyle(자막층);
     const 안쪽 = (parseFloat(ㅁ.paddingLeft) || 0) + (parseFloat(ㅁ.paddingRight) || 0);
-    // 스타일.css 의 max-width 와 맞춘다. % 가 아니면 통 폭을 그대로 쓴다.
     let 몫 = 0.96;
     const ㅊ = ㅁ.maxWidth;
     if (ㅊ && ㅊ.indexOf("%") > 0) 몫 = (parseFloat(ㅊ) || 96) / 100;
@@ -197,11 +200,39 @@ const 자막 = (() => {
     return Math.max(0, 통폭 * 몫 - 안쪽);
   }
 
-  function 한줄글자수() {
-    const 폭 = 쓸수있는폭();
-    if (!폭) return 0;                       // 아직 안 그려졌으면 모른다
-    const 크기 = parseFloat(getComputedStyle(자막층).fontSize) || 20;
-    return Math.floor(폭 / (크기 * 0.98));
+  //  ★ 재는 칸 — 화면 밖에 숨겨 두고 자막과 **똑같은 모양**으로 그린다.
+  let 재는칸 = null;
+  function 재는칸준비() {
+    if (재는칸 && 재는칸.isConnected) return 재는칸;
+    재는칸 = document.createElement("div");
+    재는칸.setAttribute("aria-hidden", "true");
+    const ㅁ = getComputedStyle(자막층);
+    재는칸.style.cssText =
+      "position:absolute; left:-99999px; top:0; visibility:hidden;" +
+      "white-space:nowrap; pointer-events:none;" +
+      "font-size:" + ㅁ.fontSize + "; font-weight:" + ㅁ.fontWeight +
+      "; font-family:" + ㅁ.fontFamily + "; letter-spacing:" + ㅁ.letterSpacing + ";";
+    (자막층.parentElement || document.body).appendChild(재는칸);
+    return 재는칸;
+  }
+
+  //  이 글을 한 줄로 그리면 몇 픽셀이나 되나 — **진짜로 그려서 잰다**
+  function 그리면몇픽셀(글) {
+    const ㄱ = 재는칸준비();
+    const ㅁ = getComputedStyle(자막층);
+    ㄱ.style.fontSize = ㅁ.fontSize;
+    ㄱ.style.fontWeight = ㅁ.fontWeight;
+    ㄱ.style.fontFamily = ㅁ.fontFamily;
+    ㄱ.style.letterSpacing = ㅁ.letterSpacing;
+    ㄱ.innerHTML = 감싸기(글);
+    return ㄱ.scrollWidth;
+  }
+
+  //  한 줄에 들어가나? — 글자 수가 아니라 폭으로 본다
+  function 한줄에들어가나(글) {
+    const 쓸폭 = 쓸수있는폭();
+    if (!쓸폭) return true;                 // 아직 못 재면 손대지 않는다
+    return 그리면몇픽셀(글) <= 쓸폭;
   }
 
   //  ★★★ 필요한 만큼 줄을 나눈다 (2026-09-03 · 사용자가 화면 보고 잡아냄)
@@ -249,48 +280,46 @@ const 자막 = (() => {
     return 글.split(문장끝).map(ㅅ => ㅅ.trim()).filter(Boolean);
   }
 
-  function 한문장접기(글, 들어갈수) {
+  function 한문장접기(글) {
     //  한 문장이 한 줄에 안 들어갈 때만 부른다.
-    if (!들어갈수 || 글.length <= 들어갈수) return [글];
+    //  ★ 어디서 접을지는 **말이 끊기는 자리**로 고르고,
+    //    들어가는지 아닌지는 **재서** 본다. 글자 수로 세지 않는다.
+    if (한줄에들어가나(글)) return [글];
     const 좋은자리 = 끊을자리들(글);
-    const 줄들 = [];
-    let 남은시작 = 0;
-    while (글.length - 남은시작 > 들어갈수) {
-      const 한도 = 남은시작 + 들어갈수;
-      let 끊을데 = -1;
-      for (const ㅈ of 좋은자리) {
-        if (ㅈ > 남은시작 && ㅈ <= 한도) 끊을데 = ㅈ;
-      }
-      if (끊을데 < 0) {
-        const 빈칸 = 글.lastIndexOf(" ", 한도);
-        if (빈칸 > 남은시작) 끊을데 = 빈칸 + 1;
-      }
-      if (끊을데 < 0) break;              // 더 못 나눈다 — 브라우저에 맡긴다
-      줄들.push(글.slice(남은시작, 끊을데).trim());
-      남은시작 = 끊을데;
+    if (!좋은자리.length) return [글];      // 끊을 데가 없으면 브라우저에 맡긴다
+
+    //  가운데에 가장 가까운 자리부터 대 보며, 두 쪽 다 한 줄에 들어가는 곳을 고른다
+    const 가운데 = Math.floor(글.length / 2);
+    const 차례 = 좋은자리.slice().sort((ㄱ, ㄴ) =>
+      Math.abs(ㄱ - 가운데) - Math.abs(ㄴ - 가운데));
+    for (const ㅈ of 차례) {
+      const 앞 = 글.slice(0, ㅈ).trim();
+      const 뒤 = 글.slice(ㅈ).trim();
+      if (!앞 || !뒤) continue;
+      if (한줄에들어가나(앞) && 한줄에들어가나(뒤)) return [앞, 뒤];
     }
-    const 나머지 = 글.slice(남은시작).trim();
-    if (나머지) 줄들.push(나머지);
-    return 줄들;
+    //  두 쪽으로 안 되면 가운데에서 한 번만 접고 나머지는 브라우저에 맡긴다
+    const ㅈ = 차례[0];
+    const 앞 = 글.slice(0, ㅈ).trim(), 뒤 = 글.slice(ㅈ).trim();
+    return (앞 && 뒤) ? [앞, 뒤] : [글];
   }
 
   function 여러줄로(글) {
     if (!글) return null;
-    const 들어갈수 = 한줄글자수();
     const 문장 = 문장들로(글);
 
     //  ① 문장이 둘 이상이면 **문장마다 한 줄**
     if (문장.length > 1) {
       const 줄들 = [];
       for (const ㅁ of 문장) {
-        for (const ㄴ of 한문장접기(ㅁ, 들어갈수)) 줄들.push(ㄴ);
+        for (const ㄴ of 한문장접기(ㅁ)) 줄들.push(ㄴ);
       }
       return 줄들.length > 1 ? 줄들 : null;
     }
 
-    //  ② 한 문장뿐이면 — 넘칠 때만 접는다
-    if (!들어갈수 || 글.length <= 들어갈수) return null;
-    const 접은것 = 한문장접기(글, 들어갈수);
+    //  ② 한 문장뿐이면 — 재 보고 넘칠 때만 접는다
+    if (한줄에들어가나(글)) return null;
+    const 접은것 = 한문장접기(글);
     return 접은것.length > 1 ? 접은것 : null;
   }
 
