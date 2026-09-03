@@ -1060,22 +1060,3 @@ body.전체화면중 { overflow: hidden; }
 .영상통.가로눕히기 .쓸기판.위,
 .영상통.가짜전체화면 .쓸기판.위,
 .영상통:fullscreen .쓸기판.위 { left: 0; right: 0; top: 0; height: 34%; }
-
-
-/* ★★★ 임시 맞춤판 (2026-09-03) — 숫자를 받으면 지운다 */
-.맞춤통 { position: absolute; top: 10px; left: 26%; }
-.맞춤판 {
-  position: absolute; left: 0; top: calc(100% + 7px);
-  display: flex; flex-direction: column; gap: 4px;
-  background: rgba(10, 14, 19, .95); border: 1px solid rgba(211,216,222,.24);
-  border-radius: 9px; padding: 5px; min-width: 170px;
-  max-height: 74vh; overflow-y: auto;
-  box-shadow: 0 8px 22px rgba(0,0,0,.55);
-}
-.맞춤판[hidden] { display: none; }
-.맞춤값 {
-  color: #7fe3c0; font-size: .8rem; font-weight: 700;
-  padding: 6px 10px; white-space: nowrap;
-  border-bottom: 1px solid rgba(211,216,222,.18); margin-bottom: 2px;
-}
-@media (hover: hover) and (pointer: fine) { .맞춤통 { display: none; } }

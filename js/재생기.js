@@ -150,9 +150,9 @@ const 재생기 = (() => {
   //    (「드롭바 조정할때는 버튼 사라지지 않게 해줘」)
   function 입히기() {
     if (!단추칸 || 단추칸.hidden) return;
-    const 보일까 = 유튜브떠있나 || 드롭바열렸나() || 맞춤판열렸나();
+    const 보일까 = 유튜브떠있나 || 드롭바열렸나();
     단추칸.classList.toggle("쉬는중", !보일까);
-    if (!보일까) { 드롭바접기(); 맞춤판접기(); }
+    if (!보일까) 드롭바접기();
   }
 
   function 사라질시계걸기(얼마) {
@@ -343,18 +343,11 @@ const 재생기 = (() => {
   //    틀의 가로(=화면의 세로) · 틀의 세로(=화면의 가로).
   //  ★ 손가락으로 화면을 벌려 놨을 수도 있다. 그때는 visualViewport 가 진짜 값을 안다.
 
-  // ★★★ 임시 맞춤판이 만지는 값 (2026-09-03) — 보는 사람 기준이다
   //   손올림 … 보는 사람 기준 위(+) / 아래(−)   … 폰으로는 좌우
   //   손넓힘 … 보는 사람 기준 위아래 길이       … 폰으로는 좌우 폭
   //   손길이 … 보는 사람 기준 좌우 길이         … 폰으로는 위아래 폭
-  const 맞춤열쇠 = "세진과학.전체화면맞춤.v1";
-  let 손올림 = 0, 손넓힘 = 0, 손길이 = 0;
-  try {
-    const ㄱ = JSON.parse(localStorage.getItem(맞춤열쇠) || "{}");
-    if (typeof ㄱ.올림 === "number") 손올림 = ㄱ.올림;
-    if (typeof ㄱ.넓힘 === "number") 손넓힘 = ㄱ.넓힘;
-    if (typeof ㄱ.길이 === "number") 손길이 = ㄱ.길이;
-  } catch (오류) {}
+  //  ★★★ 사용자가 폰에서 손으로 맞춘 값이다 (2026-09-03) — 「올림 14 · 위아래 0 · 좌우 0」
+  const 손올림 = 14, 손넓힘 = 0, 손길이 = 0;
 
   function 눕힘자리맞추기() {
     if (!통.classList.contains("가로눕히기")) {
@@ -372,46 +365,8 @@ const 재생기 = (() => {
     통.style.height = (폭 + 손넓힘) + "px";     // 틀의 세로 = 화면의 가로
     통.style.left   = (왼끝 + 폭 / 2 + 손올림) + "px";
     통.style.top    = (위끝 + 높이 / 2) + "px";
-    맞춤값쓰기();
   }
 
-  // ---------- 임시 맞춤판 ----------
-  const 맞춤단추 = document.getElementById("맞춤단추");
-  const 맞춤판   = document.getElementById("맞춤판");
-  const 맞춤값칸 = document.getElementById("맞춤값");
-
-  function 맞춤값쓰기() {
-    if (맞춤값칸) 맞춤값칸.textContent =
-      "올림 " + 손올림 + " · 위아래 " + 손넓힘 + " · 좌우 " + 손길이;
-    try { localStorage.setItem(맞춤열쇠, JSON.stringify({ 올림: 손올림, 넓힘: 손넓힘, 길이: 손길이 })); }
-    catch (오류) {}
-  }
-
-  function 맞춤판열렸나() { return !!(맞춤판 && !맞춤판.hidden); }
-  function 맞춤판접기() { if (맞춤판) { 맞춤판.hidden = true; if (맞춤단추) 맞춤단추.textContent = "맞춤 ▾"; } }
-
-  if (맞춤단추) 맞춤단추.addEventListener("click", ㅇ => {
-    ㅇ.stopPropagation();
-    if (!맞춤판) return;
-    const 열까 = 맞춤판.hidden;
-    맞춤판.hidden = !열까;
-    맞춤단추.textContent = 열까 ? "맞춤 ▴" : "맞춤 ▾";
-    맞춤값쓰기();
-  });
-
-  function 맞춤단추달기(아이디, 할일) {
-    const ㄷ = document.getElementById(아이디);
-    if (!ㄷ) return;
-    ㄷ.addEventListener("click", ㅇ => { ㅇ.stopPropagation(); 할일(); 눕힘자리맞추기(); });
-  }
-  // ★ 위아래는 눈금을 촘촘히 (2026-09-03 · 「위아래 눈금 더 촘촘히 해」)
-  맞춤단추달기("맞춤위",   () => { 손올림 += 2; });
-  맞춤단추달기("맞춤아래", () => { 손올림 -= 2; });
-  맞춤단추달기("맞춤넓게", () => { 손넓힘 += 2; });
-  맞춤단추달기("맞춤좁게", () => { 손넓힘 -= 2; });
-  맞춤단추달기("맞춤길게", () => { 손길이 += 6; });
-  맞춤단추달기("맞춤짧게", () => { 손길이 -= 6; });
-  맞춤단추달기("맞춤처음", () => { 손올림 = 0; 손넓힘 = 0; 손길이 = 0; });
 
   function 이따가자리맞추기() {
     requestAnimationFrame(() => requestAnimationFrame(눕힘자리맞추기));
