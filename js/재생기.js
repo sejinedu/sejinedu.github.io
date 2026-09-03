@@ -820,6 +820,18 @@ const 재생기 = (() => {
       틀.allowFullscreen = true;
       화면칸.replaceChildren(틀);
 
+      // ★★★ 웹에서는 유튜브 틀에 눈길을 준다 (2026-09-03 · 사용자가 정함)
+      //   「웹에서 유튜브 틀로해」
+      //   유튜브는 제 틀에 눈길(focus)이 있을 때만 글쇠를 듣는다.
+      //   눈길을 넘겨주면 스페이스·화살표·F 같은 유튜브 본래 글쇠가 전부 먹는다.
+      //   ★ 폰은 안 한다 — 손으로 만지는 자리라 눈길이 의미가 없다.
+      try {
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+          [300, 1200].forEach(ㄷ => setTimeout(() => { try { 틀.focus(); } catch (오류) {} }, ㄷ));
+          화면칸.addEventListener("click", () => { try { 틀.focus(); } catch (오류) {} });
+        }
+      } catch (오류) {}
+
       const 됐나 = await API불러오기();
       if (!됐나) {
         // 자막은 시간에 못 맞추지만 영상은 그대로 나온다
