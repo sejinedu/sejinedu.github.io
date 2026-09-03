@@ -494,8 +494,12 @@ body.주인 .카드 { touch-action: none; }
      anywhere 는 「어디서든 끊어도 된다」 라 낱말 한가운데서도 끊는다.
      break-word 로 바꾸면 **한 낱말이 한 줄보다 길 때만** 끊는다. */
   word-break: keep-all; overflow-wrap: break-word;
-  /* 어쩌다 긴 줄이 와도 세 줄까지만. 화면을 잡아먹지 않게. */
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+  /* ★★★ 두 줄까지만 (2026-09-03 · 사용자가 정함)
+       「야 자막 3줄은 개오바지. 많아야 2줄이지. 그것도 많아야 2줄」
+     ★ 이건 **그물**이지 해결이 아니다. 여기서 잘리면 「…」 로 말이 사라진다.
+       진짜 고침은 자막이어붙이기.py 의 최대글자를 34 로 내린 것이다.
+       여기 걸리는 줄이 생기면 그건 최대글자가 아직 크다는 뜻이다. */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
 /* ★ 수식 변수는 기울임체 (2026-09-02 · 사용자가 정함)
      수학은 변수를 기울여 쓴다. 세리프체로 두면 진짜 수식처럼 보인다.
