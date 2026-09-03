@@ -488,7 +488,12 @@ body.주인 .카드 { touch-action: none; }
   font-weight: 600; line-height: 1.4; letter-spacing: -.01em;
   padding: 5px 13px; border-radius: 6px; text-align: center;
   text-shadow: 0 1px 3px rgba(0,0,0,.9);
-  word-break: keep-all; overflow-wrap: anywhere;
+  /* ★★★ 한글은 **어절 단위**로 끊는다 (2026-09-03 · 사용자가 잡음)
+       「한글은 어절로 좀 끈겨서 … 이런게 있 / 죠」
+     keep-all 은 넣어 뒀는데 옆의 overflow-wrap: anywhere 가 그걸 무력화했다.
+     anywhere 는 「어디서든 끊어도 된다」 라 낱말 한가운데서도 끊는다.
+     break-word 로 바꾸면 **한 낱말이 한 줄보다 길 때만** 끊는다. */
+  word-break: keep-all; overflow-wrap: break-word;
   /* 어쩌다 긴 줄이 와도 세 줄까지만. 화면을 잡아먹지 않게. */
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
 }
