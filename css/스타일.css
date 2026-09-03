@@ -1072,3 +1072,15 @@ body.전체화면중 { overflow: hidden; }
 .영상통.가로눕히기 .쓸기판.위,
 .영상통.가짜전체화면 .쓸기판.위,
 .영상통:fullscreen .쓸기판.위 { left: 0; right: 0; top: 0; height: 34%; }
+
+
+/* ★ 올리기 단추 — 주인 화면에만 (2026-09-03)
+     고친 것을 학생 사이트로 내보낸다. 업데이트 단추와 헷갈리지 않게 색을 달리했다. */
+.올리기 {
+  background: #2b1f3a; border: 1px solid #6c4bb6; color: #d9c7ff;
+  height: 30px; padding: 0 13px; border-radius: 8px;
+  font-size: .82rem; font-weight: 700; white-space: nowrap;
+}
+.올리기[hidden] { display: none; }
+.올리기:active { background: #3a2a50; }
+.올리기[disabled] { opacity: .55; }
