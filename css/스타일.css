@@ -1136,3 +1136,24 @@ body.전체화면중 { overflow: hidden; }
 
 /* Reference-frame captions share the same Roboto punctuation/Latin metrics. */
 @font-face{font-family:Roboto;font-style:normal;font-weight:100 900;font-display:swap;src:url('../자산/자막글꼴/Roboto.woff2') format('woff2')}
+
+/* ============================================================
+   로그인 안 됐다고 알리는 띠 (2026-09-11 · 2단계 규격)
+   ★ 학생들이 보는 공개 사이트에는 안 뜬다 — js/앱.js 가 「/로그인」 을 물어
+     답이 오는 자리(내 서버)에서만 붙인다.
+   ★ 사용자가 「종일 로그아웃인 줄 몰랐다」 고 했다. 그래서 **놓칠 수 없게** 위에 붙인다.
+   ============================================================ */
+.로그인알림띠 {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 9999;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
+  padding: 10px 16px;
+  background: #b3261e; color: #fff;
+  font-size: 15px; line-height: 1.45;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+}
+.로그인알림띠 b { font-size: 16px; font-weight: 700; }
+.로그인알림띠 .어떻게 { opacity: .92; }
+
+/* 띠가 화면 맨 위를 덮으니 그만큼 아래로 민다 */
+body.로그인안됨 { padding-top: 46px; }
+@media (max-width: 640px) { body.로그인안됨 { padding-top: 72px; } }
