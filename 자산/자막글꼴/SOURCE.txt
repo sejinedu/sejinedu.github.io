@@ -1,0 +1,3 @@
+Unmodified Roboto web font used by the YouTube reference player (2026-09-10).
+https://fonts.gstatic.com/s/roboto/v48/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBA.woff2
+License: OFL 1.1; see OFL-Roboto.txt.

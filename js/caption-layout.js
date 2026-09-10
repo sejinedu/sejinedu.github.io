@@ -1,8 +1,8 @@
-/* Shared caption geometry. Dimensions are CSS pixels, never device pixels.
- * YouTube's public captions renderer observed 2026-09-10 uses 16px per
- * 360px of landscape video content height at the default fontSize=0.
- * https://developers.google.com/youtube/iframe_api_reference#onApiChange
- * This is a desktop reference, not an API guarantee of fixed pixel sizes.
+/* One authored frame for preview, upload and website: 1920x1080, CC 48px.
+ * Measured on the user's actual YouTube reference 9AEsTOZ9IIo at 13:08,
+ * fontSize=0: 48px at 1920x1080 and 24px at 960x540 (2026-09-10).
+ * Cropping changes the picture inside this frame, never the caption scale.
+ * Dimensions are CSS pixels. Browser zoom/DPR must not be applied twice.
  */
 (function(root){
  'use strict';
@@ -11,13 +11,12 @@
   const scale=Math.min(width/videoWidth,height/videoHeight),w=videoWidth*scale,h=videoHeight*scale;
   return {x:(width-w)/2,y:(height-h)/2,width:w,height:h};
  }
- function fontSize(width,height,videoWidth,videoHeight,percent=100){
-  const video=contentRect(width,height,videoWidth,videoHeight);
-  if(!video.height)return 0;
-  const base=video.height>=video.width?width/(height>width*1.3?480:640)*16:video.height/360*16;
-  return base*percent/100;
+ const reference=Object.freeze({width:1920,height:1080,fontSize:48});
+ function frameRect(width,height){return contentRect(width,height,reference.width,reference.height);}
+ function frameFontSize(width,height,percent=100){
+  return frameRect(width,height).width/reference.width*reference.fontSize*percent/100;
  }
- const api={contentRect,fontSize};
+ const api={contentRect,reference,frameRect,frameFontSize};
  if(typeof module==='object'&&module.exports)module.exports=api;
  else root.CaptionLayout=api;
 })(typeof globalThis==='object'?globalThis:this);

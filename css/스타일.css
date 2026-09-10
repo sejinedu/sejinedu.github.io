@@ -1133,3 +1133,6 @@ body.전체화면중 { overflow: hidden; }
   font-weight:400; letter-spacing:normal; line-height:1.3;
   padding:.12em .3em; border-radius:2px; text-shadow:none;
 }
+
+/* Reference-frame captions share the same Roboto punctuation/Latin metrics. */
+@font-face{font-family:Roboto;font-style:normal;font-weight:100 900;font-display:swap;src:url('../자산/자막글꼴/Roboto.woff2') format('woff2')}

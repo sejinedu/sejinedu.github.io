@@ -157,7 +157,7 @@ const 자막 = (() => {
     앞선통폭 = 폭; 앞선통높이 = 높이;
     const 영상 = 지금화면 || {width:16,height:9};
     const 배율 = 지금크기 * (영상.size_percent || 100);
-    자막층.style.fontSize = CaptionLayout.fontSize(폭,높이,영상.width,영상.height,배율) + "px";
+    자막층.style.fontSize = CaptionLayout.frameFontSize(폭,높이,배율) + "px";
   }
 
   function 화면폭바뀜(꼭) {
@@ -173,6 +173,7 @@ const 자막 = (() => {
   try {
     if (window.ResizeObserver && 자막층.parentElement) {
       new ResizeObserver(() => 화면폭바뀜(false)).observe(자막층.parentElement);
+      document.fonts.ready.then(() => 화면폭바뀜(true));
     }
     window.addEventListener("resize", () => 화면폭바뀜(true));
     document.addEventListener("fullscreenchange", () => 화면폭바뀜(true));
