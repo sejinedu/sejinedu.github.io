@@ -1126,3 +1126,10 @@ body.전체화면중 { overflow: hidden; }
 .올리기[hidden] { display: none; }
 .올리기:active { background: #3a2a50; }
 .올리기[disabled] { opacity: .55; }
+
+/* 2026-09-10: 유튜브 CC 기본 글꼴·굵기. 크기는 실제 영상 비율로 자막.js에서 계산한다. */
+.영상통 .자막층 {
+  font-family: "YouTube Noto",Roboto,Arial,Helvetica,Verdana,"PT Sans Caption",sans-serif;
+  font-weight:400; letter-spacing:normal; line-height:1.3;
+  padding:.12em .3em; border-radius:2px; text-shadow:none;
+}
