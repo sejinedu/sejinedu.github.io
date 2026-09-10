@@ -2113,10 +2113,14 @@ window.앱다됐다 = true;
   const 띠 = document.createElement("div");
   띠.className = "로그인알림띠";
   띠.setAttribute("role", "status");
+  //  ★ 「한 번도 로그인 안 함」 과 「로그인이 만료됨」 은 다른 말이다 (2026-09-11).
+  //    만료면 사용자는 **자기가 로그인했다고 믿고 있다.** 그걸 그대로 말해 줘야 한다.
+  const 만료됐나 = String(답.왜 || "").indexOf("만료") >= 0;
   띠.innerHTML =
-    '<b>지금 로그인 안 됨</b>' +
+    '<b>' + (만료됐나 ? '로그인이 만료됐다' : '지금 로그인 안 됨') + '</b>' +
     '<span>고치기·올리기가 막혀 있다. 보기만 된다.</span>' +
-    '<span class="어떻게">런처(세도비)에서 「세진 과학」 을 눌러 켜면 로그인된다.</span>';
+    '<span class="어떻게">런처(세도비)에서 「세진 과학」 을 눌러 ' +
+    (만료됐나 ? '다시 로그인해라.' : '켜면 로그인된다.') + '</span>';
   document.body.appendChild(띠);
   document.body.classList.add("로그인안됨");
 })();
