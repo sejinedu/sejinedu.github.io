@@ -281,7 +281,89 @@ const 로그인 = {
   토큰: process.env.SEDOBI_TOKEN || "",
   메일: process.env.SEDOBI_EMAIL || "",
   누구: process.env.SEDOBI_UID || "",
+  새로고침표: process.env.SEDOBI_REFRESH || "",
 };
+
+// ============================================================
+//  ★★★ 토큰이 낡았으면 **스스로 새로 받는다** (2026-09-13)
+// ============================================================
+//
+//  사용자: 「지금 로그인이 되어 있는데 왜이러냐? 고쳐라」
+//
+//  무슨 일이 있었나 —
+//    로그인은 멀쩡히 되어 있었다(`세션.json` 이 있다). 그런데 그 안의 **출입증(토큰)만
+//    1.7일 전에 낡았다.** 런처가 켤 때 그걸 새로 안 받고 그대로 넘겨서,
+//    내가 「로그인이 만료됐다」 며 올리기를 막아 버렸다.
+//
+//  ★ 이건 **막을 일이 아니다.** 사용자는 로그인해 있고, 새 출입증을 받을
+//    **새로고침표도 갖고 있다.** 그냥 받아 오면 되는 일이었다.
+//    남의 방(런처)이 고쳐 주기를 기다리는 동안 사용자가 일을 못 하면 안 된다.
+//
+//  ★ 그래도 **문지기를 무르게 하지는 않는다.** 새로 받는 데 실패하면
+//    그때는 진짜로 로그아웃이니 그대로 막는다.
+//
+//  어디서 재료를 얻나
+//    ① 런처가 넘긴 환경변수 (SEDOBI_REFRESH · SEDOBI_SUPABASE_URL · …ANON)
+//    ② 없으면 런처가 적어 둔 `%LOCALAPPDATA%\sedobi\세션.json`
+//    ③ 그래도 없으면 `API 키\supabase.txt` 의 **PUBLISHABLE_KEY 만** 읽는다
+//       (규격: 「앱·런처에 박아도 된다. 자물쇠는 RLS 가 건다」)
+//       ★ SECRET_KEY 는 **읽지도 않는다.**
+
+const 세션파일 = path.join(process.env.LOCALAPPDATA || "", "sedobi", "세션.json");
+const 열쇠파일 = path.join("C:", "구글 드라이브", "0 세도비", "API 키", "supabase.txt");
+
+function 글하나읽기(길) {
+  try { return fs.readFileSync(길, "utf8"); } catch (오류) { return ""; }
+}
+
+function 세션읽기() {
+  try { return JSON.parse(글하나읽기(세션파일) || "{}"); } catch (오류) { return {}; }
+}
+
+//  ★ 열쇠 파일에서 **그 한 줄만** 꺼낸다. 다른 줄은 안 본다.
+function 열쇠에서(이름) {
+  const 글 = 글하나읽기(열쇠파일);
+  for (const 줄 of 글.split(/\r?\n/)) {
+    if (줄.trim().startsWith("#")) continue;          // 주석 줄은 건너뛴다
+    const ㅈ = 줄.indexOf("=");
+    if (ㅈ > 0 && 줄.slice(0, ㅈ).trim() === 이름) return 줄.slice(ㅈ + 1).trim();
+  }
+  return "";
+}
+
+async function 토큰새로받기() {
+  const ㅅ = 세션읽기();
+  const 표 = 로그인.새로고침표 || ㅅ.새로고침표 || "";
+  const 주소 = process.env.SEDOBI_SUPABASE_URL || 열쇠에서("PROJECT_URL");
+  const 열쇠 = process.env.SEDOBI_SUPABASE_ANON || 열쇠에서("PUBLISHABLE_KEY");
+  if (!표 || !주소 || !열쇠) return { 됐나: false, 왜: "새로 받을 재료가 없다" };
+  try {
+    const ㄷ = await fetch(주소.replace(/\/+$/, "") + "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      headers: { "apikey": 열쇠, "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: 표 }),
+    });
+    if (!ㄷ.ok) return { 됐나: false, 왜: "서버가 거절했다 (" + ㄷ.status + ")" };
+    const ㄱ = await ㄷ.json();
+    if (!ㄱ || !ㄱ.access_token) return { 됐나: false, 왜: "새 토큰이 안 왔다" };
+    로그인.토큰 = ㄱ.access_token;
+    if (ㄱ.refresh_token) 로그인.새로고침표 = ㄱ.refresh_token;
+    if (ㄱ.user && ㄱ.user.email) 로그인.메일 = ㄱ.user.email;
+    if (ㄱ.user && ㄱ.user.id) 로그인.누구 = ㄱ.user.id;
+    //  ★ 런처가 적어 둔 자리에 되돌려 준다 — 다음에 켤 때 딴 앱도 새 것을 쓴다
+    try {
+      const 새것 = Object.assign({}, ㅅ, {
+        토큰: 로그인.토큰,
+        새로고침표: 로그인.새로고침표 || ㅅ.새로고침표,
+        만료: ㄱ.expires_at || ㅅ.만료,
+      });
+      fs.writeFileSync(세션파일, JSON.stringify(새것, null, 1), "utf8");
+    } catch (오류) { /* 못 적어도 이번 판은 돈다 */ }
+    return { 됐나: true };
+  } catch (오류) {
+    return { 됐나: false, 왜: "인터넷이 안 된다" };
+  }
+}
 
 //  ★★★ 「있나」 가 아니라 「살아 있나」 로 본다 (2026-09-11 · 런처 세션이 짚어 줬다)
 //
@@ -310,6 +392,27 @@ function 토큰살펴보기(토큰) {
 }
 
 const 로그인했나 = () => 토큰살펴보기(로그인.토큰).산다;
+
+//  ★ 켤 때 한 번, 그리고 낡았을 때마다 새로 받아 본다.
+//    받는 동안 두 번 겹쳐 부르지 않게 한 번만 돈다.
+let 새로받는중 = null;
+async function 로그인챙기기() {
+  if (로그인했나()) return true;
+  //  환경변수에 아무것도 안 왔으면 런처가 적어 둔 세션이라도 본다
+  if (!로그인.토큰) {
+    const ㅅ = 세션읽기();
+    if (ㅅ.토큰) {
+      로그인.토큰 = ㅅ.토큰;
+      로그인.메일 = 로그인.메일 || ㅅ.이메일 || "";
+      로그인.누구 = 로그인.누구 || ㅅ.uid || "";
+      로그인.새로고침표 = 로그인.새로고침표 || ㅅ.새로고침표 || "";
+      if (로그인했나()) return true;
+    }
+  }
+  if (!새로받는중) 새로받는중 = 토큰새로받기().finally(() => { 새로받는중 = null; });
+  const ㄱ = await 새로받는중;
+  return Boolean(ㄱ && ㄱ.됐나);
+}
 
 //  자료를 바꾸거나 밖으로 내보내는 길 — 로그인이 있어야 한다
 const 잠글길 = new Set(["/올리기", "/단원나무", "/영상목록", "/영상/길이", "/자막/만들기"]);
@@ -352,25 +455,39 @@ const 서버 = http.createServer((req, res) => {
   // ---- 로그인 문지기 ----
   //   ★ 보기는 안 막는다. **바꾸거나 내보내는 길**만 막는다.
   //   ★ 「/자막/상태」 는 그냥 물어보는 것이라 안 막는다 — 막으면 화면이 헛돈다.
-  if (잠글길.has(길) && !로그인했나()) return 로그인막힘(res, 길);
+  //   ★ 낡았으면 **먼저 새로 받아 본다.** 그래도 안 되면 그때 막는다 (2026-09-13).
+  if (잠글길.has(길)) {
+    return void 로그인챙기기().then(됐나 => {
+      if (!됐나) return 로그인막힘(res, 길);
+      나머지처리(req, res, 주소, 길);
+    }).catch(() => 로그인막힘(res, 길));
+  }
 
   // ---- 로그인 상태 알려 주기 ----
   //   화면이 이걸 물어서 「지금 로그인 안 됨」 을 크게 띄운다.
   if (길 === "/로그인") {
-    const 살핀것 = 토큰살펴보기(로그인.토큰);
-    return 답하기(res, {
-      로그인했나: 살핀것.산다,
-      메일: 로그인.메일,
-      누구: 로그인.누구,
-      왜: 살핀것.왜,
-      남은분: 살핀것.남은분,
-      글: 살핀것.산다
-        ? "로그인됨"
-        : (살핀것.왜.indexOf("만료") >= 0
-          ? "로그인이 만료됐다 — 고치고 올리는 건 막혀 있다. 런처(세도비)에서 다시 로그인해라."
-          : "지금 로그인 안 됨 — 고치고 올리는 건 막혀 있다. 런처(세도비)에서 켜면 로그인된다."),
-    });
+    return void 로그인챙기기().then(() => {
+      const 살핀것 = 토큰살펴보기(로그인.토큰);
+      답하기(res, {
+        로그인했나: 살핀것.산다,
+        메일: 로그인.메일,
+        누구: 로그인.누구,
+        왜: 살핀것.왜,
+        남은분: 살핀것.남은분,
+        글: 살핀것.산다
+          ? "로그인됨"
+          : (살핀것.왜.indexOf("만료") >= 0
+            ? "로그인이 만료됐다 — 새로 받아 봤지만 안 됐다. 런처(세도비)에서 다시 로그인해라."
+            : "지금 로그인 안 됨 — 고치고 올리는 건 막혀 있다. 런처(세도비)에서 켜면 로그인된다."),
+      });
+    }).catch(() => 답하기(res, { 로그인했나: false, 글: "로그인을 확인하지 못했다" }));
   }
+
+  나머지처리(req, res, 주소, 길);
+});
+
+//  ★ 위에서 로그인을 챙긴 뒤 이어서 하는 일 — 원래 하던 그대로다.
+function 나머지처리(req, res, 주소, 길) {
 
   // ---- 자막 공장 ----
   if (길 === "/자막/상태" || 길 === "/자막/만들기") {
@@ -567,7 +684,7 @@ const 서버 = http.createServer((req, res) => {
     });
     res.end(내용);
   });
-});
+}
 
 서버.on("error", 오류 => {
   if (오류.code === "EADDRINUSE") process.exit(0);   // 이미 떠 있으면 조용히 물러난다
