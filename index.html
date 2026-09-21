@@ -46,9 +46,9 @@
     <span class="이름글">세진 <span>과학</span></span>
   </button>
 
-  <nav class="머리메뉴">
-    <button class="메뉴칸 켜짐" id="동영상보기" type="button">동영상 보기</button>
-  </nav>
+  <!-- ★ 과목 메뉴 (2026-09-22 · 사용자가 정함 — 「상단에는 과목 선택 메뉴」)
+       앱.js 과목메뉴그리기() 가 채운다. 폰에서는 이 자리가 좁아서 아래 「과목띠」 에 뜬다. -->
+  <nav class="머리메뉴" id="머리과목" aria-label="과목"></nav>
 
   <div class="머리오른쪽">
     <span class="판" id="판표시">v—</span>
@@ -85,6 +85,7 @@
 
     <!-- ① 썸네일 격자 — 단원을 고르면 여기 -->
     <div class="격자보기" id="격자보기">
+      <nav class="과목띠" id="과목띠" aria-label="과목"></nav>
       <div class="목록머리" id="목록머리"></div>
       <div class="격자" id="격자"></div>
     </div>
