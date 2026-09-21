@@ -56,6 +56,8 @@
            「여기서는 내가 수정 할껀데, 그럼 그게 학생 사이트에도 바로 적용되는거 아님?」
          고친 것을 학생 사이트로 내보내는 단추다. 이게 없어서 내가 손으로 올려 왔다. -->
     <button class="올리기" id="올리기" type="button" hidden>올리기</button>
+    <!-- ★ 로그인 (2026-09-22) — 보기는 로그인 없이 된다. 댓글·올리기 할 때만 필요하다. js/로그인창.js 가 움직인다. -->
+    <button class="로그인단추" id="로그인단추" type="button">로그인</button>
     <button class="업데이트" id="업데이트" type="button">업데이트</button>
   </div>
 </header>
@@ -200,6 +202,32 @@
 <div class="끄는것" id="끄는것" hidden></div>
 <div class="맥락메뉴" id="맥락메뉴" hidden role="menu"></div>
 
+<!-- ★ 로그인 창 (2026-09-22) — 메일 → 여섯 자리 번호 → (처음이면) 별명. 가입과 로그인이 한 길이다.
+     모양은 아래 「동영상 링크 연결 창」 것을 그대로 빌려 쓴다. -->
+<div class="연결막" id="로그인막" hidden>
+  <div class="연결창" role="dialog" aria-modal="true" aria-labelledby="로그인제목">
+    <h2 class="연결제목" id="로그인제목">로그인 · 가입</h2>
+    <p class="연결단원" id="로그인설명">세도비 계정 메일을 넣어라. 처음이면 그대로 가입된다.</p>
+    <label class="연결칸" id="메일칸">
+      <span class="연결이름">메일</span>
+      <input type="email" id="로그인메일" placeholder="예: student@gmail.com" autocomplete="email" spellcheck="false">
+    </label>
+    <label class="연결칸" id="번호칸" hidden>
+      <span class="연결이름">메일로 온 여섯 자리 번호</span>
+      <input type="text" id="로그인번호" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+    </label>
+    <label class="연결칸" id="별명칸" hidden>
+      <span class="연결이름">별명 — 댓글에 이 이름이 나온다 (메일은 안 보인다)</span>
+      <input type="text" id="로그인별명" maxlength="20" placeholder="두 글자에서 스무 글자" autocomplete="nickname">
+    </label>
+    <p class="연결말" id="로그인말"></p>
+    <div class="연결단추줄">
+      <button class="연결취소" id="로그인취소" type="button">닫기</button>
+      <button class="연결하기" id="로그인하기" type="button">번호 받기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 동영상 링크 연결 창 -->
 <div class="연결막" id="연결막" hidden>
   <div class="연결창" role="dialog" aria-modal="true" aria-labelledby="연결제목">
@@ -307,7 +335,9 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
   //   남한테 주소를 줘도 그 사람은 텅 빈 사이트를 봤다.
   var 차례 = ["js/기록소.js", "js/단원.js", "js/나무.js", "js/동영상.js",
               "자료/영상목록.js",
-              "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/caption-layout.js", "js/자막.js", "js/앱.js"];
+              "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/caption-layout.js", "js/자막.js", "js/앱.js",
+              // ★ 회원은 맨 뒤에 싣는다 — 여기서 탈이 나도 강의 보기는 이미 떠 있다 (2026-09-22)
+              "js/회원.js", "js/로그인창.js"];
 
   // ============================================================
   //  카카오톡 안에서 열렸으면 진짜 브라우저로 넘긴다
@@ -398,9 +428,11 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
         }, 2500);
         return;
       }
+      // ★ 회원 쪽 파일은 못 읽어도 화면을 지우지 않는다 — 강의 보기는 로그인 없이 돼야 한다
+      var 없어도됨 = 차례[ㅈ] === "js/회원.js" || 차례[ㅈ] === "js/로그인창.js";
       스크립트(차례[ㅈ] + "?v=" + 판,
         function () { 다음(ㅈ + 1); },
-        function () { 못열었다(차례[ㅈ]); });
+        function () { if (없어도됨) 다음(ㅈ + 1); else 못열었다(차례[ㅈ]); });
     })(0);
 
   }, function () { 못열었다("js/판.js"); });

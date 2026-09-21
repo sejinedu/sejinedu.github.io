@@ -1202,3 +1202,16 @@ body.로그인안됨 { padding-top: 46px; }
   .카드.글줄 .카드제목 { font-size: .9rem; }
   .카드.글줄 .카드아래 { gap: 4px 9px; font-size: .74rem; }
 }
+
+/* 로그인 단추 — 머리줄 오른쪽 (2026-09-22) */
+.로그인단추 {
+  background: none; border: 1px solid var(--테두리); color: var(--글);
+  height: 30px; padding: 0 12px; border-radius: 6px; font-size: .84rem; line-height: 1;
+  white-space: nowrap; max-width: 9em; overflow: hidden; text-overflow: ellipsis;
+}
+.로그인단추.들어옴 { border-color: var(--악센트흐림); color: var(--악센트); }
+.연결칸[hidden] { display: none; }
+#로그인번호 { letter-spacing: .4em; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) {
+  .로그인단추 { padding: 0 9px; font-size: .8rem; max-width: 6.5em; }
+}
