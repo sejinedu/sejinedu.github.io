@@ -1267,8 +1267,8 @@ body.로그인안됨 { padding-top: 46px; }
 @media (max-width: 480px) { .영상올리기단추 { padding: 0 8px; font-size: .78rem; } }
 
 /* 관리자 — 과목·세부 교과 끌어 옮기기 (2026-09-22) */
-body[data-등급="admin"] #나무칸 .상자[data-아이디],
-body[data-등급="admin"] .메뉴칸[data-아이디] { cursor: grab; }
+/* ★ 손 모양은 검지 하나(누르기)로 — 다섯 손가락(잡기)은 끄는 동안에만 (2026-09-22 · 사용자가 정함) */
+#나무칸 .상자, .머리메뉴 .메뉴칸, .과목띠 .메뉴칸 { cursor: pointer; }
 body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user-select: none; }
 .끌리는중 { opacity: .35; }
 .끌림그림자 {
