@@ -30,7 +30,11 @@
   let 도는중 = false;
 
   const 올릴수있나 = ㅅ => window.저장소가원본 && ㅅ.들어왔나 && (ㅅ.등급 === "teacher" || ㅅ.등급 === "admin");
-  function 단추칠하기(ㅅ) { 단추.hidden = !올릴수있나(ㅅ); }
+  function 단추칠하기(ㅅ) {
+    단추.hidden = !올릴수있나(ㅅ);
+    // 게시판 위아래 「글쓰기」 도 같이 — 로그인이 늦게 끝나도 따라 켜진다
+    document.querySelectorAll(".글쓰기단추").forEach(ㄱ => { ㄱ.hidden = 단추.hidden; });
+  }
   회원.듣기(단추칠하기);
   단추칠하기(회원.상태());
 

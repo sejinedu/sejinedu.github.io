@@ -1363,3 +1363,81 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 }
 /* ★ 숨긴 단추는 끝까지 숨긴다 — 위 한 벌 맞추기(display:inline-flex)가 hidden 을 이기면 안 된다 (2026-09-22에 밟음) */
 .머리오른쪽 [hidden] { display: none !important; }
+
+/* ============================================================
+   표 게시판 — 아카라이브처럼 (2026-09-22 · 사용자가 정함)
+   번호 · 제목 [댓글] · 작성자 · 작성일 · 조회수 · 좋아요
+   ============================================================ */
+.판윗줄, .판아랫줄 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
+.판윗줄 { justify-content: flex-end; }
+.판윗줄:has(> .글쓰기단추[hidden]:only-child) { display: none; }
+.판아랫줄 { margin: 14px 0 0; }
+.글쓰기단추 {
+  display: inline-flex; align-items: center; height: 32px; padding: 0 13px; border-radius: 6px;
+  background: none; border: 1px solid var(--테두리); color: var(--글); font-size: .84rem; font-weight: 600; white-space: nowrap;
+}
+.글쓰기단추[hidden] { display: none; }
+.글표 { border-top: 2px solid var(--테두리); font-size: .9rem; }
+.글표머리, .글표줄 {
+  display: grid; align-items: center;
+  grid-template-columns: 64px minmax(0, 1fr) 130px 92px 70px 56px;
+  column-gap: 10px; padding: 0 10px; min-height: 42px;
+  border-bottom: 1px solid var(--테두리);
+}
+.글표머리 { font-weight: 700; font-size: .84rem; color: var(--흐린글); min-height: 40px; }
+.글표줄 { color: var(--글); text-decoration: none; }
+.글표줄:visited .글제목 { color: #b9c0c8; }
+.칸번호, .칸작성일, .칸조회, .칸추천 { text-align: center; font-variant-numeric: tabular-nums; color: var(--흐린글); font-size: .84rem; }
+.글표머리 .칸번호, .글표머리 .칸작성일, .글표머리 .칸조회, .글표머리 .칸추천 { color: var(--흐린글); }
+.칸제목 { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 10px 0; }
+.글표머리 .칸제목 { padding: 0; }
+.글제목 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.글딱지 {
+  flex: none; font-size: .72rem; font-weight: 700; color: var(--글);
+  background: var(--판밝게); border-radius: 4px; padding: 3px 6px; line-height: 1;
+}
+.댓글셈 { flex: none; font-size: .78rem; color: var(--악센트); }
+.칸작성자 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .86rem; }
+.칸추천.내가 { color: #d97a86; }
+.글표빔 { padding: 40px 10px; text-align: center; color: var(--흐린글); }
+@media (hover: hover) and (pointer: fine) { .글표줄:hover { background: var(--판); } }
+
+.판찾기 { display: flex; margin-left: auto; }
+.판찾기 input {
+  width: 220px; height: 32px; box-sizing: border-box; padding: 0 10px;
+  background: var(--판); border: 1px solid var(--테두리); border-right: 0; border-radius: 6px 0 0 6px; color: var(--글); font: inherit; font-size: .86rem;
+}
+.판찾기 input:focus { outline: none; border-color: var(--악센트); }
+.판찾기 button { height: 32px; padding: 0 13px; border: 1px solid var(--테두리); border-radius: 0 6px 6px 0; background: var(--판밝게); color: var(--글); font-size: .84rem; }
+.쪽줄 { display: flex; justify-content: center; margin: 18px 0 6px; }
+.쪽줄 button {
+  min-width: 38px; height: 36px; padding: 0 8px; background: none; color: var(--글);
+  border: 1px solid var(--테두리); margin-left: -1px; font-size: .9rem; font-variant-numeric: tabular-nums;
+}
+.쪽줄 button:first-child { border-radius: 6px 0 0 6px; }
+.쪽줄 button:last-child { border-radius: 0 6px 6px 0; }
+.쪽줄 button.켜짐 { background: var(--판밝게); border-color: var(--악센트흐림); color: var(--악센트); position: relative; z-index: 1; }
+
+/* 폰 — 한 줄에 제목, 그 밑에 작성자 · 작성일 · 조회 · 좋아요 */
+@media (max-width: 700px) {
+  .글표머리 { display: none; }
+  .글표줄 {
+    /* ★ 마지막 칸을 minmax(0,1fr) 로 — 안 그러면 긴 제목이 칸을 밀어 화면 밖으로 넘친다 (2026-09-22에 밟음) */
+    grid-template-columns: max-content max-content max-content minmax(0, 1fr); grid-template-areas: "제목 제목 제목 제목" "작성자 작성일 조회 추천";
+    row-gap: 3px; column-gap: 10px; padding: 9px 4px;
+  }
+  .글표줄 .칸번호 { display: none; }
+  .글표줄 .칸제목 { grid-area: 제목; padding: 0; min-width: 0; flex-wrap: wrap; row-gap: 4px; }
+  .글표줄 .칸작성자 { grid-area: 작성자; font-size: .76rem; color: var(--흐린글); }
+  .글표줄 .칸작성일 { grid-area: 작성일; font-size: .76rem; text-align: left; }
+  .글표줄 .칸조회 { grid-area: 조회; font-size: .76rem; text-align: left; }
+  .글표줄 .칸조회::before { content: "조회 "; }
+  .글표줄 .칸추천 { grid-area: 추천; font-size: .76rem; text-align: left; }
+  .글표줄 .칸추천::before { content: "♥ "; }
+  .글제목 { white-space: normal; }
+  .판아랫줄 { flex-wrap: wrap; }
+  .판찾기 { width: 100%; }
+  .판찾기 input { flex: 1; width: auto; }
+}
+/* ★ 오른쪽 칸이 글 길이만큼 늘어나 화면 밖으로 밀리지 않게 (그리드 1fr 은 기본이 내용 폭까지 버틴다) */
+.두단 > .오른쪽, .격자보기, .격자 { min-width: 0; }

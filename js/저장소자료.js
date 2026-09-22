@@ -62,6 +62,13 @@ window.저장소준비 = (async () => {
       }))
     };
     window.저장소가원본 = true;
+    // 댓글 수 — 게시판 제목 옆 [N]. 못 받아도 게시판은 뜬다 (기다리지 않는다)
+    받기("site_comments_view?select=post_id").then(줄들 => {
+      const 셈 = {};
+      (줄들 || []).forEach(ㄱ => { 셈[ㄱ.post_id] = (셈[ㄱ.post_id] || 0) + 1; });
+      window.댓글수 = 셈;
+      try { if (typeof 격자그리기 === "function" && document.querySelector(".글표")) 격자그리기(); } catch (오류) {}
+    }).catch(() => {});
   } catch (오류) {
     console.warn("저장소를 못 불러 옛 파일로 뜬다 —", 오류.message);
     // ★ 옛 파일에는 「과목」 층이 없다 (교과가 맨 위다). 화면은 과목 → 교과 → 단원 을 바란다.

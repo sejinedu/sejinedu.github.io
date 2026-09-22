@@ -925,9 +925,10 @@ function 숫자들고치기() {
     const ㅅ = 기록소.읽기(아이디);
     const 조회칸 = 줄.querySelector(".조회셈");
     const 하트칸 = 줄.querySelector(".하트");
-    if (조회칸) 조회칸.textContent = "조회 " + 셈(ㅅ.조회);
+    const 표칸 = 줄.classList.contains("글표줄");      // 표 게시판은 숫자만 적는다
+    if (조회칸) 조회칸.textContent = (표칸 ? "" : "조회 ") + 셈(ㅅ.조회);
     if (하트칸) {
-      하트칸.textContent = "♥ " + 셈(ㅅ.좋아요);
+      하트칸.textContent = (표칸 ? "" : "♥ ") + 셈(ㅅ.좋아요);
       하트칸.classList.toggle("내가", !!ㅅ.내좋아요);
     }
   });
@@ -1056,10 +1057,9 @@ function 격자그리기() {
     return;
   }
 
-  const 판 = document.createElement("div");
-  판.className = "카드판 게시판";
-  지금무리.forEach(ㅇ => 판.appendChild(카드만들기(ㅇ)));
-  격자칸.appendChild(판);
+  // ★ 아카라이브 같은 표 게시판 (2026-09-22 · 사용자가 정함)
+  //   「이거 아카라이브인데 좀 이런식으로 만들라고 … 미리보기 화면은 필요 없구」
+  게시판표그리기(묶음);
 
   // 여기 보이는 영상들의 자막 상태를 물어본다 (한 번에)
   const 지금아이디들 = 지금무리.map(ㅇ => (ㅇ.아이디 || "").trim()).filter(Boolean);
@@ -1068,6 +1068,131 @@ function 격자그리기() {
   // ★ 조회수·좋아요도 한꺼번에 물어본다 (2026-09-02)
   //   하나씩 물어보면 카드 수만큼 오간다. 답이 오면 숫자만 고쳐 칠한다.
   if (있나("기록소") && 기록소.여럿물어보기) 기록소.여럿물어보기(지금아이디들);
+}
+
+// ============================================================
+//  표 게시판 — 번호 · 제목 [댓글] · 작성자 · 작성일 · 조회 · 좋아요
+// ============================================================
+//  ★ 번호는 글마다 고정이다 — 전체 글을 올린 차례대로 센다. 과목을 바꿔도 같은 글은 같은 번호.
+//  ★ 한 쪽에 30개. 아래에 쪽 번호와 제목 검색.
+//  ★ 조회·좋아요 칸은 옛 카드와 같은 표(.카드아래[data-영상] .조회셈 .하트)를 단다 —
+//    기록소가 숫자를 늦게 주면 숫자들고치기() 가 그 자리만 고쳐 칠한다.
+const 쪽크기 = 30;
+let 지금쪽 = 1, 쪽묶음 = "", 찾을말 = "";
+
+function 글때(ㅇ) {
+  const ㄷ = ㅇ.올린때 ? Date.parse(ㅇ.올린때) : 0;
+  return ㄷ || 올린날(ㅇ);
+}
+function 표날짜(때) {
+  if (!때) return "";
+  const ㄷ = new Date(때), 지금 = new Date();
+  if (ㄷ.toDateString() === 지금.toDateString())
+    return String(ㄷ.getHours()).padStart(2, "0") + ":" + String(ㄷ.getMinutes()).padStart(2, "0");
+  return 날짜글(때);
+}
+// 제목 앞 딱지 — 그 글의 세부 교과 이름 (과목 바로 아래 층)
+function 교과이름(단원아이디) {
+  const 조상 = (나무.조상들 && 나무.조상들(단원아이디)) || [];
+  const 교과 = 조상[1] || (조상.length === 1 ? 단원아이디 : null);
+  const ㅊ = 교과 ? 나무.찾기(교과) : null;
+  return ㅊ ? ㅊ.마디.이름 : "";
+}
+
+function 게시판표그리기(묶음) {
+  if (쪽묶음 !== (묶음.아이디 || "")) { 쪽묶음 = 묶음.아이디 || ""; 지금쪽 = 1; }
+  const 번호표 = new Map();
+  새글순(window.동영상목록).slice().reverse().forEach((ㅇ, ㅅ) => 번호표.set(ㅇ, ㅅ + 1));
+  const 말 = 찾을말.trim().toLowerCase();
+  const 보일것 = 말 ? 지금무리.filter(ㅇ => (ㅇ.제목 || "").toLowerCase().includes(말) || (ㅇ.강사 || "").toLowerCase().includes(말)) : 지금무리;
+  const 쪽수 = Math.max(1, Math.ceil(보일것.length / 쪽크기));
+  if (지금쪽 > 쪽수) 지금쪽 = 쪽수;
+  const 이쪽 = 보일것.slice((지금쪽 - 1) * 쪽크기, 지금쪽 * 쪽크기);
+
+  // 위 — 오른쪽에 글쓰기 (선생님 · 관리자만. 올리기 단추가 보일 때만 보인다)
+  const 윗줄 = document.createElement("div");
+  윗줄.className = "판윗줄";
+  윗줄.appendChild(글쓰기단추());
+  격자칸.appendChild(윗줄);
+
+  const 표 = document.createElement("div");
+  표.className = "글표";
+  표.setAttribute("role", "table");
+  표.innerHTML = '<div class="글표머리" role="row"><span class="칸번호">번호</span><span class="칸제목">제목</span>' +
+                 '<span class="칸작성자">작성자</span><span class="칸작성일">작성일</span><span class="칸조회">조회수</span><span class="칸추천">좋아요</span></div>';
+  const 새는글 = ㄱ => String(ㄱ).replace(/[&<>"]/g, ㅊ => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ㅊ]);
+  이쪽.forEach(ㅇ => {
+    const 아이디 = (ㅇ.아이디 || "").trim();
+    const ㅅ = 기록소.읽기(아이디);
+    const 댓 = (window.댓글수 && window.댓글수[ㅇ.고유]) || 0;
+    const 딱지 = 교과이름(ㅇ.단원아이디);
+    const 줄 = document.createElement("a");
+    줄.className = "글표줄 카드아래";
+    줄.setAttribute("role", "row");
+    줄.href = "#";
+    if (아이디) 줄.dataset.영상 = 아이디;
+    줄.innerHTML =
+      '<span class="칸번호">' + (번호표.get(ㅇ) || "") + '</span>' +
+      '<span class="칸제목">' + (딱지 ? '<span class="글딱지">' + 새는글(딱지) + '</span>' : "") +
+        '<span class="글제목">' + 새는글(ㅇ.제목 || "제목 없음") + '</span>' +
+        (댓 ? '<span class="댓글셈">[' + 댓 + ']</span>' : "") + '</span>' +
+      '<span class="칸작성자">' + 새는글(ㅇ.강사 || "") + '</span>' +
+      '<span class="칸작성일">' + 표날짜(글때(ㅇ)) + '</span>' +
+      '<span class="칸조회 조회셈">' + 셈(ㅅ.조회) + '</span>' +
+      '<span class="칸추천 하트' + (ㅅ.내좋아요 ? " 내가" : "") + '">' + 셈(ㅅ.좋아요) + '</span>';
+    줄.addEventListener("click", ㄴ => { ㄴ.preventDefault(); if (아이디) 틀기(ㅇ); });
+    줄.addEventListener("contextmenu", ㄴ => { ㄴ.preventDefault(); 카드메뉴열기(ㅇ, ㄴ.clientX, ㄴ.clientY); });
+    표.appendChild(줄);
+  });
+  if (!이쪽.length) {
+    const 빔 = document.createElement("div");
+    빔.className = "글표빔";
+    빔.textContent = 말 ? "찾는 글이 없다" : "아직 올린 강의가 없다";
+    표.appendChild(빔);
+  }
+  격자칸.appendChild(표);
+
+  // 아래 — 글쓰기 · 검색 · 쪽 번호
+  const 아랫줄 = document.createElement("div");
+  아랫줄.className = "판아랫줄";
+  const 찾기틀 = document.createElement("form");
+  찾기틀.className = "판찾기";
+  찾기틀.innerHTML = '<input type="search" placeholder="제목 · 작성자 찾기" aria-label="게시판 찾기"><button type="submit">검색</button>';
+  const 찾기칸 = 찾기틀.querySelector("input");
+  찾기칸.value = 찾을말;
+  찾기틀.addEventListener("submit", ㄴ => { ㄴ.preventDefault(); 찾을말 = 찾기칸.value; 지금쪽 = 1; 격자그리기(); });
+  아랫줄.append(글쓰기단추(), 찾기틀);
+  격자칸.appendChild(아랫줄);
+
+  if (쪽수 > 1) {
+    const 쪽줄 = document.createElement("nav");
+    쪽줄.className = "쪽줄";
+    쪽줄.setAttribute("aria-label", "쪽");
+    const 무리시작 = Math.floor((지금쪽 - 1) / 10) * 10 + 1;
+    const 쪽단추 = (글, 쪽, 켜짐) => {
+      const ㄷ = document.createElement("button");
+      ㄷ.type = "button"; ㄷ.textContent = 글;
+      if (켜짐) ㄷ.className = "켜짐";
+      ㄷ.addEventListener("click", () => { 지금쪽 = 쪽; 격자그리기(); 격자보기.scrollIntoView({ block: "start" }); });
+      쪽줄.appendChild(ㄷ);
+    };
+    if (무리시작 > 1) { 쪽단추("«", 1); 쪽단추("‹", 무리시작 - 1); }
+    for (let ㅈ = 무리시작; ㅈ <= Math.min(쪽수, 무리시작 + 9); ㅈ++) 쪽단추(String(ㅈ), ㅈ, ㅈ === 지금쪽);
+    if (무리시작 + 9 < 쪽수) { 쪽단추("›", 무리시작 + 10); 쪽단추("»", 쪽수); }
+    격자칸.appendChild(쪽줄);
+  }
+}
+
+// 「글쓰기」 — 영상 올리기 창을 연다. 선생님 · 관리자에게만 보인다 (머리줄 「영상 올리기」 와 같은 조건)
+function 글쓰기단추() {
+  const ㄷ = document.createElement("button");
+  ㄷ.type = "button";
+  ㄷ.className = "글쓰기단추";
+  ㄷ.textContent = "✎ 글쓰기";
+  const 원본 = document.getElementById("영상올리기단추");
+  ㄷ.hidden = !원본 || 원본.hidden;
+  ㄷ.addEventListener("click", () => { if (원본) 원본.click(); });
+  return ㄷ;
 }
 
 function 카드만들기(ㅇ) {
