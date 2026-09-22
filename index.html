@@ -378,7 +378,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
               "자료/영상목록.js", "js/저장소자료.js", "js/나무.js",
               "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/caption-layout.js", "js/자막.js", "js/앱.js",
               // ★ 회원은 맨 뒤에 싣는다 — 여기서 탈이 나도 강의 보기는 이미 떠 있다 (2026-09-22)
-              "js/회원.js", "js/로그인창.js", "js/댓글.js", "js/올리기창.js"];
+              "js/회원.js", "js/로그인창.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js"];
 
   // ============================================================
   //  카카오톡 안에서 열렸으면 진짜 브라우저로 넘긴다
@@ -470,7 +470,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
         return;
       }
       // ★ 회원 쪽 파일은 못 읽어도 화면을 지우지 않는다 — 강의 보기는 로그인 없이 돼야 한다
-      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창)\.js$/.test(차례[ㅈ]);
+      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이)\.js$/.test(차례[ㅈ]);
       스크립트(차례[ㅈ] + "?v=" + 판,
         function () {
           if (차례[ㅈ] === "js/저장소자료.js" && window.저장소준비) {
