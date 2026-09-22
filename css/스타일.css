@@ -1308,3 +1308,7 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 .유튜브결과 { display: block; margin: 4px 0 0 30px; font-size: .76rem; color: var(--악센트); }
 .유튜브결과:empty { display: none; }
 .유튜브빔 { padding: 14px; color: var(--흐린글); font-size: .84rem; }
+.가입단추[hidden] { display: none; }
+.로그인바꾸기 { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; }
+.로그인바꾸기:empty { display: none; }
+.글단추 { background: none; border: 0; padding: 2px 0; color: var(--악센트); font-size: .8rem; text-decoration: underline; text-underline-offset: 3px; }

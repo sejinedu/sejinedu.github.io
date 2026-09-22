@@ -60,6 +60,7 @@
     <!-- ★ 영상 올리기 — 선생님·관리자에게만 보인다 (2026-09-22). js/올리기창.js -->
     <button class="영상올리기단추" id="영상올리기단추" type="button" hidden>영상 올리기</button>
     <button class="로그인단추" id="로그인단추" type="button">로그인</button>
+    <button class="로그인단추 가입단추" id="가입단추" type="button">가입</button>
     <button class="업데이트" id="업데이트" type="button">업데이트</button>
   </div>
 </header>
@@ -209,15 +210,21 @@
 <div class="끄는것" id="끄는것" hidden></div>
 <div class="맥락메뉴" id="맥락메뉴" hidden role="menu"></div>
 
-<!-- ★ 로그인 창 (2026-09-22) — 메일 → 여섯 자리 번호 → (처음이면) 별명. 가입과 로그인이 한 길이다.
-     모양은 아래 「동영상 링크 연결 창」 것을 그대로 빌려 쓴다. -->
+<!-- ★ 로그인 창 · 가입 창 (2026-09-22 · 사용자가 정함)
+     「로그인은 로그인이고 가입은 가입이지」 · 「로그인은 세도비 런처 로그인 아이디 비번이랑 같은 거」
+     한 창을 두 모양으로 쓴다 — 로그인(메일 · 비밀번호) / 가입(메일 · 비밀번호 → 메일로 온 번호 → 별명).
+     js/로그인창.js 가 움직인다. 모양은 「동영상 링크 연결 창」 것을 빌려 쓴다. -->
 <div class="연결막" id="로그인막" hidden>
   <div class="연결창" role="dialog" aria-modal="true" aria-labelledby="로그인제목">
-    <h2 class="연결제목" id="로그인제목">로그인 · 가입</h2>
-    <p class="연결단원" id="로그인설명">세도비 계정 메일을 넣어라. 처음이면 그대로 가입된다.</p>
+    <h2 class="연결제목" id="로그인제목">로그인</h2>
+    <p class="연결단원" id="로그인설명"></p>
     <label class="연결칸" id="메일칸">
       <span class="연결이름">메일</span>
-      <input type="email" id="로그인메일" placeholder="예: student@gmail.com" autocomplete="email" spellcheck="false">
+      <input type="email" id="로그인메일" autocomplete="username" spellcheck="false">
+    </label>
+    <label class="연결칸" id="비번칸">
+      <span class="연결이름">비밀번호</span>
+      <input type="password" id="로그인비번" autocomplete="current-password">
     </label>
     <label class="연결칸" id="번호칸" hidden>
       <span class="연결이름">메일로 온 여섯 자리 번호</span>
@@ -228,9 +235,10 @@
       <input type="text" id="로그인별명" maxlength="20" placeholder="두 글자에서 스무 글자" autocomplete="nickname">
     </label>
     <p class="연결말" id="로그인말"></p>
+    <p class="로그인바꾸기" id="로그인바꾸기"></p>
     <div class="연결단추줄">
       <button class="연결취소" id="로그인취소" type="button">닫기</button>
-      <button class="연결하기" id="로그인하기" type="button">번호 받기</button>
+      <button class="연결하기" id="로그인하기" type="button">로그인</button>
     </div>
   </div>
 </div>
