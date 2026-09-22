@@ -379,6 +379,8 @@ const 주인인가 = !!window.주인인가;
 //   고쳐도 파일에만 적혀서 사이트에는 안 나온다 — 헛일이 된다. 올리기·지우기는 저장소로 한다.
 //   저장소를 못 불러 옛 파일로 뜬 날에만 예전처럼 쓴다.
 const 파일로고치나 = false;     // ★ 파일로 고치는 길은 은퇴했다 (2026-09-22). 옛 파일로 뜬 날에도 안 고친다
+// 「우클릭하면 이름 바꾸기 …」 안내도 같이 은퇴 — 그 기능이 없는데 글만 남으면 헷갈린다
+document.querySelectorAll(".왼쪽속 .귀띔").forEach(ㄱ => { ㄱ.hidden = !파일로고치나; });
 
 // ★ 화면(CSS)도 주인인지 알아야 한다.
 //   손님한테는 touch-action 을 풀어 줘야 폰에서 스크롤이 된다. (2026-09-02)
@@ -2107,7 +2109,9 @@ let 새판알림 = null;
 function 새판떴다(새판) {
   if (업데이트단추.classList.contains("새판")) return;
   업데이트단추.classList.add("새판");
-  업데이트단추.textContent = "업데이트 v" + 새판;
+  // ★ 글자만 바꾼다 — 단추를 통째로 갈면 아이콘이 날아간다
+  const 글칸 = document.getElementById("업데이트글");
+  if (글칸) 글칸.textContent = "업데이트 v" + 새판; else 업데이트단추.textContent = "업데이트 v" + 새판;
   업데이트단추.title = "새 판 v" + 새판 + " 이 나왔다. 눌러라.";
 }
 

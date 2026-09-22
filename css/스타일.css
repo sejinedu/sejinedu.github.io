@@ -1312,3 +1312,24 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 .로그인바꾸기 { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 0; }
 .로그인바꾸기:empty { display: none; }
 .글단추 { background: none; border: 0; padding: 2px 0; color: var(--악센트); font-size: .8rem; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 업데이트 (아이콘) · 맨 오른쪽 판 번호 (2026-09-22 · 사용자가 정함) */
+.업데이트 { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.업아이콘 { flex: none; }
+.머리오른쪽 .판 { order: 99; margin-left: 2px; font-variant-numeric: tabular-nums; }
+/* 받을 게 있으면 — 숨쉬는 빛(원래 것)에 반짝임과 도는 아이콘을 더한다 */
+@keyframes 새판반짝 {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.35); }
+}
+@keyframes 업아이콘돌기 { to { transform: rotate(360deg); } }
+.업데이트.새판 { animation: 새판숨쉬기 1.9s ease-out infinite, 새판반짝 1.9s ease-in-out infinite; }
+.업데이트.새판 .업아이콘 { animation: 업아이콘돌기 2.4s linear infinite; }
+@media (max-width: 480px) {
+  .업데이트:not(.새판) .업글 { display: none; }     /* 폰에서는 평소엔 아이콘만 — 받을 게 있으면 글자도 뜬다 */
+  .업데이트 { padding: 0 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .업데이트.새판, .업데이트.새판 .업아이콘 { animation: none; }
+}
+.업글 { position: relative; top: 1px; line-height: 1; }
