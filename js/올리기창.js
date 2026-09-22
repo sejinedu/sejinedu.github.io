@@ -69,7 +69,7 @@
     let 지금단원 = "";
     try { 지금단원 = (typeof 고른아이디 !== "undefined" && 고른아이디) || ""; } catch (오류) {}
     const 과목칸 = document.getElementById("올리기과목");
-    if (과목칸 && window.과목단원고르개) 과목단원고르개(과목칸, 단원칸, 지금단원);
+    if (과목칸 && window.과목단원고르개) 과목단원고르개(과목칸, document.getElementById("올리기세부"), 단원칸, 지금단원);
     else 단원칸채우기(지금단원);
     막.hidden = false;
     setTimeout(() => 주소칸.focus(), 30);
@@ -95,7 +95,7 @@
     const 제목 = 제목칸.value.trim();
     if (!아이디) { 말하기("유튜브 링크를 넣어라", "탈"); 주소칸.focus(); return; }
     if (!제목) { 말하기("제목을 적어라", "탈"); 제목칸.focus(); return; }
-    if (!단원칸.value) { 말하기("단원을 골라라", "탈"); 단원칸.focus(); return; }
+    if (!단원칸.value) { 말하기("과목과 세부 과목을 골라라", "탈"); 단원칸.focus(); return; }
     도는중 = true; 하기.disabled = true; 말하기("올리는 중…");
     try {
       const 새것 = await 회원.부르기("/rest/v1/site_posts?select=id", {

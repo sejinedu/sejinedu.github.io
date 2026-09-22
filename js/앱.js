@@ -909,7 +909,7 @@ function 지금묶음() {
     나무.목록.forEach(ㅁ => 나무.아래아이디들(ㅁ).forEach(ㄱ => 딸린것.add(ㄱ)));
     return {
       목록: window.동영상목록.filter(ㅇ => 딸린것.has(ㅇ.단원아이디) && (!강사거르개 || (ㅇ.강사 || "").trim() === 강사거르개)),
-      머리: 강사거르개 ? "강사 " + 강사거르개 : "전체 강의", 아이디: "" };
+      머리: "전체 강의", 아이디: "" };     // ★ 강사를 골라도 「전체 강의」 그대로 (2026-09-22 · 사용자가 정함)
   }
   const 마디 = 나무.찾기(고른아이디);
   if (!마디) return { 목록: [], 머리: "", 아이디: "" };
@@ -1727,7 +1727,7 @@ function 자막붙여보기(아이디) {
   자막.붙이기(아이디).then(묶음 => {
     if (!묶음) return;
     찾기줄.hidden = false;
-    찾기셈.textContent = 묶음.줄.length.toLocaleString("ko-KR") + "줄";
+    찾기셈.textContent = "";
     영상밑줄.hidden = false;
     자막단추칠하기();
   });
@@ -1850,14 +1850,34 @@ let 찾기시계 = null;
   clearTimeout(찾기시계);
   찾기시계 = setTimeout(찾기, 180);      // 칠 때마다 훑지 않게 잠깐 기다린다
 });
-찾기칸.addEventListener("keydown", ㅇ => ㅇ.stopPropagation());
+// ★ 위아래 화살표로 고르고 엔터로 간다 · Esc 로 닫는다 (2026-09-22 · 사용자가 정함)
+let 찾을자리 = -1;
+function 찾은것닫기() { 찾은것.innerHTML = ""; 찾을자리 = -1; 찾기칸.setAttribute("aria-expanded", "false"); }
+function 찾을자리칠하기() {
+  const 줄들 = [...찾은것.querySelectorAll(".찾은줄")];
+  줄들.forEach((ㄱ, ㅈ) => { ㄱ.classList.toggle("고름", ㅈ === 찾을자리); ㄱ.setAttribute("aria-selected", ㅈ === 찾을자리 ? "true" : "false"); });
+  if (줄들[찾을자리]) 줄들[찾을자리].scrollIntoView({ block: "nearest" });
+}
+찾기칸.addEventListener("keydown", ㅇ => {
+  ㅇ.stopPropagation();
+  const 줄들 = 찾은것.querySelectorAll(".찾은줄");
+  if (ㅇ.key === "ArrowDown" && 줄들.length) { ㅇ.preventDefault(); 찾을자리 = Math.min(줄들.length - 1, 찾을자리 + 1); 찾을자리칠하기(); }
+  else if (ㅇ.key === "ArrowUp" && 줄들.length) { ㅇ.preventDefault(); 찾을자리 = Math.max(0, 찾을자리 - 1); 찾을자리칠하기(); }
+  else if (ㅇ.key === "Enter" && 줄들.length) { ㅇ.preventDefault(); (줄들[Math.max(0, 찾을자리)]).click(); }
+  else if (ㅇ.key === "Escape") { 찾은것닫기(); }
+});
+// 입력칸 · 드롭바 밖을 누르면 닫는다
+document.addEventListener("pointerdown", ㅇ => { if (!ㅇ.target.closest("#찾기줄")) 찾은것닫기(); });
+찾기칸.addEventListener("focus", () => { if (찾기칸.value.trim() && !찾은것.children.length) 찾기(); });
 
 function 찾기() {
   const 말 = 찾기칸.value.trim();
   찾은것.innerHTML = "";
   const 줄들 = 자막.줄들();
 
-  if (!말) { 찾기셈.textContent = 줄들.length.toLocaleString("ko-KR") + "줄"; return; }
+  찾을자리 = -1;
+  찾기칸.setAttribute("aria-expanded", "false");
+  if (!말) return;                  // ★ 「1,057줄」 같은 글은 안 띄운다 (2026-09-22 · 사용자가 정함)
 
   const 걸린것 = [];
   for (const ㄱ of 줄들) {
@@ -1865,9 +1885,13 @@ function 찾기() {
     if (걸린것.length >= 80) break;      // 너무 많으면 앞에서 끊는다
   }
 
-  찾기셈.textContent = 걸린것.length === 0
-    ? "없다"
-    : (걸린것.length >= 80 ? "80개 넘음 (앞 80개만)" : 걸린것.length + "곳");
+  if (!걸린것.length) {
+    const 빔 = document.createElement("div");
+    빔.className = "찾은빔";
+    빔.textContent = "찾는 말이 없다";
+    찾은것.appendChild(빔);
+  }
+  찾기칸.setAttribute("aria-expanded", 걸린것.length ? "true" : "false");
 
   걸린것.forEach(ㄱ => {
     const ㅂ = document.createElement("button");
@@ -1890,8 +1914,10 @@ function 찾기() {
     글.append(ㄱ.글.slice(ㅈ + 말.length));
     ㅂ.appendChild(글);
 
+    ㅂ.setAttribute("role", "option");
     ㅂ.addEventListener("click", () => {
       재생기.뛰기(Math.max(0, ㄱ.시작 - 0.6));
+      찾은것닫기();               // ★ 고르면 드롭바는 닫는다 (2026-09-22 · 사용자가 잡음)
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     찾은것.appendChild(ㅂ);

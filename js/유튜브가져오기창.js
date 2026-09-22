@@ -116,7 +116,7 @@
     if (도는중) return;
     const 고른것 = [...목록칸.querySelectorAll("input[type=checkbox]:checked")].map(ㄱ => ㄱ.value);
     if (!고른것.length) return 말하기("가져올 영상을 골라라", "탈");
-    if (!단원칸.value) { 단원칸.focus(); return 말하기("단원을 골라라", "탈"); }
+    if (!단원칸.value) { 단원칸.focus(); return 말하기("과목과 세부 과목을 골라라", "탈"); }
     도는중 = true; 하기.disabled = true;
     let 된것 = 0;
     for (const [ㅈ, 아이디] of 고른것.entries()) {
@@ -144,7 +144,7 @@
     const 과목칸 = document.getElementById("유튜브과목");
     let 지금단원 = "";
     try { 지금단원 = (typeof 고른아이디 !== "undefined" && 고른아이디) || ""; } catch (오류) {}
-    if (과목칸 && window.과목단원고르개) 과목단원고르개(과목칸, 단원칸, 지금단원); else 단원채우기();
+    if (과목칸 && window.과목단원고르개) 과목단원고르개(과목칸, document.getElementById("유튜브세부"), 단원칸, 지금단원); else 단원채우기();
     막.hidden = false;
     목록받기();
   }

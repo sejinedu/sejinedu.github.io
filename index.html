@@ -62,7 +62,7 @@
     <button class="로그인단추 가입단추" id="가입단추" type="button">가입</button>
     <!-- ★ 업데이트 (아이콘) · 맨 오른쪽 판 번호 (2026-09-22 · 사용자가 정함)
          「맨 오른쪽에 버전명 표시해라. 업데이트 (아이콘) 이렇게 만들고 업데이트 할꺼 있으면 반짝이게」 -->
-    <button class="업데이트" id="업데이트" type="button" aria-label="업데이트">
+    <button class="업데이트" id="업데이트" type="button" aria-label="업데이트" title="업데이트">
       <span class="업데이트글자" id="업데이트글">업데이트</span>
       <svg class="업아이콘" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
     </button>
@@ -179,21 +179,24 @@
 
           <!-- ★ 우리 단추는 영상 밖에 둔다. 재생바는 유튜브 것을 그대로 쓴다.
                (2026-09-02 — 영상 위에 얹으면 유튜브가 그리는 것과 따로 놀아서 어긋나 보인다) -->
-          <div class="영상밑줄" id="영상밑줄" hidden>
-            <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
-            <span class="크기통">
-              <button class="밑단추" id="자막크기단추" type="button">자막 설정</button>
-              <div class="크기판" id="크기판" hidden></div>
-            </span>
-            <button class="밑단추" id="전체단추" type="button">전체화면</button>
+          <!-- ★ 한 줄 — 왼쪽에 강의 안에서 찾기, 오른쪽에 자막 켬 · 자막 설정 · 전체화면 (2026-09-22 · 사용자가 정함)
+               찾은 것은 입력칸 바로 밑에 드롭바로 뜬다. 위아래 화살표 → 엔터로 그 자리로 간다. -->
+          <div class="영상밑판">
+            <div class="찾기줄" id="찾기줄" hidden>
+              <input type="search" id="찾기칸" placeholder="강의 안에서 찾기 — 예: 암모나이트" autocomplete="off"
+                     role="combobox" aria-expanded="false" aria-controls="찾은것">
+              <span class="찾기셈" id="찾기셈" hidden></span>
+              <div class="찾은것" id="찾은것" role="listbox"></div>
+            </div>
+            <div class="영상밑줄" id="영상밑줄" hidden>
+              <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
+              <span class="크기통">
+                <button class="밑단추" id="자막크기단추" type="button">자막 설정</button>
+                <div class="크기판" id="크기판" hidden></div>
+              </span>
+              <button class="밑단추" id="전체단추" type="button">전체화면</button>
+            </div>
           </div>
-
-          <!-- 강의 안에서 말 찾기 -->
-          <div class="찾기줄" id="찾기줄" hidden>
-            <input type="search" id="찾기칸" placeholder="강의 안에서 찾기 — 예: 암모나이트" autocomplete="off">
-            <span class="찾기셈" id="찾기셈"></span>
-          </div>
-          <div class="찾은것" id="찾은것"></div>
 
           <!-- 제목과 강사를 한 줄에. 강사는 오른쪽 끝. -->
 
@@ -262,15 +265,15 @@
      「게시글 생성 시 제목의 기본값을 입력된 유튜브 동영상 제목과 동일하게」
      ★ 링크를 먼저 받는다 — 그래야 제목이 저절로 들어온다. -->
 <div class="연결막" id="올리기막" hidden>
-  <div class="연결창 올리기창" role="dialog" aria-modal="true" aria-labelledby="올리기제목">
+  <div class="연결창 올리기창 가로칸창" role="dialog" aria-modal="true" aria-labelledby="올리기제목">
     <h2 class="연결제목" id="올리기제목">영상 올리기</h2>
     <label class="연결칸">
       <span class="연결이름">유튜브 링크</span>
       <input type="text" id="올리기주소" placeholder="https://youtu.be/…  또는  https://www.youtube.com/watch?v=…" autocomplete="off" spellcheck="false">
     </label>
     <label class="연결칸">
-      <span class="연결이름">제목 — 링크를 넣으면 유튜브 제목이 저절로 들어온다. 고쳐도 된다</span>
-      <input type="text" id="올리기제목칸" maxlength="200" autocomplete="off">
+      <span class="연결이름">제목</span>
+      <input type="text" id="올리기제목칸" maxlength="200" autocomplete="off" placeholder="링크를 넣으면 유튜브 제목이 저절로 들어온다 · 고쳐도 된다">
     </label>
     <!-- ★ 과목 드롭바 → 단원 드롭바 (2026-09-22 · 사용자가 정함 — 「글쓰기에 과목 드롭바를 단원 드롭바 위에」) -->
     <label class="연결칸">
@@ -278,12 +281,16 @@
       <select id="올리기과목"></select>
     </label>
     <label class="연결칸">
+      <span class="연결이름">세부 과목</span>
+      <select id="올리기세부"></select>
+    </label>
+    <label class="연결칸">
       <span class="연결이름">단원</span>
       <select id="올리기단원"></select>
     </label>
     <label class="연결칸">
-      <span class="연결이름">본문 (없어도 된다)</span>
-      <textarea id="올리기본문" rows="4" maxlength="20000" placeholder="이 강의에 대해 적을 말"></textarea>
+      <span class="연결이름">본문</span>
+      <textarea id="올리기본문" rows="4" maxlength="20000" placeholder="이 강의에 대해 적을 말 (없어도 된다)"></textarea>
     </label>
     <p class="연결말" id="올리기말"></p>
     <!-- ★ 형 컴퓨터(8777) 화면에서만 보인다 — 유튜브가 자막 파일을 채널 주인한테만 준다 -->
@@ -303,6 +310,10 @@
     <label class="연결칸">
       <span class="연결이름">과목</span>
       <select id="유튜브과목"></select>
+    </label>
+    <label class="연결칸">
+      <span class="연결이름">세부 과목</span>
+      <select id="유튜브세부"></select>
     </label>
     <label class="연결칸">
       <span class="연결이름">넣을 단원 (고른 영상이 모두 여기로 간다)</span>

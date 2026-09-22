@@ -1564,3 +1564,52 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 @media (hover: hover) and (pointer: fine) { .칸작성자 .작성자누르기:hover { color: var(--악센트); text-decoration: underline; text-underline-offset: 3px; } }
+
+/* ============================================================
+   2026-09-22 · 사용자가 정함 (9가지)
+   ============================================================ */
+/* ② 한 줄: 왼쪽 강의 안에서 찾기 · 오른쪽 자막 켬 / 자막 설정 / 전체화면 */
+.영상밑판 { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.영상밑판 .찾기줄 { flex: 1 1 auto; min-width: 0; margin: 0; position: relative; }
+.영상밑판 .찾기줄 input { width: 100%; }
+.영상밑판 .영상밑줄 { flex: none; margin: 0 0 0 auto; padding: 0; justify-content: flex-end; }
+/* ③ 「1,057줄」 같은 글자는 안 보인다 */
+.찾기셈 { display: none !important; }
+/* ④⑤ 찾은 것은 입력칸 바로 밑 드롭바 — 화살표로 고르면 불이 들어온다 */
+.영상밑판 .찾은것 {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30;
+  background: var(--판); box-shadow: 0 10px 28px rgba(0,0,0,.45);
+}
+.영상밑판 .찾은것:empty { display: none; }
+.찾은줄.고름 { background: var(--판밝게); outline: 1px solid var(--악센트흐림); }
+.찾은빔 { padding: 10px 12px; font-size: .84rem; color: var(--흐린글); }
+@media (max-width: 620px) {
+  .영상밑판 { flex-wrap: wrap; }
+  .영상밑판 .찾기줄 { flex-basis: 100%; order: 2; }
+  .영상밑판 .영상밑줄 { order: 1; margin-left: auto; }
+}
+/* ⑥ 영상 · 제목 상자 테두리를 조금 더 진하게 */
+.보기 .영상통, .글머리 { border-color: #3a4452; }
+.글머리줄, .글머리 .보기길 { border-color: #3a4452; }
+/* ⑦ 댓글 등록 단추를 입력칸 위아래 한가운데에 */
+.댓글쓰기 { align-items: center; }
+/* ⑧ 업데이트 단추는 기호만 */
+.업데이트 .업데이트글자 { display: none !important; }
+.머리오른쪽 .업데이트 { width: 32px; padding: 0; }
+/* ⑨ 글쓰기 창 — 이름표 옆에 칸 (가로로) · 창 크기 조절 */
+.가로칸창 {
+  width: min(720px, calc(100vw - 32px)); min-width: 420px; min-height: 380px;
+  max-width: calc(100vw - 32px); max-height: calc(100vh - 32px);
+  resize: both; overflow: auto; display: flex; flex-direction: column;
+}
+.가로칸창 .연결칸 { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; column-gap: 12px; margin-top: 12px; }
+.가로칸창 .연결칸 .연결이름 { margin: 0; font-size: .86rem; font-weight: 600; color: var(--글); text-align: right; }
+.가로칸창 .연결칸:has(textarea) { align-items: start; flex: 1 1 auto; }
+.가로칸창 .연결칸:has(textarea) .연결이름 { padding-top: 10px; }
+.가로칸창 textarea { min-height: 110px; height: 100%; }
+.가로칸창 .연결단추줄 { margin-top: auto; padding-top: 14px; }
+@media (max-width: 520px) {
+  .가로칸창 { min-width: 0; resize: none; }
+  .가로칸창 .연결칸 { grid-template-columns: 1fr; row-gap: 6px; }
+  .가로칸창 .연결칸 .연결이름 { text-align: left; }
+}
