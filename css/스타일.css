@@ -1215,3 +1215,36 @@ body.로그인안됨 { padding-top: 46px; }
 @media (max-width: 480px) {
   .로그인단추 { padding: 0 9px; font-size: .8rem; max-width: 6.5em; }
 }
+
+/* 본문 · 댓글 — 상세 화면 아래 (2026-09-22) */
+.글본문 {
+  margin-top: 16px; padding: 14px 16px; border: 1px solid var(--테두리); border-radius: 9px;
+  white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; font-size: .93rem;
+}
+.글본문[hidden], .댓글칸[hidden] { display: none; }
+.댓글칸 { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--테두리); }
+.댓글머리 { font-size: 1rem; font-weight: 700; margin: 0 0 12px; }
+.댓글쓰기, .댓글로그인 { display: flex; gap: 8px; align-items: flex-end; }
+.댓글로그인 { align-items: center; justify-content: space-between; padding: 12px 14px;
+  border: 1px dashed var(--테두리); border-radius: 9px; color: var(--흐린글); font-size: .88rem; }
+.댓글쓰기 textarea {
+  flex: 1; min-width: 0; resize: vertical; min-height: 44px; max-height: 240px;
+  background: var(--판); border: 1px solid var(--테두리); border-radius: 8px;
+  color: var(--글); padding: 10px 12px; font: inherit; font-size: .92rem; line-height: 1.5;
+}
+.댓글쓰기 textarea:focus { outline: none; border-color: var(--악센트); }
+.댓글달기 {
+  flex: none; height: 38px; padding: 0 16px; border-radius: 8px;
+  background: var(--악센트흐림); border: 1px solid var(--악센트); color: #e6f2f0; font-size: .86rem;
+}
+.댓글달기[disabled] { opacity: .55; }
+.댓글말 { font-size: .82rem; color: var(--흐린글); margin: 8px 0 0; }
+.댓글말.탈 { color: #e08b96; }
+.댓글목록 { list-style: none; margin: 14px 0 0; padding: 0; }
+.댓글줄 { padding: 11px 2px; border-bottom: 1px solid var(--테두리); }
+.댓글줄머리 { display: flex; align-items: baseline; gap: 9px; font-size: .84rem; }
+.댓글이름 { color: var(--악센트); }
+.댓글때 { color: var(--흐린글); font-size: .78rem; }
+.댓글지우기 { margin-left: auto; background: none; border: 0; color: var(--흐린글); font-size: .78rem; padding: 2px 4px; }
+.댓글지우기:hover { color: #e08b96; }
+.댓글줄 .댓글글 { margin: 5px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .92rem; line-height: 1.6; }

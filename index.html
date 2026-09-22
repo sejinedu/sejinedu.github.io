@@ -180,6 +180,11 @@
             <button class="좋아요" id="좋아요단추" type="button" aria-pressed="false">♥ 0</button>
           </div>
           <div class="보기길" id="지금길"></div>
+
+          <!-- ★ 본문과 댓글 (2026-09-22) — js/댓글.js 가 채운다.
+               댓글은 가입한 사람 누구나 쓴다. 지우기는 제 것만, 관리자는 전부. -->
+          <div class="글본문" id="글본문" hidden></div>
+          <section class="댓글칸" id="댓글칸" hidden aria-label="댓글"></section>
         </div>
 
         <aside class="옆목록" id="옆목록"></aside>
@@ -337,7 +342,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
               "자료/영상목록.js",
               "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/caption-layout.js", "js/자막.js", "js/앱.js",
               // ★ 회원은 맨 뒤에 싣는다 — 여기서 탈이 나도 강의 보기는 이미 떠 있다 (2026-09-22)
-              "js/회원.js", "js/로그인창.js"];
+              "js/회원.js", "js/로그인창.js", "js/댓글.js"];
 
   // ============================================================
   //  카카오톡 안에서 열렸으면 진짜 브라우저로 넘긴다
@@ -429,7 +434,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
         return;
       }
       // ★ 회원 쪽 파일은 못 읽어도 화면을 지우지 않는다 — 강의 보기는 로그인 없이 돼야 한다
-      var 없어도됨 = 차례[ㅈ] === "js/회원.js" || 차례[ㅈ] === "js/로그인창.js";
+      var 없어도됨 = /^js\/(회원|로그인창|댓글)\.js$/.test(차례[ㅈ]);
       스크립트(차례[ㅈ] + "?v=" + 판,
         function () { 다음(ㅈ + 1); },
         function () { if (없어도됨) 다음(ㅈ + 1); else 못열었다(차례[ㅈ]); });
