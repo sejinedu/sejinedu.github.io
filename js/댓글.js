@@ -76,16 +76,9 @@ const 댓글 = (() => {
     칸.hidden = false;
     칸.replaceChildren();
 
-    // ★ 글 지우기 — 선생님은 제 글만, 관리자는 전부 (2026-09-22 · 사용자가 정함)
-    const 내글 = ㅅ.이름표 && 지금글.author_id === ㅅ.이름표;
-    if ((내글 && ㅅ.등급 === "teacher") || ㅅ.등급 === "admin") {
-      const 줄 = 만들기("div", "글손질");
-      const 지 = 만들기("button", "글지우기", "이 글 지우기");
-      지.type = "button";
-      지.addEventListener("click", () => 글지우기(내글));
-      줄.appendChild(지);
-      칸.appendChild(줄);
-    }
+    // ★ 글 지우기는 제목 우클릭 드롭바로 옮겼다 (2026-09-22 · 사용자가 정함) — 앱.js 카드메뉴열기
+    const 댓수칸 = document.getElementById("지금댓글수");
+    if (댓수칸) { 댓수칸.textContent = "댓글 " + 목록.length; 댓수칸.hidden = false; }
 
     칸.appendChild(만들기("h2", "댓글머리", "댓글 " + 목록.length));
 
@@ -161,19 +154,22 @@ const 댓글 = (() => {
     }
   }
 
-  async function 글지우기(내글) {
-    const 물음 = "「" + (지금글.title || "이 글") + "」 을 지울까?\n댓글도 같이 지워진다. 되돌릴 수 없다." +
+  // 영상(게시판 줄이든 보고 있는 글이든)을 받아 지운다 — 제목 우클릭 드롭바가 부른다 (앱.js 카드메뉴열기)
+  async function 글지우기(영상) {
+    const ㅅ = 회원.상태();
+    const 내글 = ㅅ.이름표 && 영상.글쓴이 === ㅅ.이름표;
+    const 물음 = "「" + (영상.제목 || "이 글") + "」 을 지울까?\n댓글도 같이 지워진다. 되돌릴 수 없다." +
                 (내글 ? "" : "\n(관리자 — 남의 글이다)");
     if (!confirm(물음)) return;
-    const 번호 = 지금글.id;
+    const 번호 = 영상.고유;
     try {
       await 회원.부르기("/rest/v1/site_posts?id=eq." + 번호, { 방법: "DELETE", 머리: { Prefer: "return=minimal" } });
       const 남은것 = await 회원.부르기("/rest/v1/site_posts_view?select=id&id=eq." + 번호);
-      if (Array.isArray(남은것) && 남은것.length) { 그리기("못 지웠다 — 지울 권한이 없다", "탈"); return; }
+      if (Array.isArray(남은것) && 남은것.length) { alert("못 지웠다 — 지울 권한이 없다"); return; }
       window.동영상목록 = (window.동영상목록 || []).filter(ㅇ => ㅇ.고유 !== 번호);
       try { 홈으로(); } catch (오류) { location.reload(); }
     } catch (오류) {
-      그리기("못 지웠다 — " + 오류.message, "탈");
+      alert("못 지웠다 — " + 오류.message);
     }
   }
 
@@ -182,11 +178,13 @@ const 댓글 = (() => {
     지금글 = null; 목록 = [];
     칸.hidden = true; 칸.replaceChildren();
     본문칸.hidden = true; 본문칸.textContent = "";
+    const 댓수칸 = document.getElementById("지금댓글수");
+    if (댓수칸) 댓수칸.hidden = true;
   }
 
   // 로그인하거나 나가면 쓰는 자리·지우기 단추를 다시 그린다
   회원.듣기(() => { if (지금글) 그리기(); });
 
-  return { 열기, 닫기 };
+  return { 열기, 닫기, 글지우기 };
 })();
 window.댓글 = 댓글;

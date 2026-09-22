@@ -1468,3 +1468,67 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 @media (hover: hover) and (pointer: fine) { .교과띠 .메뉴칸:not(.켜짐):hover { color: var(--글); } }
 .판윗줄 { justify-content: space-between; margin: 8px 0 10px; }
 .판윗줄 .길줄 { font-size: 1.02rem; font-weight: 700; color: var(--글); min-width: 0; overflow-wrap: anywhere; }
+
+/* ============================================================
+   2026-09-22 · 사용자가 정함
+     「왼쪽 과목 목록 없애라」 「단원트리도 없애라」 (단원은 길 줄의 드롭바로)
+     「우측에 같은 단원의 다른 강의 없애라」 「영상 부분에 네모 테두리좀 연하게」
+     「게시글 안쪽을 좀 이렇게 깔끔하게 해라」 (아카라이브 게시글처럼)
+   ============================================================ */
+.왼쪽, .폭잡이, .서랍단추, .뒷막 { display: none !important; }
+.두단 { grid-template-columns: minmax(0, 1fr) !important; }
+@media (min-width: 1440px) { .두단 { max-width: 1120px; } header { padding-left: calc((100vw - 1120px) / 2 + 16px); padding-right: calc((100vw - 1120px) / 2 + 16px); } }
+.격자보기 { max-width: 1080px; }
+
+/* 길 줄의 단원 드롭바 */
+.판윗줄 .길줄 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+.길사이 { color: var(--흐린글); font-weight: 400; }
+.단원고르개 {
+  height: 32px; max-width: 100%; padding: 0 30px 0 10px; border-radius: 6px;
+  background: var(--판); color: var(--글); border: 1px solid var(--테두리);
+  font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
+}
+.단원고르개:focus { outline: none; border-color: var(--악센트); }
+
+/* 게시글 — 가운데 한 줄로. 옆 목록 없음 */
+.보기판 { grid-template-columns: minmax(0, 1fr) !important; max-width: 1080px; margin: 0 auto; }
+.옆목록[hidden] { display: none !important; }
+.뒤로줄[hidden] { display: none !important; }
+
+/* 글 머리 — 제목 띠 + 강사 / 조회 · 좋아요 · 댓글 · 작성일 */
+.글머리 { border: 1px solid var(--테두리); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+.글머리 .보기길 { padding: 10px 16px 0; font-size: .8rem; color: var(--흐린글); background: var(--판); }
+.글머리 .보기제목 {
+  margin: 0; padding: 6px 16px 12px; background: var(--판);
+  font-size: 1.15rem; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; cursor: context-menu;
+}
+.글머리줄 {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px;
+  padding: 10px 16px; border-top: 1px solid var(--테두리); font-size: .84rem;
+}
+.글머리줄 .보기강사 { display: inline-flex; margin: 0; }
+.글머리줄 .강사이름칸 { color: var(--악센트); font-weight: 700; }
+.글머리셈 { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 0; color: var(--흐린글); }
+.글머리셈 > *:not(:empty):not([hidden]) + *:not(:empty):not([hidden])::before { content: "|"; margin: 0 10px; color: var(--테두리); }
+.글머리셈 .보기셈, .글머리칸 { font-size: .84rem; color: var(--흐린글); }
+.글머리칸 .좋아요 {
+  background: none; border: 0; padding: 0 2px; font: inherit; color: var(--글); cursor: pointer;
+}
+.글머리칸 .좋아요.눌림 { color: #d97a86; }
+
+/* 영상 — 연한 네모 테두리 */
+.보기 .영상통 { border: 1px solid var(--테두리); border-radius: 8px; }
+.보기 .영상밑줄 { margin-top: 10px; }
+
+/* 본문 · 댓글 — 칸마다 상자 (아카라이브 댓글처럼 이름 띠 + 글) */
+.글본문 { border-radius: 8px; margin-top: 16px; }
+.댓글칸 { border-top: 0; margin-top: 26px; padding-top: 0; }
+.댓글머리 { font-size: 1rem; padding: 0 0 10px; border-bottom: 1px solid var(--테두리); margin: 0 0 12px; }
+.댓글목록 { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.댓글줄 { padding: 0; border: 1px solid var(--테두리); border-radius: 6px; overflow: hidden; }
+.댓글줄머리 { padding: 8px 12px; background: var(--판); border-bottom: 1px solid var(--테두리); }
+.댓글줄 .댓글글 { margin: 0; padding: 10px 12px 12px; }
+@media (max-width: 900px) {
+  .보기 .영상통 { border-left: 0; border-right: 0; border-radius: 0; }
+  .글머리 { border-radius: 0; border-left: 0; border-right: 0; margin-left: -14px; margin-right: -14px; }
+}

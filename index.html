@@ -102,12 +102,30 @@
 
     <!-- ② 시청 화면 — 썸네일을 누르면 여기 -->
     <div class="보기" id="보기" hidden>
-      <div class="뒤로줄">
+      <!-- ★ 「목록으로」 는 없앴다 (2026-09-22 · 사용자가 정함). 앱.js 가 붙잡는 단추라 자리만 남긴다 -->
+      <div class="뒤로줄" hidden>
         <button class="뒤로" id="뒤로" type="button"><span class="뒤화살">‹</span>목록으로</button>
       </div>
 
       <div class="보기판">
         <div class="보기가운데">
+
+          <!-- ★ 글 머리 — 아카라이브 게시글처럼 (2026-09-22 · 사용자가 정함)
+               「게시글에 목록으로 없애라. 그 자리에 영상 제목, 조회수, 좋아요, 강사 이름, 지우기」 -->
+          <div class="글머리">
+            <div class="보기길" id="지금길"></div>
+            <h1 class="보기제목" id="지금제목"></h1>
+            <div class="글머리줄">
+              <span class="보기강사" id="지금강사" hidden><span class="강사이름칸" id="지금강사이름"></span></span>
+              <span class="글머리셈">
+                <span class="보기셈" id="지금셈"></span>
+                <span class="글머리칸"><button class="좋아요" id="좋아요단추" title="좋아요" type="button" aria-pressed="false">♥ 0</button></span>
+                <span class="글머리칸" id="지금댓글수" hidden></span>
+                <span class="글머리칸" id="지금작성일"></span>
+                <span id="글지우기자리"></span>
+              </span>
+            </div>
+          </div>
 
           <!-- 영상 + 우리 자막이 한 통에 들어간다.
                ★ 전체화면은 이 통을 통째로 키운다 — 유튜브 자체 전체화면으로 가면
@@ -177,17 +195,6 @@
           <div class="찾은것" id="찾은것"></div>
 
           <!-- 제목과 강사를 한 줄에. 강사는 오른쪽 끝. -->
-          <div class="제목줄">
-            <h1 class="보기제목" id="지금제목"></h1>
-            <span class="보기강사" id="지금강사" hidden>
-              <span class="강사딱지">강사</span><span class="강사이름칸" id="지금강사이름"></span>
-            </span>
-          </div>
-          <div class="보기줄">
-            <span class="보기셈" id="지금셈"></span>
-            <button class="좋아요" id="좋아요단추" type="button" aria-pressed="false">♥ 0</button>
-          </div>
-          <div class="보기길" id="지금길"></div>
 
           <!-- ★ 본문과 댓글 (2026-09-22) — js/댓글.js 가 채운다.
                댓글은 가입한 사람 누구나 쓴다. 지우기는 제 것만, 관리자는 전부. -->
@@ -195,7 +202,8 @@
           <section class="댓글칸" id="댓글칸" hidden aria-label="댓글"></section>
         </div>
 
-        <aside class="옆목록" id="옆목록"></aside>
+        <!-- ★ 「같은 단원의 다른 강의」 는 없앴다 (2026-09-22 · 사용자가 정함). 앱.js 가 채우는 자리라 숨겨 둔다 -->
+        <aside class="옆목록" id="옆목록" hidden></aside>
       </div>
     </div>
 
@@ -263,6 +271,11 @@
       <span class="연결이름">제목 — 링크를 넣으면 유튜브 제목이 저절로 들어온다. 고쳐도 된다</span>
       <input type="text" id="올리기제목칸" maxlength="200" autocomplete="off">
     </label>
+    <!-- ★ 과목 드롭바 → 단원 드롭바 (2026-09-22 · 사용자가 정함 — 「글쓰기에 과목 드롭바를 단원 드롭바 위에」) -->
+    <label class="연결칸">
+      <span class="연결이름">과목</span>
+      <select id="올리기과목"></select>
+    </label>
     <label class="연결칸">
       <span class="연결이름">단원</span>
       <select id="올리기단원"></select>
@@ -286,6 +299,10 @@
   <div class="연결창 올리기창 유튜브창" role="dialog" aria-modal="true" aria-labelledby="유튜브제목">
     <h2 class="연결제목" id="유튜브제목">유튜브 채널에서 가져오기</h2>
     <p class="연결단원" id="유튜브설명">영상과, 유튜브에 올려 둔 완성 자막을 같이 가져온다.</p>
+    <label class="연결칸">
+      <span class="연결이름">과목</span>
+      <select id="유튜브과목"></select>
+    </label>
     <label class="연결칸">
       <span class="연결이름">넣을 단원 (고른 영상이 모두 여기로 간다)</span>
       <select id="유튜브단원"></select>
@@ -413,7 +430,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
               "자료/영상목록.js", "js/저장소자료.js", "js/나무.js",
               "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/caption-layout.js", "js/자막.js", "js/앱.js",
               // ★ 회원은 맨 뒤에 싣는다 — 여기서 탈이 나도 강의 보기는 이미 떠 있다 (2026-09-22)
-              "js/회원.js", "js/로그인창.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js", "js/유튜브가져오기창.js"];
+              "js/회원.js", "js/로그인창.js", "js/과목단원고르개.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js", "js/유튜브가져오기창.js"];
 
   // ============================================================
   //  카카오톡 안에서 열렸으면 진짜 브라우저로 넘긴다
@@ -505,7 +522,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
         return;
       }
       // ★ 회원 쪽 파일은 못 읽어도 화면을 지우지 않는다 — 강의 보기는 로그인 없이 돼야 한다
-      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이|유튜브가져오기창)\.js$/.test(차례[ㅈ]);
+      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이|유튜브가져오기창|과목단원고르개)\.js$/.test(차례[ㅈ]);
       스크립트(차례[ㅈ] + "?v=" + 판,
         function () {
           if (차례[ㅈ] === "js/저장소자료.js" && window.저장소준비) {

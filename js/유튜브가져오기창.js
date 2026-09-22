@@ -141,7 +141,10 @@
   }
 
   function 열기() {
-    단원채우기();
+    const 과목칸 = document.getElementById("유튜브과목");
+    let 지금단원 = "";
+    try { 지금단원 = (typeof 고른아이디 !== "undefined" && 고른아이디) || ""; } catch (오류) {}
+    if (과목칸 && window.과목단원고르개) 과목단원고르개(과목칸, 단원칸, 지금단원); else 단원채우기();
     막.hidden = false;
     목록받기();
   }

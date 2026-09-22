@@ -463,8 +463,17 @@ function 메뉴열기(마디, x, y) {
 //    「동영상 미리보기 화면에서 우클릭하면 드롭바 뜨면서 삭제 할 수 있게」
 
 function 카드메뉴열기(ㅇ, x, y) {
-  if (!주인인가) return;                 // ★ 남의 화면에서는 안 뜬다 (2026-09-02)
   const 줄들 = [];
+
+  // ★ 지우기 — 우클릭 드롭바로 (2026-09-22 · 사용자가 정함)
+  //   「삭제는 게시글 내부나 게시판에서 제목 누르면 우클릭으로 지우기 버튼 드롭바로 나오게」
+  //   선생님은 제 글만, 관리자는 전부. 권한은 저장소가 다시 막는다.
+  const ㅅ = window.회원 ? 회원.상태() : {};
+  const 지울수있나 = window.저장소가원본 && ㅇ.고유 &&
+    (ㅅ.등급 === "admin" || (ㅅ.등급 === "teacher" && ㅇ.글쓴이 && ㅇ.글쓴이 === ㅅ.이름표));
+  if (지울수있나 && window.댓글 && 댓글.글지우기) 줄들.push(["지우기", "빨강", () => 댓글.글지우기(ㅇ)]);
+
+  if (!주인인가) { if (!줄들.length) return; 메뉴띄우기(ㅇ.제목 || "제목 없음", 줄들, x, y); return; }
 
   const 아이디 = (ㅇ.아이디 || "").trim();
   const 자막상태 = (아이디 && 있나("자막공장")) ? 자막공장.상태(아이디) : null;
@@ -1129,10 +1138,7 @@ function 게시판표그리기(묶음) {
   // 위 — 오른쪽에 글쓰기 (선생님 · 관리자만. 올리기 단추가 보일 때만 보인다)
   const 윗줄 = document.createElement("div");
   윗줄.className = "판윗줄";
-  const 길줄 = document.createElement("div");
-  길줄.className = "길줄";
-  길줄.textContent = 묶음.머리;
-  윗줄.append(길줄, 글쓰기단추());
+  윗줄.append(길줄만들기(묶음), 글쓰기단추());
   격자칸.appendChild(윗줄);
 
   const 표 = document.createElement("div");
@@ -1201,6 +1207,43 @@ function 게시판표그리기(묶음) {
     if (무리시작 + 9 < 쪽수) { 쪽단추("›", 무리시작 + 10); 쪽단추("»", 쪽수); }
     격자칸.appendChild(쪽줄);
   }
+}
+
+// ★ 길 줄 — 「고등 과학 › 통합과학2 › [단원 ▾]」 (2026-09-22 · 사용자가 정함)
+//   「단원트리도 없애라. 단원트리는 고등 과학 > 통합과학2 > 여기다가 드롭바로 만들어라」
+function 길줄만들기(묶음) {
+  const 줄 = document.createElement("div");
+  줄.className = "길줄";
+  const 과목 = 경로[0] ? 나무.찾기(경로[0]) : null;
+  const 교과 = 경로[1] ? 나무.찾기(경로[1]) : null;
+  if (!과목) { 줄.textContent = 묶음.머리 || "전체 강의"; return 줄; }
+  const 글 = ㄱ => { const ㅅ = document.createElement("span"); ㅅ.textContent = ㄱ; 줄.appendChild(ㅅ); };
+  const 사이 = () => { const ㅅ = document.createElement("span"); ㅅ.className = "길사이"; ㅅ.textContent = "›"; 줄.appendChild(ㅅ); };
+  글(과목.마디.이름);
+  if (!교과) return 줄;
+  사이(); 글(교과.마디.이름);
+  const 아래 = 교과.마디.아래 || [];
+  if (!아래.length) return 줄;
+  사이();
+  const 고르개 = document.createElement("select");
+  고르개.className = "단원고르개";
+  고르개.setAttribute("aria-label", "단원");
+  고르개.appendChild(new Option("단원 전체", 교과.마디.아이디));
+  (function 걷기(가지, 깊이) {
+    가지.forEach(ㅁ => {
+      const 수 = 영상수(ㅁ);
+      고르개.appendChild(new Option("   ".repeat(깊이) + ㅁ.이름 + (수 ? "  (" + 수 + ")" : ""), ㅁ.아이디));
+      if (ㅁ.아래) 걷기(ㅁ.아래, 깊이 + 1);
+    });
+  })(아래, 0);
+  고르개.value = 고른아이디 || 교과.마디.아이디;
+  고르개.addEventListener("change", () => {
+    고른아이디 = 고르개.value;
+    격자그리기();
+    상태밀기();
+  });
+  줄.appendChild(고르개);
+  return 줄;
 }
 
 // 「글쓰기」 — 영상 올리기 창을 연다. 선생님 · 관리자에게만 보인다 (머리줄 「영상 올리기」 와 같은 조건)
@@ -1581,6 +1624,13 @@ function 안내(글, 잔글) {
 //  ② 보기 — 유튜브처럼
 // ============================================================
 
+// 게시글 안 제목도 우클릭하면 같은 드롭바 (지우기)
+document.getElementById("지금제목").addEventListener("contextmenu", ㄴ => {
+  if (!지금영상) return;
+  ㄴ.preventDefault();
+  카드메뉴열기(지금영상, ㄴ.clientX, ㄴ.clientY);
+});
+
 function 격자로() {
   if (window.댓글) 댓글.닫기();
   보기칸.hidden = true;
@@ -1602,6 +1652,8 @@ function 틀기(ㅇ) {
   재생기.틀기(아이디, ㅇ.제목);      // 재생바는 유튜브 것을 그대로 쓴다
 
   지금제목.textContent = ㅇ.제목 || "";
+  const 작성일칸 = document.getElementById("지금작성일");
+  if (작성일칸) { const 때 = 글때(ㅇ); 작성일칸.textContent = 때 ? "작성일 " + 날짜글(때) : ""; }
   document.getElementById("지금강사이름").textContent = ㅇ.강사 || "";
   지금강사.hidden = !ㅇ.강사;         // 강사가 없으면 「강사」 딱지만 덜렁 남지 않게
   const 길 = 나무.길(ㅇ.단원아이디);

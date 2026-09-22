@@ -68,7 +68,9 @@
     // 지금 보고 있는 단원이 있으면 그걸 먼저 골라 둔다
     let 지금단원 = "";
     try { 지금단원 = (typeof 고른아이디 !== "undefined" && 고른아이디) || ""; } catch (오류) {}
-    단원칸채우기(지금단원);
+    const 과목칸 = document.getElementById("올리기과목");
+    if (과목칸 && window.과목단원고르개) 과목단원고르개(과목칸, 단원칸, 지금단원);
+    else 단원칸채우기(지금단원);
     막.hidden = false;
     setTimeout(() => 주소칸.focus(), 30);
   }
