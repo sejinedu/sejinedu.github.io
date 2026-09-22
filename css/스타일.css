@@ -1532,3 +1532,18 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
   .보기 .영상통 { border-left: 0; border-right: 0; border-radius: 0; }
   .글머리 { border-radius: 0; border-left: 0; border-right: 0; margin-left: -14px; margin-right: -14px; }
 }
+
+/* ============================================================
+   흔들림 없애기 · 줄 맞추기 (2026-09-22 · 사용자: 「나 민감하다. 디자인 똑바로 해라」)
+   ============================================================ */
+/* ① 스크롤바 자리를 늘 비워 둔다 — 글 수에 따라 스크롤바가 생겼다 없어지면 화면 전체가 옆으로 밀린다 */
+html { scrollbar-gutter: stable; overflow-y: scroll; }
+/* ② 탭 글자와 「고등 과학」 과 표 왼쪽 끝을 한 세로선에 — 탭은 옆 여백 없이, 사이 간격으로 띄운다 */
+.교과띠 { gap: 26px; }
+.교과띠 .메뉴칸 { padding: 10px 0 9px; }
+/* ③ 길 줄은 드롭바가 있든 없든 높이가 같다 — 교과를 고를 때 표가 아래로 밀리지 않게 */
+.판윗줄 { min-height: 34px; margin: 10px 0 10px; }
+.판윗줄 .길줄 { min-height: 34px; line-height: 1; }
+.단원고르개 { height: 34px; }
+/* 표 첫 칸(번호)도 왼쪽 끝에서 시작하게 — 줄 안쪽 여백을 0 으로 맞춘다 */
+.글표머리, .글표줄 { padding-left: 0; padding-right: 0; }
