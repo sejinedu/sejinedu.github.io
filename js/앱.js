@@ -120,29 +120,36 @@ function 왼쪽그리기(어디서) {
 
   // --- 층 머리 ---
   층머리칸.innerHTML = "";
+  // ★ 강의 수는 숫자만, 이름 옆에 붙인다 (2026-09-22 · 사용자가 정함 — 「강의 수는 좌측에다가 숫자로만」)
+  const 숫자딱지 = 수 => {
+    const ㄱ = document.createElement("span");
+    ㄱ.className = "개수";
+    ㄱ.textContent = 수;
+    return ㄱ;
+  };
   if (마디) {
-    const 뒤 = document.createElement("button");
-    뒤.type = "button";
-    뒤.className = "층뒤로";
-    뒤.innerHTML = '<span class="뒤화살">‹</span>';
-    뒤.append("과목");
-    뒤.addEventListener("click", 층나가기);
-    층머리칸.appendChild(뒤);
+    // ★ 「‹ 과목」 단추는 없앴다 (2026-09-22 · 사용자가 정함).
+    //   과목 목록으로는 맨 위 「과목」 · 브라우저 뒤로 · 폰에서 서랍 오른쪽으로 쓸기 로 돌아간다.
 
     // ★ 과목 이름도 누를 수 있다 — 그 과목에 딸린 강의를 전부 보여 준다.
     //   (사용자가 정한 것 — 「통합과학2 누르면 하위 전체 영상이 보이게」, 2026-09-02)
     const 이름 = document.createElement("button");
     이름.type = "button";
     이름.className = "층이름" + (고른아이디 === 경로[1] ? " 골랐음" : "");
-    이름.textContent = 마디.이름;
+    이름.classList.add("숫자붙음");
+    이름.append(마디.이름);
+    const 교과수 = 영상수(마디);
+    if (교과수 > 0) 이름.appendChild(숫자딱지(교과수));
     이름.addEventListener("click", () => 고르기(경로[1], true));
     층머리칸.appendChild(이름);
   } else {
     // ★ 과학·수학 갈래 단추는 없앴다 (2026-09-22 · 사용자가 정함 — 「과학 수학 구분하는거 없애라」)
     //   과목(고등 과학·고등 사회 …) 이 그 자리를 대신한다.
     const 이름 = document.createElement("div");
-    이름.className = "층이름 뿌리";
-    이름.textContent = "과목";
+    이름.className = "층이름 뿌리 숫자붙음";
+    이름.append("과목");
+    const 전체수 = 나무.목록.reduce((합, ㅁ) => 합 + 영상수(ㅁ), 0);
+    if (전체수 > 0) 이름.appendChild(숫자딱지(전체수));
     층머리칸.appendChild(이름);
   }
 
@@ -250,7 +257,7 @@ function 층들어가기(아이디) {
   const ㅊ = 나무.찾기(아이디);
   const 부모 = ㅊ && ㅊ.부모 ? ㅊ.부모.아이디 : null;
   경로 = 부모 ? [부모, 아이디] : [아이디];
-  왼쪽그리기("안");
+  왼쪽그리기("밖");           // ★ 트리는 왼쪽에서 들어온다 (2026-09-22 · 사용자가 정함 — 「방향만 바꿔라」)
   상태밀기();
 }
 
@@ -1011,7 +1018,7 @@ function 교과고르기(아이디) {
   경로 = [ㅊ && ㅊ.부모 ? ㅊ.부모.아이디 : (경로[0] || 아이디), 아이디];
   메뉴닫기();
   격자로();
-  왼쪽그리기("안");
+  왼쪽그리기("밖");           // ★ 트리는 왼쪽에서 들어온다 (2026-09-22 · 사용자가 정함 — 「방향만 바꿔라」)
   격자그리기();
   상태밀기();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1030,11 +1037,7 @@ function 격자그리기() {
   길줄.textContent = 묶음.머리;
   목록머리.appendChild(길줄);
 
-  const 잔 = document.createElement("div");
-  잔.className = "머리잔글";
-  const 강사수 = new Set(지금무리.map(ㅇ => ㅇ.강사)).size;
-  잔.textContent = "강의 " + 지금무리.length + "개" + (강사수 > 1 ? " · 강사 " + 강사수 + "명" : "");
-  목록머리.appendChild(잔);
+  // ★ 「강의 N개」 줄은 없앴다 (2026-09-22 · 사용자가 정함). 숫자는 왼쪽 이름 옆에만 둔다.
 
   if (묶음.아이디 && 주인인가) {
     const 아 = document.createElement("div");

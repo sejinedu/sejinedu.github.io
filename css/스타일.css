@@ -1279,3 +1279,11 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 .놓일자리.뒤 { box-shadow: inset 0 -3px 0 var(--악센트); }
 .메뉴칸.놓일자리.앞 { box-shadow: inset 3px 0 0 var(--악센트); }
 .메뉴칸.놓일자리.뒤 { box-shadow: inset -3px 0 0 var(--악센트); }
+
+/* 2026-09-22 — 이름 옆 숫자, 위 과목 메뉴 크게 */
+.층이름.숫자붙음 { display: flex; align-items: center; gap: 8px; }
+.층이름.숫자붙음 .개수 { font-weight: 600; }
+.머리메뉴 .메뉴칸 { font-size: 1.02rem; font-weight: 600; padding: 7px 13px; }
+@media (max-width: 1000px) {
+  .과목띠 .메뉴칸 { font-size: .98rem; font-weight: 600; padding: 8px 15px; }
+}
