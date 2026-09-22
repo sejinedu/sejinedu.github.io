@@ -709,3 +709,62 @@ function 나머지처리(req, res, 주소, 길) {
   console.log("세진 과학 — http://127.0.0.1:" + 포트);
   console.log("자막 공장 준비됨");
 });
+
+// ============================================================
+//  자리 살피기 — 다른 컴퓨터에서 켜면 여기가 비켜 준다  (2026-09-22 · 런처 v0.67)
+// ============================================================
+//
+//  사장님이 정한 것 (런처 방이 전함):
+//    「런처를 끝내면 런처만 끝나고 앱은 안 끝나게.
+//      다른 컴퓨터에서 해당 앱을 키면 그때 해당 앱이 꺼지게」
+//
+//  ★ 런처가 꺼져 있어도 이 서버는 산다. 그러니 자리는 **여기서 스스로** 살핀다.
+//  ★ 3초마다 device_ping 을 부른다 — 맥박도 겸한다. 옛 서버면(404) device_alive.
+//    토큰 없이 공개 열쇠만 쓴다 (몇 시간 켜 둔 서버는 토큰이 죽어 있을 수 있다).
+//  ★ 답이 false 일 때만 비킨다. true · 못 물음(인터넷 끊김 등)은 그대로 둔다 —
+//    인터넷이 잠깐 끊겼다고 서버가 꺼지면 안 된다.
+//  ★ 비킬 때: 굽던 자막을 멈추고(반쯤 구운 건 다음에 처음부터) → device_handed 로 「다 넘겼다」 → 끈다.
+//    적는 일(단원·영상목록·자막 파일)은 모두 그 자리에서 끝나는 것이라 따로 저장할 게 없다.
+//  ★ 옛 런처라 SEDOBI_DEVICE 가 안 왔으면 아무것도 안 한다.
+(function 자리살피기() {
+  const 기기 = process.env.SEDOBI_DEVICE || "";
+  const 누구 = process.env.SEDOBI_UID || "";
+  const 주소 = String(process.env.SEDOBI_SUPABASE_URL || "").replace(/\/+$/, "");
+  const 열쇠 = process.env.SEDOBI_SUPABASE_ANON || "";
+  if (!기기 || !누구 || !주소 || !열쇠) return;
+
+  const 머리 = { apikey: 열쇠, "Content-Type": "application/json" };
+  const 몸 = JSON.stringify({ p_owner: 누구, p_device: 기기 });
+  let 비키는중 = false;
+
+  async function 물어보기() {
+    try {
+      let 답 = await fetch(주소 + "/rest/v1/rpc/device_ping", { method: "POST", headers: 머리, body: 몸 });
+      if (답.status === 404) 답 = await fetch(주소 + "/rest/v1/rpc/device_alive", { method: "POST", headers: 머리, body: 몸 });
+      if (!답.ok) return "모름";
+      return (await 답.json()) === false ? "쫓겨났다" : "살았다";
+    } catch (오류) { return "모름"; }
+  }
+
+  async function 비키기(까닭) {
+    if (비키는중) return;
+    비키는중 = true;
+    console.log("자리를 넘긴다 — " + 까닭);
+    for (const [, 칸] of 일감) {
+      if (칸.프로세스) { try { 칸.프로세스.kill(); } catch (오류) {} }
+    }
+    try {
+      await fetch(주소 + "/rest/v1/rpc/device_handed", { method: "POST", headers: 머리, body: 몸 });
+    } catch (오류) { /* 못 알려도 서버가 맥박이 끊긴 걸 보고 10초 뒤 넘긴 걸로 친다 */ }
+    서버.close();
+    setTimeout(() => process.exit(0), 300);
+  }
+
+  const 시계 = setInterval(async () => {
+    if (비키는중) return;
+    if ((await 물어보기()) === "쫓겨났다") { clearInterval(시계); 비키기("다른 컴퓨터에서 켰다"); }
+  }, 3000);
+
+  // 닫으라는 신호에는 묻지 않고 비킨다
+  ["SIGINT", "SIGTERM", "SIGBREAK"].forEach(ㅅ => process.on(ㅅ, () => 비키기("닫으라는 신호")));
+})();
