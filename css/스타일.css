@@ -1661,3 +1661,33 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 /* 자막 설정 드롭바 — 단추 가운데에 */
 .글머리 .크기판 { left: 50% !important; right: auto !important; transform: translateX(-50%) !important; bottom: 40px; }
 @media (max-width: 700px) { .글머리윗줄 .영상밑줄 { margin-left: auto; } }
+
+/* 「자막」 단추 하나 · 전체화면 기호 · 폰 제목 말줄임 (2026-09-22 · 사용자가 정함) */
+.글머리윗줄 .영상밑줄 #자막끄기 { display: none !important; }
+.밑단추.꺼짐 { opacity: .55; }
+.밑단추.기호단추 { display: inline-flex; align-items: center; justify-content: center; width: 38px; padding: 0; }
+.켬끔줄 { padding: 6px 4px 2px; border-top: 1px solid rgba(211,216,222,.14); margin-top: 6px; }
+.켬끔단추 {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 6px;
+  background: none; border: 0; color: #d3d8de; font-size: .88rem; cursor: pointer;
+}
+.켬끔단추:hover { background: rgba(255,255,255,.05); }
+.켬끔글 { flex: 1; text-align: left; }
+.켬끔스위치 { width: 34px; height: 18px; border-radius: 999px; background: #3a4452; position: relative; flex: none; transition: background .15s; }
+.켬끔스위치 span { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #d3d8de; transition: left .15s; }
+.켬끔단추.켜짐 .켬끔스위치 { background: var(--악센트); }
+.켬끔단추.켜짐 .켬끔스위치 span { left: 18px; background: #06100e; }
+.켬끔상태 { width: 1.4em; text-align: right; color: var(--흐린글); font-size: .8rem; }
+/* 폰 — 제목은 한 줄, 넘치면 … 로. 자막 단추를 넘지 않는다 */
+@media (max-width: 700px) {
+  .글머리윗줄 { flex-wrap: nowrap; }
+  .글머리윗줄 .보기제목 { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1rem; }
+  .글머리윗줄 .영상밑줄 { margin-left: 0; }
+}
+/* 폰 — 강사 · 조회수 · ♥ · 댓글 · 작성일을 한 줄에 (구분선이 줄 머리에 매달리지 않게) */
+@media (max-width: 700px) {
+  .글머리 .글머리셈 { flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+  .글머리셈 .보기셈, .글머리칸, .글머리셈 .보기강사 { font-size: .76rem; }
+  .글머리셈 > *:not(:empty):not([hidden]) + *:not(:empty):not([hidden])::before { margin: 0 6px; }
+  .글머리셈 .강사이름칸 { font-size: .86rem; }
+}

@@ -1745,6 +1745,9 @@ function 자막단추칠하기() {
   자막끄기단추.textContent = 켜짐 ? "자막 켬" : "자막 끔";
   자막끄기단추.setAttribute("aria-pressed", 켜짐 ? "true" : "false");
   자막끄기단추.classList.toggle("꺼짐", !켜짐);
+  // 합친 「자막」 단추도 꺼졌으면 흐리게 — 한눈에 보이게
+  const 합친단추 = document.getElementById("자막크기단추");
+  if (합친단추) 합친단추.classList.toggle("꺼짐", !켜짐);
 }
 
 자막끄기단추.addEventListener("click", () => { 자막.켜고끄기(); 자막단추칠하기(); });
@@ -1810,7 +1813,7 @@ function 크기판그리기() {
   //    ⇒ 이름을 다섯 개 늘어놓지 않는다. 화살표 둘로 올리고 내린다.
   const 높이머리 = document.createElement("div");
   높이머리.className = "판머리 위줄";
-  높이머리.textContent = "자막 높이";
+  높이머리.textContent = "자막 위치";
   크기판.appendChild(높이머리);
 
   const 높이줄 = document.createElement("div");
@@ -1845,6 +1848,20 @@ function 크기판그리기() {
 
   높이줄.appendChild(높이단추("↑", +1, "자막 올리기"));
   크기판.appendChild(높이줄);
+
+  // --- 켬 · 끔 — 맨 아래, 「자막」 단추 바로 위 (2026-09-22 · 사용자가 정함)
+  //   「그냥 자막 버튼으로 만들고 누르면 위에 자막 켬끔 있고, 그 위에 위치, 크기 조절」
+  const 켬줄 = document.createElement("div");
+  켬줄.className = "켬끔줄 위줄";
+  const 켜짐 = 자막.켜졌나();
+  const 켬단 = document.createElement("button");
+  켬단.type = "button";
+  켬단.className = "켬끔단추" + (켜짐 ? " 켜짐" : "");
+  켬단.setAttribute("aria-pressed", 켜짐 ? "true" : "false");
+  켬단.innerHTML = '<span class="켬끔글">자막</span><span class="켬끔스위치" aria-hidden="true"><span></span></span><span class="켬끔상태">' + (켜짐 ? "켬" : "끔") + '</span>';
+  켬단.addEventListener("click", ㅈ => { ㅈ.stopPropagation(); 자막.켜고끄기(); 자막단추칠하기(); 크기판그리기(); });
+  켬줄.appendChild(켬단);
+  크기판.appendChild(켬줄);
 }
 
 // ---------- 강의 안에서 찾기 ----------

@@ -171,12 +171,17 @@
             <div class="글머리윗줄">
               <h1 class="보기제목" id="지금제목"></h1>
                 <div class="영상밑줄" id="영상밑줄" hidden>
-                <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
+                <!-- ★ 자막 켬 · 자막 설정을 「자막」 하나로 합쳤다 (2026-09-22 · 사용자가 정함). 켬/끔은 드롭바 맨 아래에 있다.
+                     앱.js 가 붙잡는 단추라 자리만 남겨 숨긴다. -->
+                <button class="밑단추" id="자막끄기" type="button" aria-pressed="true" hidden>자막 켬</button>
                 <span class="크기통">
-                  <button class="밑단추" id="자막크기단추" type="button">자막 설정</button>
+                  <button class="밑단추" id="자막크기단추" type="button" aria-haspopup="true">자막</button>
                   <div class="크기판" id="크기판" hidden></div>
                 </span>
-                <button class="밑단추" id="전체단추" type="button">전체화면</button>
+                <!-- ★ 전체화면은 유튜브처럼 기호만 (2026-09-22 · 사용자가 정함) -->
+                <button class="밑단추 기호단추" id="전체단추" type="button" aria-label="전체화면" title="전체화면">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg>
+                </button>
               </div>
             </div>
             <div class="글머리줄">
