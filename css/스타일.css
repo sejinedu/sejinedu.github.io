@@ -1547,3 +1547,20 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .단원고르개 { height: 34px; }
 /* 표 첫 칸(번호)도 왼쪽 끝에서 시작하게 — 줄 안쪽 여백을 0 으로 맞춘다 */
 .글표머리, .글표줄 { padding-left: 0; padding-right: 0; }
+
+/* 글 머리 한 줄 — 제목 왼쪽, 강사 · 조회 · ♥ · 댓글 · 작성일 오른쪽 (2026-09-22) */
+.글머리 .보기길 { padding: 10px 16px 0; }
+.글머리줄 {
+  background: var(--판); border-top: 0; padding: 6px 16px 12px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 6px 20px; flex-wrap: wrap;
+}
+.글머리 .글머리줄 .보기제목 { padding: 0; background: none; flex: 1 1 320px; min-width: 0; }
+.글머리셈 { flex: none; white-space: nowrap; }
+.글머리셈 .보기강사 .강사이름칸 { color: var(--악센트); font-weight: 700; }
+
+/* 게시판 첫 줄의 강사 탭 · 작성자 이름 누르기 (2026-09-22) */
+.칸작성자 .작성자누르기 {
+  background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) { .칸작성자 .작성자누르기:hover { color: var(--악센트); text-decoration: underline; text-underline-offset: 3px; } }

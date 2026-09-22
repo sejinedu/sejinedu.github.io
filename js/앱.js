@@ -907,7 +907,9 @@ function 지금묶음() {
   if (!고른아이디) {
     const 딸린것 = new Set();
     나무.목록.forEach(ㅁ => 나무.아래아이디들(ㅁ).forEach(ㄱ => 딸린것.add(ㄱ)));
-    return { 목록: window.동영상목록.filter(ㅇ => 딸린것.has(ㅇ.단원아이디)), 머리: "전체 강의", 아이디: "" };
+    return {
+      목록: window.동영상목록.filter(ㅇ => 딸린것.has(ㅇ.단원아이디) && (!강사거르개 || (ㅇ.강사 || "").trim() === 강사거르개)),
+      머리: 강사거르개 ? "강사 " + 강사거르개 : "전체 강의", 아이디: "" };
   }
   const 마디 = 나무.찾기(고른아이디);
   if (!마디) return { 목록: [], 머리: "", 아이디: "" };
@@ -1009,10 +1011,31 @@ function 과목메뉴그리기() {
   });
 }
 
+// 홈 화면 첫 줄 — 강사 탭 (강의가 많은 사람부터). 과목 화면의 세부 과목 탭과 같은 모양 · 같은 자리
+function 강사띠그리기() {
+  const 띠 = document.createElement("nav");
+  띠.className = "교과띠 강사띠";
+  띠.setAttribute("aria-label", "강사");
+  const 셈판 = new Map();
+  (window.동영상목록 || []).forEach(ㅇ => { const ㄱ = (ㅇ.강사 || "").trim(); if (ㄱ) 셈판.set(ㄱ, (셈판.get(ㄱ) || 0) + 1); });
+  const 탭 = (글, 켜짐, 누르면) => {
+    const ㄷ = document.createElement("button");
+    ㄷ.type = "button";
+    ㄷ.className = "메뉴칸" + (켜짐 ? " 켜짐" : "");
+    ㄷ.textContent = 글;
+    ㄷ.addEventListener("click", 누르면);
+    띠.appendChild(ㄷ);
+  };
+  탭("전체", !강사거르개, () => 강사고르기(""));
+  [...셈판.entries()].sort((ㄱ, ㄴ) => ㄴ[1] - ㄱ[1] || ㄱ[0].localeCompare(ㄴ[0], "ko"))
+    .forEach(([이름]) => 탭(이름, 강사거르개 === 이름, () => 강사고르기(이름)));
+  return 띠;
+}
+
 // 게시판 첫 줄 — 고른 과목의 세부 과목 탭 (아카라이브의 분류 탭 자리)
 function 교과띠그리기() {
   const 과목 = 경로[0] ? 나무.찾기(경로[0]) : null;
-  if (!과목) return null;
+  if (!과목) return 강사띠그리기();
   const 띠 = document.createElement("nav");
   띠.className = "교과띠";
   띠.setAttribute("aria-label", "세부 과목");
@@ -1033,6 +1056,7 @@ function 교과띠그리기() {
 }
 
 function 과목고르기(아이디) {
+  강사거르개 = "";
   고른아이디 = 아이디;
   경로 = [아이디];
   메뉴닫기(); 서랍닫기();        // 폰: 서랍을 비켜 줘야 위에 뜬 세부 교과가 보인다
@@ -1044,6 +1068,7 @@ function 과목고르기(아이디) {
 }
 
 function 교과고르기(아이디) {
+  강사거르개 = "";
   const ㅊ = 나무.찾기(아이디);
   고른아이디 = 아이디;
   경로 = [ㅊ && ㅊ.부모 ? ㅊ.부모.아이디 : (경로[0] || 아이디), 아이디];
@@ -1104,6 +1129,20 @@ function 격자그리기() {
 //    기록소가 숫자를 늦게 주면 숫자들고치기() 가 그 자리만 고쳐 칠한다.
 const 쪽크기 = 30;
 let 지금쪽 = 1, 쪽묶음 = "", 찾을말 = "";
+// ★ 홈 화면 첫 줄은 강사 탭이다 (2026-09-22 · 사용자가 정함)
+//   「전체 통합과학1 통합과학2 이렇게 뜨는 줄에는 강사 김세진 누구 이런식으로 뜨게 해라.
+//     그 이름을 클릭하면 그사람의 전체 강의가 나오게 하라」
+let 강사거르개 = "";
+function 강사고르기(이름) {
+  고른아이디 = null; 경로 = []; 지금영상 = null;
+  강사거르개 = 이름 || "";
+  지금쪽 = 1;
+  메뉴닫기();
+  격자로();
+  격자그리기();
+  상태밀기();
+  window.scrollTo({ top: 0 });
+}
 
 function 글때(ㅇ) {
   const ㄷ = ㅇ.올린때 ? Date.parse(ㅇ.올린때) : 0;
@@ -1161,11 +1200,15 @@ function 게시판표그리기(묶음) {
       '<span class="칸제목">' + (딱지 ? '<span class="글딱지">' + 새는글(딱지) + '</span>' : "") +
         '<span class="글제목">' + 새는글(ㅇ.제목 || "제목 없음") + '</span>' +
         (댓 ? '<span class="댓글셈">[' + 댓 + ']</span>' : "") + '</span>' +
-      '<span class="칸작성자">' + 새는글(ㅇ.강사 || "") + '</span>' +
+      '<span class="칸작성자">' + (ㅇ.강사 ? '<button type="button" class="작성자누르기" title="이 강사의 강의 전체">' + 새는글(ㅇ.강사) + '</button>' : "") + '</span>' +
       '<span class="칸작성일">' + 표날짜(글때(ㅇ)) + '</span>' +
       '<span class="칸조회 조회셈">' + 셈(ㅅ.조회) + '</span>' +
       '<span class="칸추천 하트' + (ㅅ.내좋아요 ? " 내가" : "") + '">' + 셈(ㅅ.좋아요) + '</span>';
-    줄.addEventListener("click", ㄴ => { ㄴ.preventDefault(); if (아이디) 틀기(ㅇ); });
+    줄.addEventListener("click", ㄴ => {
+      ㄴ.preventDefault();
+      if (ㄴ.target.closest(".작성자누르기")) { 강사고르기((ㅇ.강사 || "").trim()); return; }
+      if (아이디) 틀기(ㅇ);
+    });
     줄.addEventListener("contextmenu", ㄴ => { ㄴ.preventDefault(); 카드메뉴열기(ㅇ, ㄴ.clientX, ㄴ.clientY); });
     표.appendChild(줄);
   });
@@ -1945,7 +1988,8 @@ function 지금상태() {
     세진: 1,
     경로: [...경로],
     고른: 고른아이디,
-    봄: 지금영상 ? 지금영상.아이디 : null
+    봄: 지금영상 ? 지금영상.아이디 : null,
+    강사: 강사거르개
   };
 }
 
@@ -1961,6 +2005,7 @@ function 상태입히기(ㅅ) {
 
     경로 = (ㅅ && ㅅ.경로) ? [...ㅅ.경로] : [];
     고른아이디 = ㅅ ? (ㅅ.고른 || null) : null;
+    강사거르개 = (ㅅ && ㅅ.강사) || "";
 
     왼쪽그리기();
     격자그리기();
@@ -1992,6 +2037,7 @@ function 뒤로가기() { history.back(); }
 //  ★ 폭은 안 건드린다 — 사용자가 맞춰 놓은 값이다.
 
 function 홈으로() {
+  강사거르개 = "";
   고른아이디 = null;
   지금영상 = null;
   경로 = [];                 // 맨 위 층(과목 목록)으로

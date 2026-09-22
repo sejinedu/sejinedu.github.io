@@ -114,12 +114,13 @@
                「게시글에 목록으로 없애라. 그 자리에 영상 제목, 조회수, 좋아요, 강사 이름, 지우기」 -->
           <div class="글머리">
             <div class="보기길" id="지금길"></div>
-            <h1 class="보기제목" id="지금제목"></h1>
+            <!-- ★ 제목 줄 오른쪽에 강사 · 조회 · 좋아요 · 댓글 · 작성일 (2026-09-22 · 사용자가 정함) -->
             <div class="글머리줄">
-              <span class="보기강사" id="지금강사" hidden><span class="강사이름칸" id="지금강사이름"></span></span>
+              <h1 class="보기제목" id="지금제목"></h1>
               <span class="글머리셈">
+                <span class="보기강사" id="지금강사" hidden><span class="강사이름칸" id="지금강사이름"></span></span>
                 <span class="보기셈" id="지금셈"></span>
-                <span class="글머리칸"><button class="좋아요" id="좋아요단추" title="좋아요" type="button" aria-pressed="false">♥ 0</button></span>
+                <span class="글머리칸"><button class="좋아요" id="좋아요단추" type="button" title="좋아요" aria-pressed="false">♥ 0</button></span>
                 <span class="글머리칸" id="지금댓글수" hidden></span>
                 <span class="글머리칸" id="지금작성일"></span>
                 <span id="글지우기자리"></span>
