@@ -975,33 +975,51 @@ const 새글순 = 목록 => 목록
 //  ★ 컴퓨터에서는 머리줄에, 폰에서는 목록 바로 위 띠에 뜬다. 그리는 곳은 여기 하나다.
 //  ★ 누르면 그 과목으로 곧장 간다 — 왼쪽도 그 과목 단원으로 같이 넘어간다.
 function 과목메뉴그리기() {
-  // ★ 과목을 골랐으면 그 과목의 세부 교과를, 안 골랐으면 과목들을 늘어놓는다 (2026-09-22)
-  //   맨 앞 「과목」 은 처음 화면으로 간다. (사용자가 정함 — 「전체라는 버튼은 과목이라고 이름 바꿔라」)
-  const 과목 = 경로[0] ? 나무.찾기(경로[0]) : null;
-  const 늘어놓을것 = 과목 ? (과목.마디.아래 || []) : 나무.목록;
+  // ★ 맨 위 메뉴는 늘 과목들만 늘어놓는다 (2026-09-22 · 사용자가 정함)
+  //   「맨 위에 과목 버튼 없애고 그자리에 그냥 과목들 쭉 나열시켜」
+  //   세부 과목은 게시판 첫 줄(교과띠)에 뜬다 — 교과띠그리기().
+  const 지금과목 = 경로[0] || null;
   ["머리과목", "과목띠"].forEach(자리 => {
     const 칸 = document.getElementById(자리);
     if (!칸) return;
     칸.innerHTML = "";
-    const 단추 = (글, 켜짐, 누르면, 마디) => {
+    나무.목록.forEach(ㅁ => {
       const ㄷ = document.createElement("button");
       ㄷ.type = "button";
-      ㄷ.className = "메뉴칸" + (켜짐 ? " 켜짐" : "");
-      ㄷ.textContent = 글;
-      if (마디) ㄷ.dataset.아이디 = 마디.아이디;
-      ㄷ.addEventListener("click", 누르면);
+      ㄷ.className = "메뉴칸" + (지금과목 === ㅁ.아이디 ? " 켜짐" : "");
+      ㄷ.textContent = ㅁ.이름;
+      ㄷ.dataset.아이디 = ㅁ.아이디;
+      ㄷ.addEventListener("click", () => 과목고르기(ㅁ.아이디));
       칸.appendChild(ㄷ);
-      return ㄷ;
-    };
-    단추("과목", !경로.length && !고른아이디, 홈으로);
-    늘어놓을것.forEach(ㅁ => 단추(ㅁ.이름, 과목 ? 경로[1] === ㅁ.아이디 : false,
-      () => 과목 ? 교과고르기(ㅁ.아이디) : 과목고르기(ㅁ.아이디), ㅁ));
-    칸.dataset.부모 = 과목 ? 과목.마디.아이디 : "";
-    // 폰 띠에서는 불 켜진 교과가 화면 밖으로 밀려나 있을 수 있다 — 보이는 자리로 당겨 온다
+    });
+    칸.dataset.부모 = "";
     const 켠것 = 칸.querySelector(".켜짐");
     if (켠것 && 칸.scrollWidth > 칸.clientWidth) 칸.scrollLeft = Math.max(0, 켠것.offsetLeft - 칸.offsetLeft - 16);
     if (window.순서손잡이) 순서손잡이.위메뉴(칸);
   });
+}
+
+// 게시판 첫 줄 — 고른 과목의 세부 과목 탭 (아카라이브의 분류 탭 자리)
+function 교과띠그리기() {
+  const 과목 = 경로[0] ? 나무.찾기(경로[0]) : null;
+  if (!과목) return null;
+  const 띠 = document.createElement("nav");
+  띠.className = "교과띠";
+  띠.setAttribute("aria-label", "세부 과목");
+  띠.dataset.부모 = 과목.마디.아이디;
+  const 탭 = (글, 켜짐, 누르면, 아이디) => {
+    const ㄷ = document.createElement("button");
+    ㄷ.type = "button";
+    ㄷ.className = "메뉴칸" + (켜짐 ? " 켜짐" : "");
+    ㄷ.textContent = 글;
+    if (아이디) ㄷ.dataset.아이디 = 아이디;
+    ㄷ.addEventListener("click", 누르면);
+    띠.appendChild(ㄷ);
+  };
+  탭("전체", !경로[1], () => 과목고르기(과목.마디.아이디));
+  (과목.마디.아래 || []).forEach(ㅁ => 탭(ㅁ.이름, 경로[1] === ㅁ.아이디, () => 교과고르기(ㅁ.아이디), ㅁ.아이디));
+  if (window.순서손잡이) 순서손잡이.위메뉴(띠);
+  return 띠;
 }
 
 function 과목고르기(아이디) {
@@ -1035,14 +1053,13 @@ function 격자그리기() {
   const 묶음 = 지금묶음();
   지금무리 = 새글순(묶음.목록);
 
-  const 길줄 = document.createElement("div");
-  길줄.className = "길줄";
-  길줄.textContent = 묶음.머리;
-  목록머리.appendChild(길줄);
+  // ★ 첫 줄은 세부 과목 탭, 길(고등 과학 › 통합과학2)은 한 줄 아래 글쓰기 줄로 (2026-09-22 · 사용자가 정함)
+  const 띠 = 교과띠그리기();
+  if (띠) 목록머리.appendChild(띠);
 
   // ★ 「강의 N개」 줄은 없앴다 (2026-09-22 · 사용자가 정함). 숫자는 왼쪽 이름 옆에만 둔다.
 
-  if (묶음.아이디 && 주인인가) {
+  if (false && 묶음.아이디 && 주인인가) {     // ★ 「단원 아이디」 줄은 없앴다 (2026-09-22) — 게시판 첫 줄이 탭 자리다
     const 아 = document.createElement("div");
     아.className = "단원아이디";
     아.textContent = "단원 아이디  " + 묶음.아이디;
@@ -1112,7 +1129,10 @@ function 게시판표그리기(묶음) {
   // 위 — 오른쪽에 글쓰기 (선생님 · 관리자만. 올리기 단추가 보일 때만 보인다)
   const 윗줄 = document.createElement("div");
   윗줄.className = "판윗줄";
-  윗줄.appendChild(글쓰기단추());
+  const 길줄 = document.createElement("div");
+  길줄.className = "길줄";
+  길줄.textContent = 묶음.머리;
+  윗줄.append(길줄, 글쓰기단추());
   격자칸.appendChild(윗줄);
 
   const 표 = document.createElement("div");
@@ -1190,7 +1210,7 @@ function 글쓰기단추() {
   ㄷ.className = "글쓰기단추";
   ㄷ.textContent = "✎ 글쓰기";
   const 원본 = document.getElementById("영상올리기단추");
-  ㄷ.hidden = !원본 || 원본.hidden;
+  ㄷ.hidden = !(원본 && 원본.dataset.된다 === "1");
   ㄷ.addEventListener("click", () => { if (원본) 원본.click(); });
   return ㄷ;
 }

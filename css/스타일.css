@@ -1455,3 +1455,16 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
   header { padding-left: calc((100vw - 1380px) / 2 + 16px); padding-right: calc((100vw - 1380px) / 2 + 16px); }
   .왼쪽 { border-left: 1px solid var(--왼쪽테); }
 }
+
+/* 게시판 첫 줄 — 세부 과목 탭 (아카라이브 분류 탭처럼) · 둘째 줄 — 길과 글쓰기 (2026-09-22) */
+.목록머리 { border-bottom: 0; padding-bottom: 0; margin-bottom: 6px; }
+.교과띠 { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--테두리); }
+.교과띠::-webkit-scrollbar { display: none; }
+.교과띠 .메뉴칸 {
+  flex: none; background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0;
+  padding: 10px 14px 9px; font-size: .95rem; font-weight: 600; color: var(--흐린글); cursor: pointer; margin-bottom: -1px;
+}
+.교과띠 .메뉴칸.켜짐 { color: var(--글); border-bottom-color: var(--악센트); background: none; }
+@media (hover: hover) and (pointer: fine) { .교과띠 .메뉴칸:not(.켜짐):hover { color: var(--글); } }
+.판윗줄 { justify-content: space-between; margin: 8px 0 10px; }
+.판윗줄 .길줄 { font-size: 1.02rem; font-weight: 700; color: var(--글); min-width: 0; overflow-wrap: anywhere; }

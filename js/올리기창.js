@@ -30,10 +30,13 @@
   let 도는중 = false;
 
   const 올릴수있나 = ㅅ => window.저장소가원본 && ㅅ.들어왔나 && (ㅅ.등급 === "teacher" || ㅅ.등급 === "admin");
+  // ★ 머리줄 「영상 올리기」 단추는 없앴다 (2026-09-22 · 사용자가 정함 — 「영상 올리기 버튼 없애」).
+  //   단추는 늘 숨겨 두고 창을 여는 손잡이로만 쓴다. 올리기는 게시판 「글쓰기」 로 한다.
   function 단추칠하기(ㅅ) {
-    단추.hidden = !올릴수있나(ㅅ);
-    // 게시판 위아래 「글쓰기」 도 같이 — 로그인이 늦게 끝나도 따라 켜진다
-    document.querySelectorAll(".글쓰기단추").forEach(ㄱ => { ㄱ.hidden = 단추.hidden; });
+    const 된다 = !!올릴수있나(ㅅ);
+    단추.hidden = true;
+    단추.dataset.된다 = 된다 ? "1" : "";
+    document.querySelectorAll(".글쓰기단추").forEach(ㄱ => { ㄱ.hidden = !된다; });
   }
   회원.듣기(단추칠하기);
   단추칠하기(회원.상태());
