@@ -167,7 +167,18 @@
                「고등 과학 › 역학과 에너지 › …」 길 글씨와 「강의 안에서 찾기」 는 없앴다 (앱.js 가 붙잡는 자리라 숨겨 둔다). -->
           <div class="글머리">
             <div class="보기길" id="지금길" hidden></div>
-            <h1 class="보기제목" id="지금제목"></h1>
+            <!-- ★ 첫 줄: 제목 + 오른쪽 자막 켬 · 자막 설정 · 전체화면 (웹) — 폭이 좁으면 단추가 제목 아래로 내려간다 -->
+            <div class="글머리윗줄">
+              <h1 class="보기제목" id="지금제목"></h1>
+                <div class="영상밑줄" id="영상밑줄" hidden>
+                <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
+                <span class="크기통">
+                  <button class="밑단추" id="자막크기단추" type="button">자막 설정</button>
+                  <div class="크기판" id="크기판" hidden></div>
+                </span>
+                <button class="밑단추" id="전체단추" type="button">전체화면</button>
+              </div>
+            </div>
             <div class="글머리줄">
               <span class="글머리셈">
                 <span class="보기강사" id="지금강사" hidden><span class="강사이름칸" id="지금강사이름"></span></span>
@@ -177,14 +188,6 @@
                 <span class="글머리칸" id="지금작성일"></span>
                 <span id="글지우기자리"></span>
               </span>
-              <div class="영상밑줄" id="영상밑줄" hidden>
-                <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
-                <span class="크기통">
-                  <button class="밑단추" id="자막크기단추" type="button">자막 설정</button>
-                  <div class="크기판" id="크기판" hidden></div>
-                </span>
-                <button class="밑단추" id="전체단추" type="button">전체화면</button>
-              </div>
             </div>
             <div class="찾기줄" id="찾기줄" hidden>
               <input type="search" id="찾기칸" autocomplete="off">

@@ -1647,3 +1647,17 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .글머리 .영상밑줄[hidden] { display: none; }
 .글머리 .크기판 { right: 0; left: auto; transform: none; bottom: 40px; }
 @media (max-width: 900px) { .보기가운데 > .글머리 { margin-left: -14px; margin-right: -14px; margin-top: 0; border-radius: 0; border-left: 0; border-right: 0; border-top: 0; } }
+
+/* 제목 상자 — 첫 줄 제목 + 오른쪽 자막 단추, 둘째 줄 강사 · 조회수 · ♥ · 댓글 · 작성일 (2026-09-22) */
+.글머리 { overflow: visible !important; }         /* ★ 드롭바가 상자 위로 펼쳐질 때 잘리지 않게 (자막 크기가 사라졌던 까닭) */
+.글머리윗줄 {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px;
+  padding: 12px 16px 2px;
+}
+.글머리윗줄 .보기제목 { flex: 1 1 360px; min-width: 0; padding: 0 !important; }
+.글머리 .글머리줄 { padding: 6px 16px 12px; }
+.글머리윗줄 .영상밑줄 { display: flex; gap: 6px; margin: 0; padding: 0; flex: none; }
+.글머리윗줄 .영상밑줄[hidden] { display: none; }
+/* 자막 설정 드롭바 — 단추 가운데에 */
+.글머리 .크기판 { left: 50% !important; right: auto !important; transform: translateX(-50%) !important; bottom: 40px; }
+@media (max-width: 700px) { .글머리윗줄 .영상밑줄 { margin-left: auto; } }

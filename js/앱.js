@@ -1773,20 +1773,35 @@ function 크기판그리기() {
   크기머리.textContent = "자막 크기";
   크기판.appendChild(크기머리);
 
-  const 지금 = 자막.지금크기();
-  자막.크기목록().forEach(ㅋ => {
-    const 단 = document.createElement("button");
-    단.type = "button";
-    단.className = "크기줄" + (Math.abs(ㅋ.값 - 지금) < 0.01 ? " 골랐음" : "");
-    단.textContent = ㅋ.이름;
-    단.style.fontSize = (0.72 + (ㅋ.값 - 0.8) * 0.28) + "rem";   // 고를 때 크기가 눈에 보이게
-    단.addEventListener("click", ㅈ => {
-      ㅈ.stopPropagation();
-      자막.크기바꾸기(ㅋ.값);
-      크기판그리기();
-    });
-    크기판.appendChild(단);
-  });
+  // ★ 크기도 높이처럼 화살표 둘로 (2026-09-22 · 사용자가 정함)
+  //   「자막 크기 설정도 위아래 버튼으로 만들어라. 그럼 가운데에 글자는 작게 크게 이런식으로 바뀌는거지」
+  const 크기줄 = document.createElement("div");
+  크기줄.className = "높이줄";
+  const 크기옮기기 = 쪽 => {
+    const 목록 = 자막.크기목록();
+    let 자리 = 목록.findIndex(ㅋ => Math.abs(ㅋ.값 - 자막.지금크기()) < 0.01);
+    if (자리 < 0) 자리 = Math.max(0, 목록.findIndex(ㅋ => Math.abs(ㅋ.값 - 1) < 0.01));
+    자리 = Math.max(0, Math.min(목록.length - 1, 자리 + 쪽));
+    자막.크기바꾸기(목록[자리].값);
+    크기판그리기();
+  };
+  const 크기단추 = (글자, 쪽, 라벨) => {
+    const ㅂ = document.createElement("button");
+    ㅂ.type = "button";
+    ㅂ.className = "높이단추";
+    ㅂ.textContent = 글자;
+    ㅂ.setAttribute("aria-label", 라벨);
+    ㅂ.addEventListener("click", ㅈ => { ㅈ.stopPropagation(); 크기옮기기(쪽); });
+    return ㅂ;
+  };
+  크기줄.appendChild(크기단추("↓", -1, "자막 작게"));
+  const 크기이름 = document.createElement("span");
+  크기이름.className = "높이이름";
+  const ㅋ지금 = 자막.크기목록().find(ㅋ => Math.abs(ㅋ.값 - 자막.지금크기()) < 0.01);
+  크기이름.textContent = ㅋ지금 ? String(ㅋ지금.이름).split("·")[0].trim() : Math.round(자막.지금크기() * 100) + "%";
+  크기줄.appendChild(크기이름);
+  크기줄.appendChild(크기단추("↑", +1, "자막 크게"));
+  크기판.appendChild(크기줄);
 
   // --- 자막 높이 ---
   //  사용자가 정한 것 (2026-09-02):
