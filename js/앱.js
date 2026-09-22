@@ -1681,6 +1681,7 @@ document.getElementById("지금제목").addEventListener("contextmenu", ㄴ => {
 });
 
 function 격자로() {
+  if (window.회원관리) 회원관리.닫기();         // 다른 화면으로 가면 회원 관리는 닫는다
   if (window.댓글) 댓글.닫기();
   보기칸.hidden = true;
   격자보기.hidden = false;

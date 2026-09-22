@@ -190,13 +190,13 @@ const 회원 = (() => {
 
   async function 별명정하기(별명) {
     별명 = String(별명 || "").trim().replace(/\s+/g, " ");
-    if (별명.length < 2 || 별명.length > 20) throw new Error("별명은 두 글자에서 스무 글자까지다");
+    if (별명.length < 2 || 별명.length > 20) throw new Error("닉네임은 두 글자에서 스무 글자까지다");
     if (!(await 표챙기기())) throw new Error("로그인이 풀렸다. 다시 들어와라");
     try {
       await 부르기("/rest/v1/site_members?user_id=eq." + encodeURIComponent(표.user.id),
         { 방법: "PATCH", 몸: { nickname: 별명 }, 머리: { Prefer: "return=minimal" } });
     } catch (오류) {
-      if (오류.값 && 오류.값.code === "23505") throw new Error("누가 벌써 쓰는 별명이다. 다른 걸 골라라");
+      if (오류.값 && 오류.값.code === "23505") throw new Error("이미 쓰는 닉네임이다. 다른 걸 골라라");
       throw 오류;
     }
     await 나읽기();

@@ -1701,3 +1701,40 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   .판윗오른쪽 .판찾기 { flex: 1; }
   .판윗오른쪽 .판찾기 input { flex: 1; width: auto; }
 }
+
+/* 이름 드롭바 (2026-09-23) */
+.계정통 { position: relative; display: inline-flex; }
+.계정메뉴 {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 70; min-width: 220px;
+  background: rgba(14,17,22,.98); border: 1px solid #3a4452; border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.55); padding: 6px;
+}
+.계정메뉴[hidden] { display: none; }
+.계정머리 { padding: 8px 10px 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.계정머리 b { font-size: .92rem; color: var(--글); }
+.계정등급 { font-size: .74rem; color: var(--악센트); }
+.계정메일 { flex-basis: 100%; font-size: .76rem; color: var(--흐린글); overflow-wrap: anywhere; }
+.계정금 { height: 1px; background: rgba(211,216,222,.12); margin: 4px 0; }
+.계정줄 {
+  display: block; width: 100%; text-align: left; padding: 9px 10px; border-radius: 6px;
+  background: none; border: 0; color: var(--글); font-size: .86rem; cursor: pointer;
+}
+.계정줄:hover { background: rgba(255,255,255,.06); }
+.계정줄.빨강 { color: #e08b96; }
+
+/* 회원 관리 표 (2026-09-23) */
+.회원표 .글표머리, .회원표 .글표줄 { grid-template-columns: 56px minmax(0, 1fr) minmax(0, 1.2fr) 96px 140px; }
+.칸메일 { color: var(--흐린글); font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.칸등급 { display: flex; justify-content: center; }
+.등급고르개 { height: 30px; padding: 0 26px 0 8px; font-size: .84rem; }
+.등급고정 { font-size: .84rem; color: var(--악센트); font-weight: 700; }
+.회원말 { font-size: .86rem; color: var(--흐린글); margin: 0 0 10px; }
+.회원말.됨 { color: var(--악센트); }
+.회원말.탈 { color: #e08b96; }
+@media (max-width: 700px) {
+  .회원표 .글표줄 { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: "제목 등급" "메일 등급"; }
+  .회원표 .글표줄 .칸번호, .회원표 .글표줄 .칸작성일 { display: none; }
+  .회원표 .글표줄 .칸제목 { grid-area: 제목; }
+  .회원표 .글표줄 .칸메일 { grid-area: 메일; font-size: .74rem; }
+  .회원표 .글표줄 .칸등급 { grid-area: 등급; }
+}

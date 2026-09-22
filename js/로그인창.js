@@ -88,8 +88,8 @@
       건너가기([["로그인으로 돌아가기", "로그인"]]);
       setTimeout(() => 메일.focus(), 30);
     } else if (걸음 === "별명") {
-      제목.textContent = "별명 정하기";
-      설명.textContent = "댓글에 쓸 별명을 정해라.";
+      제목.textContent = "닉네임 정하기";
+      설명.textContent = "댓글에 쓸 닉네임을 정해라.";
       보일칸("별명"); 하기.textContent = "정하기"; 취소.textContent = "나중에";
       건너가기([]);
       별명.value = ㅅ.별명 || "";
@@ -185,7 +185,44 @@
     칸.value = 칸.value.replace(/\D/g, "").slice(0, 6);
     if (칸.value.length === 6) 누름();       // 여섯 자리가 차면 저절로 넘어간다
   });
-  단추.addEventListener("click", () => 열기("로그인"));
+  // ★ 로그인한 뒤에는 이름을 누르면 드롭바 — 닉네임 바꾸기 · 회원 관리(관리자) · 로그아웃 (2026-09-23 · 사용자가 정함)
+  const 계정메뉴 = document.getElementById("계정메뉴");
+  function 계정메뉴닫기() { if (계정메뉴) 계정메뉴.hidden = true; 단추.setAttribute("aria-expanded", "false"); }
+  function 계정메뉴열기() {
+    const ㅅ = 회원.상태();
+    계정메뉴.replaceChildren();
+    const 머리 = document.createElement("div");
+    머리.className = "계정머리";
+    const 이름 = document.createElement("b"); 이름.textContent = (ㅅ.별명 || "닉네임 없음");
+    const 등급 = document.createElement("span"); 등급.className = "계정등급"; 등급.textContent = 등급이름[ㅅ.등급] || "일반 회원";
+    const 메일 = document.createElement("div"); 메일.className = "계정메일"; 메일.textContent = ㅅ.메일 || "";
+    머리.append(이름, 등급, 메일);
+    계정메뉴.appendChild(머리);
+    const 줄 = (글, 누르면, 결) => {
+      const ㄷ = document.createElement("button");
+      ㄷ.type = "button"; ㄷ.setAttribute("role", "menuitem");
+      ㄷ.className = "계정줄" + (결 ? " " + 결 : "");
+      ㄷ.textContent = 글;
+      ㄷ.addEventListener("click", ㄴ => { ㄴ.stopPropagation(); 계정메뉴닫기(); 누르면(); });
+      계정메뉴.appendChild(ㄷ);
+    };
+    const 금 = () => { const ㄱ = document.createElement("div"); ㄱ.className = "계정금"; 계정메뉴.appendChild(ㄱ); };
+    금();
+    줄("닉네임 바꾸기", () => { 말하기(""); 걸음보이기("별명"); 제목.textContent = "닉네임 바꾸기"; 설명.textContent = "댓글과 글쓴이 자리에 이 이름이 나온다."; 취소.textContent = "닫기"; 막.hidden = false; });
+    if (ㅅ.등급 === "admin" && window.회원관리) 줄("회원 관리", () => 회원관리.열기());
+    if (!ㅅ.런처로그인) { 금(); 줄("로그아웃", async () => { await 회원.나가기(); }, "빨강"); }
+    계정메뉴.hidden = false;
+    단추.setAttribute("aria-expanded", "true");
+  }
+  단추.addEventListener("click", ㄴ => {
+    const ㅅ = 회원.상태();
+    if (!ㅅ.들어왔나) return 열기("로그인");
+    if (!ㅅ.별명) return 열기();            // 닉네임이 없으면 먼저 정하게
+    ㄴ.stopPropagation();
+    if (계정메뉴 && 계정메뉴.hidden) 계정메뉴열기(); else 계정메뉴닫기();
+  });
+  document.addEventListener("click", ㄴ => { if (계정메뉴 && !계정메뉴.hidden && !계정메뉴.contains(ㄴ.target)) 계정메뉴닫기(); });
+  document.addEventListener("keydown", ㄴ => { if (ㄴ.key === "Escape") 계정메뉴닫기(); });
   if (가입단) 가입단.addEventListener("click", () => 열기("가입"));
 
   // 머리줄 — 로그인 전엔 「로그인」 「가입」, 뒤엔 별명 하나
