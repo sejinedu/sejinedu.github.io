@@ -91,7 +91,41 @@ const 자막 = (() => {
     if (담긴것[아이디] !== undefined) return Promise.resolve(담긴것[아이디]);
     if (받는중[아이디]) return 받는중[아이디];
 
-    받는중[아이디] = new Promise(풀기 => {
+    // ★★★ 자막은 저장소에서 먼저 찾는다 (2026-09-22 · 사용자가 정함)
+    //   「루트는 유튜브에서 홈피로, 영상 편집프로그램에서 홈피로」 — 둘 다 저장소에 바로 적는다.
+    //   저장소에 없으면(옛 48편) 예전처럼 자막 파일을 읽는다. 저장소가 안 되면 역시 파일로.
+    받는중[아이디] = 저장소에서(아이디).then(ㄱ => ㄱ ? (담긴것[아이디] = ㄱ) : 파일에서(아이디));
+    return 받는중[아이디];
+  }
+
+  async function 저장소에서(아이디) {
+    const 창 = window.저장소창구;
+    if (!창 || !창.공개열쇠) return null;
+    try {
+      const ㄷ = await fetch(창.주소 + "site_captions?select=data&youtube_id=eq." + encodeURIComponent(아이디),
+                            { headers: { apikey: 창.공개열쇠 }, cache: "no-store" });
+      if (!ㄷ.ok) return null;
+      const 줄 = (await ㄷ.json())[0];
+      const 자료 = 줄 && 줄.data && Array.isArray(줄.data.줄) && 줄.data.줄.length ? 줄.data : null;
+      if (자료) {
+        // 옛 파일과 같은 자리에도 둔다 — 영상편집의 위치 코드가 여기서 찾는다
+        (window.자막모음 = window.자막모음 || {})[아이디] = 자료;
+        if (자료.화면 && Number.isFinite(자료.화면.bottom_percent) && !window.sedobiCaptionPosition) 위치코드싣기();
+      }
+      return 자료;
+    } catch (오류) { return null; }
+  }
+
+  function 위치코드싣기() {
+    if (document.getElementById("자막위치코드")) return;
+    const ㅅ = document.createElement("script");
+    ㅅ.id = "자막위치코드";
+    ㅅ.src = "js/자막위치.js?v=" + window.판;
+    document.head.appendChild(ㅅ);
+  }
+
+  function 파일에서(아이디) {
+    return new Promise(풀기 => {
       const ㅅ = document.createElement("script");
       // ★ .json 이 아니라 .js 인 이유 — 파일로 열어도 막히지 않게 (지침서 7절 25번)
       ㅅ.src = "자막/" + 아이디 + ".js?v=" + window.판;
@@ -104,7 +138,6 @@ const 자막 = (() => {
       ㅅ.onerror = () => { ㅅ.remove(); 담긴것[아이디] = null; 풀기(null); };
       document.head.appendChild(ㅅ);
     });
-    return 받는중[아이디];
   }
 
   // 줄이 2천 개쯤 된다. 하나씩 훑지 말고 반으로 갈라 찾는다.

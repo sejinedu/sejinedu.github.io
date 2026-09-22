@@ -15,9 +15,12 @@
 //  ★ 읽기는 공개 창(site_units · site_posts_view)이라 로그인이 필요 없다.
 
 window.저장소가원본 = false;
+// 다른 파일(자막.js 등)도 같은 창구를 쓴다 — 주소와 공개 열쇠를 한 곳에만 둔다
+window.저장소창구 = { 주소: "https://burwsvkcaiqfiymdptex.supabase.co/rest/v1/", 공개열쇠: "" };
 window.저장소준비 = (async () => {
-  const 주소 = "https://burwsvkcaiqfiymdptex.supabase.co/rest/v1/";
+  const 주소 = window.저장소창구.주소;
   const 공개열쇠 = "sb_publishable_Yxaq9Rbth3NUmcREMwlbSg_qaXpoLVy";
+  window.저장소창구.공개열쇠 = 공개열쇠;
   const 받기 = async 길 => {
     const ㄷ = await fetch(주소 + 길, { headers: { apikey: 공개열쇠 }, cache: "no-store" });
     if (!ㄷ.ok) throw new Error(길.split("?")[0] + " → " + ㄷ.status);

@@ -310,7 +310,11 @@ const 로그인 = {
 //       ★ SECRET_KEY 는 **읽지도 않는다.**
 
 const 세션파일 = path.join(process.env.LOCALAPPDATA || "", "sedobi", "세션.json");
-const 열쇠파일 = path.join("C:", "구글 드라이브", "0 세도비", "API 키", "supabase.txt");
+//  ★ 열쇠 폴더가 옮겨졌다 (2026-09-17 · 런처 방 실측) — 두 자리를 차례로 본다
+const 열쇠파일 = [
+  path.join("C:", "구글 드라이브", "0 세도비", "API 키", "supabase.txt"),
+  path.join(process.env.USERPROFILE || "", "OneDrive", "6 기타", "API 키", "supabase.txt"),
+].find(ㄱ => { try { return fs.statSync(ㄱ).isFile(); } catch (오류) { return false; } }) || "";
 
 function 글하나읽기(길) {
   try { return fs.readFileSync(길, "utf8"); } catch (오류) { return ""; }
@@ -538,6 +542,9 @@ function 나머지처리(req, res, 주소, 길) {
       try {
         fs.mkdirSync(path.dirname(자리), { recursive: true });
         fs.writeFileSync(자리, 낼글, "utf8");
+        // ★ 새 저장소로도 넘긴다 — 영상편집의 「홈페이지에 연결하기」 가 여기로 온다 (2026-09-22)
+        //   답은 기다리지 않는다. 못 넘기면 켤 때 · 다음 연결 때 다시 넘긴다.
+        글넘기기(것.목록).then(() => 자막넘기기()).catch(오류 => console.log("저장소로 못 넘겼다 —", 오류.message));
         return 답하기(res, { 됐나: true, 몇개: 것.목록.length });
       } catch (오류) {
         return 답하기(res, { 됐나: false, 왜: String(오류.message || 오류) });
@@ -767,4 +774,146 @@ function 나머지처리(req, res, 주소, 길) {
 
   // 닫으라는 신호에는 묻지 않고 비킨다
   ["SIGINT", "SIGTERM", "SIGBREAK"].forEach(ㅅ => process.on(ㅅ, () => 비키기("닫으라는 신호")));
+})();
+
+// ============================================================
+//  저장소 다리 — 영상편집 · 자막 공장이 적은 것을 새 저장소로 넘긴다  (2026-09-22)
+// ============================================================
+//
+//  사용자가 정한 것:
+//    「루트는 유튜브에서 홈피로, 영상 편집프로그램에서 홈피로 가는거다」
+//
+//  ★ 왜 여기서 하나 — 영상편집의 「홈페이지에 연결하기」 는 이 서버(8777)에 적는다.
+//    그런데 v2.65 부터 홈페이지는 파일이 아니라 **저장소**를 읽는다. 그래서 연결해도 안 떴다.
+//    영상편집은 따로 배포하는 큰 앱이라 건드리지 않고, 받는 쪽인 여기서 저장소로 넘긴다.
+//
+//  ★ 넘기는 것 둘
+//    ① 글 — 목록에 있는데 저장소에 없는 영상. 한 번 넘긴 것은 적어 두고 다시 안 넘긴다
+//       (관리자가 사이트에서 지운 글이 켤 때마다 되살아나면 안 된다).
+//    ② 자막 — 자막 폴더(자막/*.js)에서 새로 생기거나 바뀐 것. 저장소에 적는 순간 사이트에 뜬다.
+//       ★ 그래서 자막 때문에 「올리기」 를 누를 일이 없어진다.
+//  ★ 로그인한 사람(선생님 · 관리자) 이름으로 넘긴다. 권한은 저장소가 막는다.
+//  ★ 못 넘기면 조용히 적어 두고 다음 때 다시 한다. 파일은 그대로 남는다.
+
+const 넘긴글파일 = path.join(만들기폴더, ".저장소로넘긴글.json");
+const 넘긴자막파일 = path.join(만들기폴더, ".저장소로넘긴자막.json");
+const 읽어둔것 = 길 => { try { return JSON.parse(fs.readFileSync(길, "utf8")); } catch (오류) { return {}; } };
+const 적어둔다 = (길, 것) => { try { fs.writeFileSync(길, JSON.stringify(것, null, 1), "utf8"); } catch (오류) {} };
+
+function 저장소재료() {
+  const 주소 = (process.env.SEDOBI_SUPABASE_URL || 열쇠에서("PROJECT_URL") || "https://burwsvkcaiqfiymdptex.supabase.co").replace(/\/+$/, "");
+  let 열쇠 = process.env.SEDOBI_SUPABASE_ANON || 열쇠에서("PUBLISHABLE_KEY");
+  if (!열쇠) {                 // 홈페이지 화면에 박아 둔 공개 열쇠 (밖에 보여도 되는 열쇠다)
+    const ㅁ = 글하나읽기(path.join(뿌리, "js", "회원.js")).match(/sb_publishable_[A-Za-z0-9_-]+/);
+    열쇠 = ㅁ ? ㅁ[0] : "";
+  }
+  return { 주소, 열쇠 };
+}
+
+async function 저장소부르기(길, { 방법 = "GET", 몸, 머리 = {} } = {}) {
+  if (!(await 로그인챙기기())) throw new Error("로그인이 안 됐다");
+  const { 주소, 열쇠 } = 저장소재료();
+  if (!열쇠) throw new Error("공개 열쇠를 못 찾았다");
+  const ㄷ = await fetch(주소 + "/rest/v1/" + 길, {
+    method: 방법,
+    headers: { apikey: 열쇠, Authorization: "Bearer " + 로그인.토큰, "Content-Type": "application/json", ...머리 },
+    body: 몸 === undefined ? undefined : JSON.stringify(몸),
+  });
+  const 글 = await ㄷ.text();
+  if (!ㄷ.ok) throw new Error(ㄷ.status + " " + 글.slice(0, 200));
+  return 글 ? JSON.parse(글) : null;
+}
+
+let 글넘기는중 = null;
+function 글넘기기(목록) {
+  if (글넘기는중) return 글넘기는중;
+  글넘기는중 = (async () => {
+    const 넘긴것 = 읽어둔것(넘긴글파일);
+    const 할것 = (목록 || []).filter(ㄱ => ㄱ && 아이디맞나(ㄱ.아이디) && ㄱ.고유 && !넘긴것[ㄱ.고유]);
+    if (!할것.length) return 0;
+    const 있는글 = new Set((await 저장소부르기("site_posts_view?select=youtube_id")).map(ㄱ => ㄱ.youtube_id));
+    const 있는단원 = new Set((await 저장소부르기("site_units?select=id")).map(ㄱ => ㄱ.id));
+    let 몇 = 0;
+    for (const ㄱ of 할것) {
+      if (있는글.has(ㄱ.아이디)) { 넘긴것[ㄱ.고유] = "이미 있음"; continue; }
+      if (!있는단원.has(ㄱ.단원아이디)) { console.log("저장소에 없는 단원이라 못 넘긴다 —", ㄱ.제목); continue; }
+      await 저장소부르기("site_posts", {
+        방법: "POST", 머리: { Prefer: "return=minimal" },
+        몸: { title: String(ㄱ.제목 || "제목 없음").slice(0, 200), unit_id: ㄱ.단원아이디, youtube_id: ㄱ.아이디 },
+      });
+      넘긴것[ㄱ.고유] = new Date().toISOString();
+      있는글.add(ㄱ.아이디);
+      몇++;
+      console.log("저장소로 글을 넘겼다 —", ㄱ.제목);
+    }
+    적어둔다(넘긴글파일, 넘긴것);
+    return 몇;
+  })().finally(() => { 글넘기는중 = null; });
+  return 글넘기는중;
+}
+
+// 자막 파일 → 저장소.  「window.자막모음["아이디"] = {…};」 한 줄만 읽는다 (뒤에 붙은 보조 코드는 안 읽는다)
+function 자막파일읽기(파일) {
+  const 글 = 글하나읽기(파일);
+  const ㅁ = 글.match(/window\.자막모음\[("[A-Za-z0-9_-]{11}")\]\s*=\s*/);
+  if (!ㅁ) return null;
+  let 뒤 = 글.slice(ㅁ.index + ㅁ[0].length);
+  const 끝 = 뒤.indexOf(";\n");
+  if (끝 >= 0) 뒤 = 뒤.slice(0, 끝);
+  try {
+    const 자료 = JSON.parse(뒤.trim().replace(/;\s*$/, ""));
+    return Array.isArray(자료.줄) && 자료.줄.length ? { 아이디: JSON.parse(ㅁ[1]), 자료 } : null;
+  } catch (오류) { return null; }
+}
+
+let 자막넘기는중 = null;
+function 자막넘기기() {
+  if (자막넘기는중) return 자막넘기는중;
+  자막넘기는중 = (async () => {
+    const 넘긴것 = 읽어둔것(넘긴자막파일);
+    let 이름들 = [];
+    try { 이름들 = fs.readdirSync(자막폴더).filter(ㄱ => /^[A-Za-z0-9_-]{11}\.js$/.test(ㄱ)); } catch (오류) { return 0; }
+    let 몇 = 0;
+    for (const 이름 of 이름들) {
+      const 파일 = path.join(자막폴더, 이름);
+      let 때 = 0;
+      try { 때 = Math.round(fs.statSync(파일).mtimeMs); } catch (오류) { continue; }
+      if (넘긴것[이름] === 때) continue;
+      const 읽은것 = 자막파일읽기(파일);
+      if (!읽은것) continue;
+      const 모델 = String(읽은것.자료.모델 || "");
+      const 출처 = /편집기|Whisper/.test(모델) ? "editor" : /Qwen/.test(모델) ? "factory" : "site";
+      await 저장소부르기("site_captions?on_conflict=youtube_id", {
+        방법: "POST", 머리: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        몸: { youtube_id: 읽은것.아이디, data: 읽은것.자료, source: 출처 },
+      });
+      넘긴것[이름] = 때;
+      적어둔다(넘긴자막파일, 넘긴것);          // 하나 넘길 때마다 — 중간에 꺼져도 처음부터 다시 안 한다
+      몇++;
+    }
+    if (몇) console.log("저장소로 자막을 넘겼다 —", 몇, "편");
+    return 몇;
+  })().finally(() => { 자막넘기는중 = null; });
+  return 자막넘기는중;
+}
+
+// 켤 때 한 번, 그 뒤로 30초마다 — 자막 공장이 다 구운 것도 이렇게 넘어간다
+(function 다리돌리기() {
+  const 한바퀴 = async () => {
+    try {
+      const 목록 = (() => {
+        const 글 = 글하나읽기(path.join(자료폴더, "영상목록.js"));
+        const ㅈ = 글.indexOf("window.붙인영상묶음 = ");
+        if (ㅈ < 0) return [];
+        try { return JSON.parse(글.slice(ㅈ + "window.붙인영상묶음 = ".length).trim().replace(/;\s*$/, "")).목록 || []; }
+        catch (오류) { return []; }
+      })();
+      await 글넘기기(목록);
+      await 자막넘기기();
+    } catch (오류) {
+      console.log("저장소 다리 —", 오류.message);
+    }
+  };
+  setTimeout(한바퀴, 4000);
+  setInterval(한바퀴, 30000);
 })();
