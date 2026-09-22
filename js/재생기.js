@@ -191,7 +191,7 @@ const 재생기 = (() => {
     //   아래 window.focus() 는 유튜브 틀에서 눈길을 도로 빼앗는다. 늘 돌면
     //   음량 막대 · 재생바를 잡는 순간 유튜브가 손을 놓쳐 드래그가 끊긴다.
     //   톡 누름을 세야 하는 건 우리 전체화면 단추를 띄울 때뿐이다.
-    if (!단추칸 || 단추칸.hidden) return;
+    if (!단추칸 || 단추칸.hidden || getComputedStyle(단추칸).display === "none") return;
     setTimeout(() => {
       const 지금눈길 = document.activeElement;
       if (!지금눈길 || 지금눈길.tagName !== "IFRAME") return;

@@ -110,23 +110,6 @@
       <div class="보기판">
         <div class="보기가운데">
 
-          <!-- ★ 글 머리 — 아카라이브 게시글처럼 (2026-09-22 · 사용자가 정함)
-               「게시글에 목록으로 없애라. 그 자리에 영상 제목, 조회수, 좋아요, 강사 이름, 지우기」 -->
-          <div class="글머리">
-            <div class="보기길" id="지금길"></div>
-            <!-- ★ 제목 줄 오른쪽에 강사 · 조회 · 좋아요 · 댓글 · 작성일 (2026-09-22 · 사용자가 정함) -->
-            <div class="글머리줄">
-              <h1 class="보기제목" id="지금제목"></h1>
-              <span class="글머리셈">
-                <span class="보기강사" id="지금강사" hidden><span class="강사이름칸" id="지금강사이름"></span></span>
-                <span class="보기셈" id="지금셈"></span>
-                <span class="글머리칸"><button class="좋아요" id="좋아요단추" type="button" title="좋아요" aria-pressed="false">♥ 0</button></span>
-                <span class="글머리칸" id="지금댓글수" hidden></span>
-                <span class="글머리칸" id="지금작성일"></span>
-                <span id="글지우기자리"></span>
-              </span>
-            </div>
-          </div>
 
           <!-- 영상 + 우리 자막이 한 통에 들어간다.
                ★ 전체화면은 이 통을 통째로 키운다 — 유튜브 자체 전체화면으로 가면
@@ -179,22 +162,34 @@
 
           <!-- ★ 우리 단추는 영상 밖에 둔다. 재생바는 유튜브 것을 그대로 쓴다.
                (2026-09-02 — 영상 위에 얹으면 유튜브가 그리는 것과 따로 놀아서 어긋나 보인다) -->
-          <!-- ★ 한 줄 — 왼쪽에 강의 안에서 찾기, 오른쪽에 자막 켬 · 자막 설정 · 전체화면 (2026-09-22 · 사용자가 정함)
-               찾은 것은 입력칸 바로 밑에 드롭바로 뜬다. 위아래 화살표 → 엔터로 그 자리로 간다. -->
-          <div class="영상밑판">
-            <div class="찾기줄" id="찾기줄" hidden>
-              <input type="search" id="찾기칸" placeholder="강의 안에서 찾기 — 예: 암모나이트" autocomplete="off"
-                     role="combobox" aria-expanded="false" aria-controls="찾은것">
-              <span class="찾기셈" id="찾기셈" hidden></span>
-              <div class="찾은것" id="찾은것" role="listbox"></div>
-            </div>
-            <div class="영상밑줄" id="영상밑줄" hidden>
-              <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
-              <span class="크기통">
-                <button class="밑단추" id="자막크기단추" type="button">자막 설정</button>
-                <div class="크기판" id="크기판" hidden></div>
+          <!-- ★ 글 머리 — 영상 바로 아래 (2026-09-22 · 사용자가 정함)
+               첫 줄: 제목 · 둘째 줄: 왼쪽 강사 · 조회수 · ♥ · 댓글 · 작성일 / 오른쪽 자막 켬 · 자막 설정 · 전체화면
+               「고등 과학 › 역학과 에너지 › …」 길 글씨와 「강의 안에서 찾기」 는 없앴다 (앱.js 가 붙잡는 자리라 숨겨 둔다). -->
+          <div class="글머리">
+            <div class="보기길" id="지금길" hidden></div>
+            <h1 class="보기제목" id="지금제목"></h1>
+            <div class="글머리줄">
+              <span class="글머리셈">
+                <span class="보기강사" id="지금강사" hidden><span class="강사이름칸" id="지금강사이름"></span></span>
+                <span class="보기셈" id="지금셈"></span>
+                <span class="글머리칸"><button class="좋아요" id="좋아요단추" type="button" title="좋아요" aria-pressed="false">♥ 0</button></span>
+                <span class="글머리칸" id="지금댓글수" hidden></span>
+                <span class="글머리칸" id="지금작성일"></span>
+                <span id="글지우기자리"></span>
               </span>
-              <button class="밑단추" id="전체단추" type="button">전체화면</button>
+              <div class="영상밑줄" id="영상밑줄" hidden>
+                <button class="밑단추" id="자막끄기" type="button" aria-pressed="true">자막 켬</button>
+                <span class="크기통">
+                  <button class="밑단추" id="자막크기단추" type="button">자막 설정</button>
+                  <div class="크기판" id="크기판" hidden></div>
+                </span>
+                <button class="밑단추" id="전체단추" type="button">전체화면</button>
+              </div>
+            </div>
+            <div class="찾기줄" id="찾기줄" hidden>
+              <input type="search" id="찾기칸" autocomplete="off">
+              <span class="찾기셈" id="찾기셈" hidden></span>
+              <div class="찾은것" id="찾은것"></div>
             </div>
           </div>
 

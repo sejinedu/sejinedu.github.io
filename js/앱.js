@@ -947,7 +947,7 @@ function 숫자들고치기() {
   // 보고 있는 영상이 있으면 그 숫자도 같이 고친다
   if (!보기칸.hidden && 지금영상 && 지금영상.아이디) {
     const ㅅ = 기록소.읽기(지금영상.아이디.trim());
-    지금셈.textContent = "조회 " + 셈(ㅅ.조회);
+    지금셈.textContent = "조회수 " + 셈(ㅅ.조회);
     좋아요단추.textContent = "♥ " + 셈(ㅅ.좋아요);
     좋아요단추.setAttribute("aria-pressed", String(!!ㅅ.내좋아요));
     좋아요단추.classList.toggle("눌림", !!ㅅ.내좋아요);
@@ -1927,7 +1927,7 @@ function 찾기() {
 function 숫자칠하기() {
   if (!지금영상) return;
   const 숫자 = 기록소.읽기(지금영상.아이디.trim());
-  지금셈.textContent = "조회 " + 셈(숫자.조회);
+  지금셈.textContent = "조회수 " + 셈(숫자.조회);
   좋아요단추.textContent = "♥ " + 셈(숫자.좋아요);
   좋아요단추.setAttribute("aria-pressed", 숫자.내좋아요 ? "true" : "false");
   좋아요단추.classList.toggle("눌림", 숫자.내좋아요);

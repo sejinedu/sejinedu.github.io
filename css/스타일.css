@@ -1624,3 +1624,26 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .영상통.가로눕히기 .쓸기판.위,
 .영상통.가짜전체화면 .쓸기판.위,
 .영상통:fullscreen .쓸기판.위 { right: 180px; }
+
+/* ============================================================
+   게시글 — 영상 위, 제목 상자 아래 (2026-09-22 · 사용자가 정함)
+   ============================================================ */
+/* 전체화면 단추(자막 ▾ · ✕) 없앰 — 전체화면은 Esc · 폰은 아래로 쓸어 나온다 */
+.전체화면단추들 { display: none !important; }
+/* 강의 안에서 찾기 · 길 글씨 없앰 */
+.찾기줄, .글머리 .보기길 { display: none !important; }
+/* 제목 상자 — 영상 바로 아래 */
+.보기가운데 > .글머리 { margin: 12px 0 0; background: var(--판); }
+.글머리 .보기제목 {
+  display: block !important; margin: 0; padding: 12px 16px 4px; background: none;
+  font-size: 1.15rem; font-weight: 700; line-height: 1.45;
+}
+.글머리 .글머리줄 {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px;
+  padding: 4px 16px 12px; background: none; border: 0;
+}
+.글머리 .글머리셈 { flex: 1 1 auto; white-space: normal; }
+.글머리 .영상밑줄 { display: flex; gap: 6px; margin: 0; padding: 0; flex: none; justify-content: flex-end; }
+.글머리 .영상밑줄[hidden] { display: none; }
+.글머리 .크기판 { right: 0; left: auto; transform: none; bottom: 40px; }
+@media (max-width: 900px) { .보기가운데 > .글머리 { margin-left: -14px; margin-right: -14px; margin-top: 0; border-radius: 0; border-left: 0; border-right: 0; border-top: 0; } }
