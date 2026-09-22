@@ -1613,3 +1613,6 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   .가로칸창 .연결칸 { grid-template-columns: 1fr; row-gap: 6px; }
   .가로칸창 .연결칸 .연결이름 { text-align: left; }
 }
+
+/* 자막 설정 드롭바 — 「자막 설정」 단추 가운데에 맞춘다 (2026-09-22 · 사용자가 정함) */
+.영상밑판 .크기판 { right: auto; left: 50%; transform: translateX(-50%); }
