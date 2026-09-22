@@ -1176,7 +1176,17 @@ function 게시판표그리기(묶음) {
   // 위 — 오른쪽에 글쓰기 (선생님 · 관리자만. 올리기 단추가 보일 때만 보인다)
   const 윗줄 = document.createElement("div");
   윗줄.className = "판윗줄";
-  윗줄.append(길줄만들기(묶음), 글쓰기단추());
+  // ★ 검색은 게시판 위로 (2026-09-22 · 사용자가 정함 — 「검색 게시판 위로 올려라」)
+  const 오른쪽 = document.createElement("div");
+  오른쪽.className = "판윗오른쪽";
+  const 찾기틀 = document.createElement("form");
+  찾기틀.className = "판찾기";
+  찾기틀.innerHTML = '<input type="search" placeholder="제목 · 작성자 찾기" aria-label="게시판 찾기"><button type="submit">검색</button>';
+  const 찾기칸 = 찾기틀.querySelector("input");
+  찾기칸.value = 찾을말;
+  찾기틀.addEventListener("submit", ㄴ => { ㄴ.preventDefault(); 찾을말 = 찾기칸.value; 지금쪽 = 1; 격자그리기(); });
+  오른쪽.append(찾기틀, 글쓰기단추());
+  윗줄.append(길줄만들기(묶음), 오른쪽);
   격자칸.appendChild(윗줄);
 
   const 표 = document.createElement("div");
@@ -1220,16 +1230,10 @@ function 게시판표그리기(묶음) {
   }
   격자칸.appendChild(표);
 
-  // 아래 — 글쓰기 · 검색 · 쪽 번호
+  // 아래 — 글쓰기 · 쪽 번호 (검색은 위로 올렸다)
   const 아랫줄 = document.createElement("div");
   아랫줄.className = "판아랫줄";
-  const 찾기틀 = document.createElement("form");
-  찾기틀.className = "판찾기";
-  찾기틀.innerHTML = '<input type="search" placeholder="제목 · 작성자 찾기" aria-label="게시판 찾기"><button type="submit">검색</button>';
-  const 찾기칸 = 찾기틀.querySelector("input");
-  찾기칸.value = 찾을말;
-  찾기틀.addEventListener("submit", ㄴ => { ㄴ.preventDefault(); 찾을말 = 찾기칸.value; 지금쪽 = 1; 격자그리기(); });
-  아랫줄.append(글쓰기단추(), 찾기틀);
+  아랫줄.appendChild(글쓰기단추());
   격자칸.appendChild(아랫줄);
 
   if (쪽수 > 1) {

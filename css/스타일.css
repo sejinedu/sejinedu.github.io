@@ -1689,3 +1689,15 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   .글머리셈 > *:not(:empty):not([hidden]) + *:not(:empty):not([hidden])::before { margin: 0 6px; }
   .글머리셈 .강사이름칸 { font-size: .86rem; }
 }
+/* 검색을 게시판 위로 — 길 줄 오른쪽에 검색 · 글쓰기 (2026-09-22) */
+.판윗오른쪽 { display: flex; align-items: center; gap: 8px; margin-left: auto; flex: none; }
+.판윗오른쪽 .판찾기 { margin-left: 0; }
+.판윗오른쪽 .판찾기 input { width: 200px; height: 34px; }
+.판윗오른쪽 .판찾기 button, .판윗오른쪽 .글쓰기단추 { height: 34px; }
+.판아랫줄:has(> .글쓰기단추[hidden]:only-child) { display: none; }
+@media (max-width: 700px) {
+  .판윗줄 { flex-wrap: wrap; }
+  .판윗오른쪽 { width: 100%; }
+  .판윗오른쪽 .판찾기 { flex: 1; }
+  .판윗오른쪽 .판찾기 input { flex: 1; width: auto; }
+}
