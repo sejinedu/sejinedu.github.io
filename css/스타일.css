@@ -1248,3 +1248,20 @@ body.로그인안됨 { padding-top: 46px; }
 .댓글지우기 { margin-left: auto; background: none; border: 0; color: var(--흐린글); font-size: .78rem; padding: 2px 4px; }
 .댓글지우기:hover { color: #e08b96; }
 .댓글줄 .댓글글 { margin: 5px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .92rem; line-height: 1.6; }
+
+/* 영상 올리기 (2026-09-22) — 선생님·관리자 */
+.영상올리기단추 {
+  background: #1d2a26; border: 1px solid var(--악센트); color: var(--악센트);
+  height: 30px; padding: 0 12px; border-radius: 6px; font-size: .84rem; font-weight: 700; white-space: nowrap;
+}
+.영상올리기단추[hidden] { display: none; }
+.올리기창 { max-height: calc(100vh - 40px); overflow-y: auto; }
+.올리기창 select, .올리기창 textarea {
+  width: 100%; box-sizing: border-box; background: var(--판); border: 1px solid var(--테두리);
+  border-radius: 8px; color: var(--글); padding: 10px 12px; font: inherit; font-size: .9rem;
+}
+.올리기창 textarea { resize: vertical; line-height: 1.5; }
+.올리기창 select:focus, .올리기창 textarea:focus { outline: none; border-color: var(--악센트); }
+.글손질 { display: flex; justify-content: flex-end; margin: -6px 0 10px; }
+.글지우기 { background: none; border: 1px solid #5a2d35; color: #e08b96; border-radius: 7px; padding: 6px 12px; font-size: .8rem; }
+@media (max-width: 480px) { .영상올리기단추 { padding: 0 8px; font-size: .78rem; } }

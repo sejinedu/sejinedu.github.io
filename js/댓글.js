@@ -8,7 +8,7 @@
 //    「관리자는 … 모든걸 지우기」
 //
 //  ★ 권한은 저장소가 막는다. 여기서 단추를 숨기는 건 보기 좋으라고다.
-//  ★ 글(site_posts)은 유튜브 아이디로 찾는다. 옛 영상 35편은 ②단계에서 글이 됐다.
+//  ★ 글(site_posts)은 글 번호로 찾는다(저장소에서 온 영상). 옛 파일로 뜬 날에는 유튜브 아이디로.
 //    그 뒤에 8777 로 붙인 영상은 아직 글이 없다 — 그러면 댓글 칸만 조용히 안 뜬다.
 //    (⑦단계에서 올리기를 새 저장소로 옮기면 없어진다)
 //  ★ 남이 쓴 글은 반드시 textContent 로 넣는다. innerHTML 로 넣으면 댓글에 심은 글이 돈다.
@@ -44,8 +44,10 @@ const 댓글 = (() => {
     const 아이디 = (영상 && 영상.아이디 || "").trim();
     if (!아이디) return;
     try {
-      const 글들 = await 회원.부르기("/rest/v1/site_posts_view?select=id,body&youtube_id=eq." +
-                                     encodeURIComponent(아이디) + "&order=created_at.asc&limit=1");
+      // ★ 저장소에서 온 영상이면 글 번호(고유)로 곧장 찾는다. 옛 파일에서 온 것이면 유튜브 아이디로.
+      const 글번호 = /^[0-9a-f-]{36}$/.test(영상.고유 || "") ? 영상.고유 : "";
+      const 글들 = await 회원.부르기("/rest/v1/site_posts_view?select=id,body,author_id,title&" +
+        (글번호 ? "id=eq." + 글번호 : "youtube_id=eq." + encodeURIComponent(아이디) + "&order=created_at.asc&limit=1"));
       if (내차례 !== 차례번호) return;
       지금글 = (글들 && 글들[0]) || null;
       if (!지금글) return;                       // 아직 글이 없는 영상
@@ -73,6 +75,17 @@ const 댓글 = (() => {
     const ㅅ = 회원.상태();
     칸.hidden = false;
     칸.replaceChildren();
+
+    // ★ 글 지우기 — 선생님은 제 글만, 관리자는 전부 (2026-09-22 · 사용자가 정함)
+    const 내글 = ㅅ.이름표 && 지금글.author_id === ㅅ.이름표;
+    if ((내글 && ㅅ.등급 === "teacher") || ㅅ.등급 === "admin") {
+      const 줄 = 만들기("div", "글손질");
+      const 지 = 만들기("button", "글지우기", "이 글 지우기");
+      지.type = "button";
+      지.addEventListener("click", () => 글지우기(내글));
+      줄.appendChild(지);
+      칸.appendChild(줄);
+    }
 
     칸.appendChild(만들기("h2", "댓글머리", "댓글 " + 목록.length));
 
@@ -143,6 +156,22 @@ const 댓글 = (() => {
       await 회원.부르기("/rest/v1/site_comments?id=eq." + ㄷ.id, { 방법: "DELETE", 머리: { Prefer: "return=minimal" } });
       await 목록읽기();
       if (목록.some(ㄱ => ㄱ.id === ㄷ.id)) 그리기("못 지웠다 — 지울 권한이 없다", "탈");
+    } catch (오류) {
+      그리기("못 지웠다 — " + 오류.message, "탈");
+    }
+  }
+
+  async function 글지우기(내글) {
+    const 물음 = "「" + (지금글.title || "이 글") + "」 을 지울까?\n댓글도 같이 지워진다. 되돌릴 수 없다." +
+                (내글 ? "" : "\n(관리자 — 남의 글이다)");
+    if (!confirm(물음)) return;
+    const 번호 = 지금글.id;
+    try {
+      await 회원.부르기("/rest/v1/site_posts?id=eq." + 번호, { 방법: "DELETE", 머리: { Prefer: "return=minimal" } });
+      const 남은것 = await 회원.부르기("/rest/v1/site_posts_view?select=id&id=eq." + 번호);
+      if (Array.isArray(남은것) && 남은것.length) { 그리기("못 지웠다 — 지울 권한이 없다", "탈"); return; }
+      window.동영상목록 = (window.동영상목록 || []).filter(ㅇ => ㅇ.고유 !== 번호);
+      try { 홈으로(); } catch (오류) { location.reload(); }
     } catch (오류) {
       그리기("못 지웠다 — " + 오류.message, "탈");
     }
