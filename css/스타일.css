@@ -1361,3 +1361,5 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
   .머리오른쪽 { gap: 6px; }
   .머리오른쪽 .로그인단추, .머리오른쪽 .영상올리기단추, .머리오른쪽 .업데이트 { height: 30px; padding: 0 9px; font-size: .78rem; }
 }
+/* ★ 숨긴 단추는 끝까지 숨긴다 — 위 한 벌 맞추기(display:inline-flex)가 hidden 을 이기면 안 된다 (2026-09-22에 밟음) */
+.머리오른쪽 [hidden] { display: none !important; }
