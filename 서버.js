@@ -22,7 +22,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const 뿌리 = __dirname;
-const 포트 = 8777;
+const 포트 = Number(process.env.SEJIN_TEST_PORT) || 8777;     // ★ 시험할 때만 다른 문을 쓴다. 평소엔 늘 8777
 const 자막폴더 = path.join(뿌리, "자막");
 const 만들기폴더 = path.join(뿌리, "자막만들기");
 const 자료폴더 = path.join(뿌리, "자료");
@@ -419,7 +419,8 @@ async function 로그인챙기기() {
 }
 
 //  자료를 바꾸거나 밖으로 내보내는 길 — 로그인이 있어야 한다
-const 잠글길 = new Set(["/올리기", "/단원나무", "/영상목록", "/영상/길이", "/자막/만들기"]);
+const 잠글길 = new Set(["/올리기", "/단원나무", "/영상목록", "/영상/길이", "/자막/만들기",
+  "/유튜브/허락", "/유튜브/목록", "/유튜브/가져오기"]);
 
 function 로그인막힘(res, 길) {
   res.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
@@ -492,6 +493,9 @@ const 서버 = http.createServer((req, res) => {
 
 //  ★ 위에서 로그인을 챙긴 뒤 이어서 하는 일 — 원래 하던 그대로다.
 function 나머지처리(req, res, 주소, 길) {
+
+  // ---- 유튜브 → 홈페이지 가져오기 (2026-09-22) — 아래 「유튜브 가져오기」 풀이 ----
+  if (길.startsWith("/유튜브/")) return 유튜브길(req, res, 길);
 
   // ---- 자막 공장 ----
   if (길 === "/자막/상태" || 길 === "/자막/만들기") {
@@ -899,6 +903,7 @@ function 자막넘기기() {
 
 // 켤 때 한 번, 그 뒤로 30초마다 — 자막 공장이 다 구운 것도 이렇게 넘어간다
 (function 다리돌리기() {
+  if (process.env.SEJIN_TEST_PORT) return;      // ★ 시험 서버는 저장소로 아무것도 안 넘긴다
   const 한바퀴 = async () => {
     try {
       const 목록 = (() => {
@@ -917,3 +922,96 @@ function 자막넘기기() {
   setTimeout(한바퀴, 4000);
   setInterval(한바퀴, 30000);
 })();
+
+
+// ============================================================
+//  유튜브 가져오기 — 형 채널 영상 + 올려 둔 완성 자막을 홈페이지로  (2026-09-22)
+// ============================================================
+//
+//  사용자가 정한 것:
+//    「이미 유튜브에 있는 영상은 이 홈페이지에 가져 올수 있고,
+//      이미 업로드된 완성된 자막 파일을 가져 올수 있게 하라」
+//
+//  ★ 유튜브는 자막 파일을 채널 주인한테만 준다 → 형 컴퓨터(이 서버)에서만 된다.
+//  ★ 유튜브 쪽 일은 자막만들기/유튜브가져오기.py 가 한다 (읽기만. 채널에는 안 쓴다).
+//  ★ 「허락」 은 사용자가 단추를 눌렀을 때만 — 그때만 구글 허락 창이 브라우저에 뜬다.
+//
+//  GET  /유튜브/목록        → 채널 영상들 (사이트에 이미 있나 표시)
+//  POST /유튜브/가져오기    { 아이디, 단원, 제목 } → 글 만들고 자막 붙이기
+//  POST /유튜브/허락        → 구글 허락 창 (5분 기다린다)
+
+function 유튜브도구(인자들, 기다릴초 = 90) {
+  return new Promise(풀기 => {
+    const ㅍ = spawn("python", ["-u", "유튜브가져오기.py", ...인자들], {
+      cwd: 만들기폴더, windowsHide: true,
+      env: { ...process.env, PYTHONUNBUFFERED: "1", PYTHONIOENCODING: "utf-8" },
+    });
+    let 나온글 = "", 탈글 = "";
+    const 시계 = setTimeout(() => { try { ㅍ.kill(); } catch (오류) {} }, 기다릴초 * 1000);
+    ㅍ.stdout.on("data", ㄷ => { 나온글 += ㄷ.toString("utf8"); });
+    ㅍ.stderr.on("data", ㄷ => { 탈글 += ㄷ.toString("utf8"); });
+    ㅍ.on("error", 오류 => { clearTimeout(시계); 풀기({ 됐나: false, 왜: "python 을 못 돌렸다 — " + 오류.message }); });
+    ㅍ.on("close", () => {
+      clearTimeout(시계);
+      const 끝줄 = 나온글.trim().split("\n").pop() || "";
+      try { 풀기(JSON.parse(끝줄)); }
+      catch (오류) { 풀기({ 됐나: false, 왜: (탈글 || 나온글 || "답이 없다").slice(-300) }); }
+    });
+  });
+}
+
+function 몸받기(req) {
+  return new Promise(풀기 => {
+    let 몸 = "";
+    req.on("data", ㄷ => { 몸 += ㄷ; if (몸.length > 64 * 1024) req.destroy(); });
+    req.on("end", () => { try { 풀기(JSON.parse(몸 || "{}")); } catch (오류) { 풀기({}); } });
+  });
+}
+
+let 허락받는중 = false;
+async function 유튜브길(req, res, 길) {
+  try {
+    if (길 === "/유튜브/허락") {
+      if (req.method !== "POST") { res.writeHead(405); return res.end(); }
+      if (허락받는중) return 답하기(res, { 됐나: false, 왜: "허락 창이 이미 떠 있다 — 브라우저를 봐라" });
+      허락받는중 = true;
+      try { return 답하기(res, await 유튜브도구(["허락"], 320)); } finally { 허락받는중 = false; }
+    }
+    if (길 === "/유튜브/목록") {
+      const ㄹ = await 유튜브도구(["목록"], 120);
+      if (!ㄹ.됐나) return 답하기(res, ㄹ);
+      let 있는것 = new Set();
+      try { 있는것 = new Set((await 저장소부르기("site_posts_view?select=youtube_id")).map(ㄱ => ㄱ.youtube_id)); } catch (오류) {}
+      ㄹ.영상.forEach(ㅇ => { ㅇ.사이트에있나 = 있는것.has(ㅇ.아이디); });
+      return 답하기(res, ㄹ);
+    }
+    if (길 === "/유튜브/가져오기") {
+      if (req.method !== "POST") { res.writeHead(405); return res.end(); }
+      const { 아이디, 단원, 제목 } = await 몸받기(req);
+      if (!아이디맞나(아이디)) return 답하기(res, { 됐나: false, 왜: "영상 아이디가 이상하다" });
+      if (!단원) return 답하기(res, { 됐나: false, 왜: "단원을 골라라" });
+      const 결과 = { 됐나: true, 글: "", 자막: "" };
+      // ① 글 — 이미 있으면 그대로 둔다
+      const 있나 = await 저장소부르기("site_posts_view?select=id&youtube_id=eq." + 아이디);
+      if (있나.length) 결과.글 = "이미 있다";
+      else {
+        await 저장소부르기("site_posts", { 방법: "POST", 머리: { Prefer: "return=minimal" },
+          몸: { title: String(제목 || "제목 없음").slice(0, 200), unit_id: 단원, youtube_id: 아이디 } });
+        결과.글 = "만들었다";
+      }
+      // ② 자막 — 유튜브에 올려 둔 완성 자막. 없으면 글만 들어간다
+      const 자 = await 유튜브도구(["자막", 아이디], 120);
+      if (자.됐나) {
+        자.자막.제목 = 제목 || "";
+        await 저장소부르기("site_captions?on_conflict=youtube_id", { 방법: "POST",
+          머리: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          몸: { youtube_id: 아이디, data: 자.자막, source: "youtube" } });
+        결과.자막 = 자.자막.줄.length + "줄 붙였다";
+      } else 결과.자막 = "못 붙였다 — " + 자.왜;
+      return 답하기(res, 결과);
+    }
+    res.writeHead(404); res.end();
+  } catch (오류) {
+    답하기(res, { 됐나: false, 왜: String(오류.message || 오류).slice(0, 300) });
+  }
+}

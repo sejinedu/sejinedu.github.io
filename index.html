@@ -259,9 +259,31 @@
       <textarea id="올리기본문" rows="4" maxlength="20000" placeholder="이 강의에 대해 적을 말"></textarea>
     </label>
     <p class="연결말" id="올리기말"></p>
+    <!-- ★ 형 컴퓨터(8777) 화면에서만 보인다 — 유튜브가 자막 파일을 채널 주인한테만 준다 -->
+    <button class="유튜브에서단추" id="유튜브에서단추" type="button" hidden>유튜브 채널에서 여러 개 가져오기 (자막까지)</button>
     <div class="연결단추줄">
       <button class="연결취소" id="올리기취소" type="button">취소</button>
       <button class="연결하기" id="올리기하기" type="button">올리기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ★ 유튜브 채널에서 가져오기 (2026-09-22) — js/유튜브가져오기창.js -->
+<div class="연결막" id="유튜브막" hidden>
+  <div class="연결창 올리기창 유튜브창" role="dialog" aria-modal="true" aria-labelledby="유튜브제목">
+    <h2 class="연결제목" id="유튜브제목">유튜브 채널에서 가져오기</h2>
+    <p class="연결단원" id="유튜브설명">영상과, 유튜브에 올려 둔 완성 자막을 같이 가져온다.</p>
+    <label class="연결칸">
+      <span class="연결이름">넣을 단원 (고른 영상이 모두 여기로 간다)</span>
+      <select id="유튜브단원"></select>
+    </label>
+    <label class="유튜브다보기"><input type="checkbox" id="유튜브다보기"> 이미 사이트에 있는 것도 보기</label>
+    <ul class="유튜브목록" id="유튜브목록"></ul>
+    <p class="연결말" id="유튜브말"></p>
+    <div class="연결단추줄">
+      <button class="연결취소" id="유튜브허락" type="button" hidden>유튜브 허락 받기</button>
+      <button class="연결취소" id="유튜브닫기" type="button">닫기</button>
+      <button class="연결하기" id="유튜브하기" type="button">가져오기</button>
     </div>
   </div>
 </div>
@@ -378,7 +400,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
               "자료/영상목록.js", "js/저장소자료.js", "js/나무.js",
               "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/caption-layout.js", "js/자막.js", "js/앱.js",
               // ★ 회원은 맨 뒤에 싣는다 — 여기서 탈이 나도 강의 보기는 이미 떠 있다 (2026-09-22)
-              "js/회원.js", "js/로그인창.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js"];
+              "js/회원.js", "js/로그인창.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js", "js/유튜브가져오기창.js"];
 
   // ============================================================
   //  카카오톡 안에서 열렸으면 진짜 브라우저로 넘긴다
@@ -470,7 +492,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
         return;
       }
       // ★ 회원 쪽 파일은 못 읽어도 화면을 지우지 않는다 — 강의 보기는 로그인 없이 돼야 한다
-      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이)\.js$/.test(차례[ㅈ]);
+      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이|유튜브가져오기창)\.js$/.test(차례[ㅈ]);
       스크립트(차례[ㅈ] + "?v=" + 판,
         function () {
           if (차례[ㅈ] === "js/저장소자료.js" && window.저장소준비) {
