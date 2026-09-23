@@ -68,6 +68,56 @@ window.저장소준비 = (async () => {
       }))
     };
     window.저장소가원본 = true;
+
+    // ★★ 글 목록을 스스로 다시 받는다 (2026-09-23 · 사용자가 잡음)
+    //   「내가 컴터에서 공개 비공개 바꾸는데, 폰으로 로그인 없이 보고 있는데, 폰에서는 바로 반영이 안되는데?」
+    //   처음 한 번만 받으니 다른 기기에서 바꾼 게 새로고침 전까지 안 보였다.
+    //   ⇒ 20초마다, 그리고 폰 화면을 다시 켜거나 이 탭으로 돌아온 **그 순간** 다시 받는다.
+    //   ⇒ 바뀐 게 있을 때만 게시판을 다시 그린다 — 괜히 그리면 누르던 줄이 손 밑에서 바뀐다(지침 2-1).
+    const 글자리 = "site_posts_view?select=" + 글칸 + ",is_private,locked&order=created_at.asc";
+    const 줄로 = ㄱ => ({
+      고유: ㄱ.id, 단원아이디: ㄱ.unit_id || "", 강사: ㄱ.author_name || "", 제목: ㄱ.title || "",
+      아이디: ㄱ.youtube_id || "", 본문: ㄱ.body || "", 글쓴이: ㄱ.author_id, 올린때: ㄱ.created_at,
+      비공개: !!ㄱ.is_private, 잠김: !!ㄱ.locked
+    });
+    let 받는중 = false;
+    window.저장소새로받기 = async () => {
+      if (받는중 || !window.저장소가원본 || !Array.isArray(window.동영상목록)) return;
+      받는중 = true;
+      try {
+        // 로그인했으면 내 표로 받는다 — 그래야 내 비공개 글이 나한테는 열린 채로 온다
+        const 새것 = window.회원 && 회원.상태().들어왔나
+          ? await 회원.부르기("/rest/v1/" + 글자리)
+          : await 받기(글자리);
+        if (!Array.isArray(새것)) return;
+        const 목록 = window.동영상목록;
+        const 새표 = new Map(새것.map(ㄱ => [ㄱ.id, ㄱ]));
+        let 바뀜 = false;
+        // 지워진 글 — 목록에서 뺀다
+        for (let ㅈ = 목록.length - 1; ㅈ >= 0; ㅈ--) {
+          if (목록[ㅈ].고유 && !새표.has(목록[ㅈ].고유)) { 목록.splice(ㅈ, 1); 바뀜 = true; }
+        }
+        const 있는것 = new Map(목록.filter(ㅇ => ㅇ.고유).map(ㅇ => [ㅇ.고유, ㅇ]));
+        새것.forEach(ㄱ => {
+          const 새 = 줄로(ㄱ);
+          const ㅇ = 있는것.get(ㄱ.id);
+          if (!ㅇ) { 목록.push(새); 바뀜 = true; return; }                 // 새로 올라온 글
+          // ★ 비번으로 연 글은 창이 계속 「잠김」 으로 준다 — 그대로 비공개면 연 채로 둔다
+          const 비번으로열었다 = Array.isArray(ㅇ.열린댓글) && ㅇ.비공개 && 새.잠김;
+          ["제목", "단원아이디", "강사", "비공개", "잠김", "아이디", "본문"].forEach(칸 => {
+            if (비번으로열었다 && (칸 === "잠김" || 칸 === "아이디" || 칸 === "본문")) return;
+            if (ㅇ[칸] !== 새[칸]) { ㅇ[칸] = 새[칸]; 바뀜 = true; }
+          });
+          if (새.잠김 && !비번으로열었다) delete ㅇ.열린댓글;
+        });
+        if (바뀜) { try { 격자그리기(); } catch (오류) {} }
+      } catch (오류) { /* 못 받으면 다음 차례에 — 보던 화면은 그대로 둔다 */ }
+      finally { 받는중 = false; }
+    };
+    setInterval(() => { if (!document.hidden) window.저장소새로받기(); }, 20000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) window.저장소새로받기(); });
+    window.addEventListener("focus", () => window.저장소새로받기());
+    window.addEventListener("pageshow", ㄴ => { if (ㄴ.persisted) window.저장소새로받기(); });   // 폰 뒤로가기로 돌아온 쪽
     // 댓글 수 — 게시판 제목 옆 [N]. 못 받아도 게시판은 뜬다 (기다리지 않는다)
     //   ★ 잠긴 글 댓글은 창에 안 보인다 — 수만 세 주는 부름(site_comment_counts)으로 센다.
     //     그 부름이 없는 옛 저장소면 창에서 센다.
