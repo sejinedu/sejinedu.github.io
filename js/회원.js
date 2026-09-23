@@ -48,6 +48,7 @@ const 회원 = (() => {
       별명: 나 ? 나.nickname : null,
       등급: 나 ? 나.role : (표 ? "member" : null),
       이름표: 나 ? 나.public_id : null,
+      추천별명: (표 && 표.user && 표.user.이름) || "",
       런처로그인: !!(표 && 표.서버표)
     };
   }
@@ -118,6 +119,60 @@ const 회원 = (() => {
     } catch (오류) { 나 = null; }
     알리기();
     return 나;
+  }
+
+  // ---------- 밖의 문 — 구글 로그인 (2026-09-23 · 사용자가 정함) ----------
+  //   「1,2,3 모두 진행 시켜라」 — 구글로 한 번에 들어오는 길.
+  //   ★ 왜 넣나: 메일로 번호 보내는 길은 한 시간에 서른 통까지다. 반 애들이 한꺼번에
+  //     가입하면 거기서 막힌다. 구글 문은 그 한도를 안 탄다.
+  //   ★ 단추는 **저장소에서 그 문을 열어 놨을 때만** 뜬다 (/auth/v1/settings 가 알려 준다).
+  //     그래서 여기 코드는 미리 있어도 화면에는 아무것도 안 생긴다 — 열쇠를 넣는 날 저절로 뜬다.
+  //   ★ 카카오도 같은 자리에 쓴다. 나중에 카카오를 열면 단추가 저절로 하나 더 생긴다.
+  const 밖의문이름 = { google: "구글", kakao: "카카오" };
+  let 열린문 = null;                                   // 한 번만 묻고 기억한다
+  async function 밖의문들() {
+    if (열린문) return 열린문;
+    if (window.주인인가) return (열린문 = []);          // 형 컴퓨터 화면은 런처 로그인을 쓴다
+    try {
+      const ㄹ = await 부르기("/auth/v1/settings", { 표붙임: false });
+      열린문 = Object.keys(밖의문이름).filter(ㅁ => ㄹ && ㄹ.external && ㄹ.external[ㅁ]);
+    } catch (오류) { 열린문 = []; }
+    return 열린문;
+  }
+  function 밖으로가기(어디) {
+    // 돌아올 자리는 지금 이 쪽 — 주소 뒤에 붙은 것(#)은 떼고 간다
+    const 돌아올곳 = location.origin + location.pathname;
+    location.href = 주소 + "/auth/v1/authorize?provider=" + encodeURIComponent(어디) +
+                    "&redirect_to=" + encodeURIComponent(돌아올곳);
+  }
+
+  // 밖의 문에서 돌아오면 주소 뒤(#)에 출입증이 붙어 온다. 받아 담고 **주소는 곧바로 지운다**
+  // (남겨 두면 그 주소를 복사해 보내는 순간 남이 내 계정으로 들어온다)
+  let 밖의탈 = "";
+  function 주소에온표() {
+    const 뒤 = String(location.hash || "").replace(/^#/, "");
+    if (!/(^|&)access_token=|(^|&)error/.test(뒤)) return null;
+    const ㄱ = new URLSearchParams(뒤);
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (오류) { location.hash = ""; }
+    if (ㄱ.get("error") || ㄱ.get("error_description")) {
+      밖의탈 = ㄱ.get("error_description") || ㄱ.get("error");
+      return null;
+    }
+    if (!ㄱ.get("access_token")) return null;
+    return { access_token: ㄱ.get("access_token"), refresh_token: ㄱ.get("refresh_token"),
+             expires_in: Number(ㄱ.get("expires_in") || 3600) };
+  }
+
+  // 구글 문으로 온 표에는 사람이 안 딸려 온다 — 누구인지 따로 묻는다
+  async function 사람읽기() {
+    try {
+      const ㄹ = await 부르기("/auth/v1/user");
+      if (ㄹ && ㄹ.id) {
+        const ㅁ = ㄹ.user_metadata || {};
+        표.user = { id: ㄹ.id, email: ㄹ.email, 이름: ㅁ.full_name || ㅁ.name || "" };   // 구글이 알려 준 이름 — 닉네임 칸에 미리 넣어 준다
+        서랍쓰기(표);
+      }
+    } catch (오류) { /* 못 물어도 표는 살아 있다. 저장소가 누구인지 안다 */ }
   }
 
   // ---------- 밖에서 쓰는 것 ----------
@@ -219,14 +274,23 @@ const 회원 = (() => {
   }
 
   // ---------- 처음 켤 때 ----------
-  //   형 컴퓨터 화면이면 런처 로그인을 먼저 물려받는다. 아니면 이 브라우저에 담긴 로그인.
-  if (window.주인인가) {
+  //   ① 구글 문에서 막 돌아온 길이면 그 표가 먼저다
+  //   ② 형 컴퓨터 화면이면 런처 로그인을 물려받는다
+  //   ③ 그 밖에는 이 브라우저에 담긴 로그인
+  const 밖에서온표 = 주소에온표();
+  let 밖에서왔나 = !!밖에서온표;
+  if (밖에서온표) {
+    표담기(밖에서온표);
+    사람읽기().then(나읽기);
+  } else if (window.주인인가) {
     서버표받기().then(됐나 => { if (됐나) 나읽기(); else { 표 = 서랍읽기(); if (표) 나읽기(); } });
   } else {
     표 = 서랍읽기();
     if (표) 나읽기();
   }
 
-  return { 상태, 비번로그인, 가입하기, 가입확인, 번호받기, 번호넣기, 별명정하기, 나가기, 나읽기, 듣기, 부르기: 표붙여부르기 };
+  return { 상태, 비번로그인, 가입하기, 가입확인, 번호받기, 번호넣기, 별명정하기, 나가기, 나읽기, 듣기,
+           밖의문들, 밖으로가기, 밖의문이름, 밖에서왔나: () => 밖에서왔나, 밖의탈: () => 밖의탈,
+           부르기: 표붙여부르기 };
 })();
 window.회원 = 회원;

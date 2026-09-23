@@ -25,6 +25,7 @@
     번호: [document.getElementById("번호칸"), document.getElementById("로그인번호")],
     별명: [document.getElementById("별명칸"), document.getElementById("로그인별명")],
   };
+  const 밖의문칸 = document.getElementById("밖의문");
   const 말   = document.getElementById("로그인말");
   const 바꾸기 = document.getElementById("로그인바꾸기");
   const 하기 = document.getElementById("로그인하기");
@@ -50,6 +51,37 @@
       ㄱ.addEventListener("click", () => { 말하기(""); 걸음보이기(갈곳); });
       바꾸기.appendChild(ㄱ);
     });
+  }
+
+  // ★ 구글 단추 (2026-09-23) — 저장소에서 그 문을 열어 놨을 때만 생긴다.
+  //   열쇠를 안 넣었으면 아무것도 안 뜬다. 넣는 날 저절로 뜬다 — 코드는 안 고쳐도 된다.
+  const 문그림 = {
+    google: '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-2.7-.4-3.9H24v7.1h12.1c-.2 1.8-1.6 4.5-4.5 6.3l6.9 5.3c4.1-3.8 6.6-9.3 6.6-14.8z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.3c-1.8 1.3-4.3 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8 41.2 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.5c-.5-1.4-.7-2.9-.7-4.5s.3-3.1.7-4.5l-7.1-5.5C2.9 17 2 20.4 2 24s.9 7 2.4 10z"/><path fill="#EA4335" d="M24 10.6c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4.4 29.9 2 24 2 15.4 2 8 6.8 4.4 14l7.1 5.5c1.8-5.3 6.7-8.9 12.5-8.9z"/></svg>',
+    kakao: '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#3C1E1E" d="M24 7C13.5 7 5 13.7 5 22c0 5.3 3.5 10 8.8 12.6l-2.2 8.1c-.2.7.6 1.3 1.2.9l9.6-6.4c.5 0 1.1.1 1.6.1 10.5 0 19-6.7 19-15S34.5 7 24 7z"/></svg>'
+  };
+  let 문그렸나 = false;
+  async function 밖의문칠하기() {
+    if (!밖의문칸) return;
+    const 보일걸음 = () => 걸음 === "로그인" || 걸음 === "가입";
+    if (!보일걸음()) { 밖의문칸.hidden = true; return; }
+    if (!문그렸나) {
+      const 문들 = await 회원.밖의문들();
+      if (!문들.length) { 밖의문칸.hidden = true; return; }
+      밖의문칸.replaceChildren();
+      문들.forEach(ㅁ => {
+        const ㄷ = document.createElement("button");
+        ㄷ.type = "button"; ㄷ.className = "밖의문단추 " + ㅁ;
+        ㄷ.innerHTML = 문그림[ㅁ] || "";                       // ★ 우리가 넣은 그림이다. 남이 쓴 글이 아니다
+        ㄷ.appendChild(document.createTextNode((회원.밖의문이름[ㅁ] || ㅁ) + " 계정으로 계속하기"));
+        ㄷ.addEventListener("click", () => { 말하기((회원.밖의문이름[ㅁ] || ㅁ) + " 로 가는 중…"); 회원.밖으로가기(ㅁ); });
+        밖의문칸.appendChild(ㄷ);
+      });
+      const 금 = document.createElement("div"); 금.className = "밖의금";
+      금.appendChild(document.createElement("span")).textContent = "또는";
+      밖의문칸.appendChild(금);
+      문그렸나 = true;
+    }
+    밖의문칸.hidden = !보일걸음();                              // 묻는 사이에 걸음이 바뀌었을 수 있다
   }
 
   function 보일칸(...이름들) {
@@ -92,7 +124,7 @@
       설명.textContent = "댓글에 쓸 닉네임을 정해라.";
       보일칸("별명"); 하기.textContent = "정하기"; 취소.textContent = "나중에";
       건너가기([]);
-      별명.value = ㅅ.별명 || "";
+      별명.value = ㅅ.별명 || (ㅅ.추천별명 || "").slice(0, 20);      // 구글로 들어왔으면 구글 이름을 미리 넣어 둔다
       setTimeout(() => 별명.focus(), 30);
     } else {
       제목.textContent = ㅅ.별명 || "내 계정";
@@ -102,6 +134,7 @@
       하기.hidden = !!ㅅ.런처로그인;          // 런처 로그인은 런처에서 끊는다
     }
     if (걸음 !== "나") 하기.hidden = false;
+    밖의문칠하기();
   }
 
   function 열기(처음걸음) {
@@ -170,6 +203,10 @@
     if (/expired|invalid.*otp|token has expired/i.test(ㄱ)) return "번호가 틀렸거나 시간이 지났다. 다시 받아라.";
     if (/Failed to fetch|NetworkError/i.test(ㄱ)) return "인터넷이 안 된다. 연결을 보고 다시 해라.";
     if (/password.*(short|characters|weak)/i.test(ㄱ)) return "비밀번호가 너무 쉽다. 여덟 자 이상, 글자와 숫자를 섞어라.";
+    // 구글 문에서 돌아올 때 (2026-09-23)
+    if (/unsupported provider|oauth (secret|provider)/i.test(ㄱ)) return "구글 로그인이 아직 안 열렸다. 메일과 비밀번호로 들어와라.";
+    if (/access_denied|denied|cancel/i.test(ㄱ)) return "구글 쪽에서 취소했다. 다시 하려면 단추를 한 번 더 눌러라.";
+    if (/redirect|not allowed for this/i.test(ㄱ)) return "구글에서 돌아올 주소가 안 맞다. 관리자한테 말해라.";
     return ㄱ;
   }
 
@@ -235,4 +272,17 @@
   }
   회원.듣기(단추칠하기);
   단추칠하기(회원.상태());
+
+  // ★ 구글 문에서 막 돌아온 화면 (2026-09-23)
+  //   처음 온 사람이면 닉네임부터 정하게 띄운다. 이미 정했으면 아무것도 안 띄운다 — 그냥 들어온 것이다.
+  if (회원.밖의탈 && 회원.밖의탈()) {
+    열기("로그인");
+    말하기(쉬운말(회원.밖의탈()), "탈");
+  } else if (회원.밖에서왔나 && 회원.밖에서왔나()) {
+    const 끄기 = 회원.듣기(ㅅ => {
+      if (!ㅅ.들어왔나) return;
+      끄기();
+      if (!ㅅ.별명) 열기();
+    });
+  }
 })();

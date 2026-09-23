@@ -1313,6 +1313,22 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 .로그인바꾸기:empty { display: none; }
 .글단추 { background: none; border: 0; padding: 2px 0; color: var(--악센트); font-size: .8rem; text-decoration: underline; text-underline-offset: 3px; }
 
+/* 구글 같은 밖의 문 (2026-09-23 · 사용자가 정함 — 「1,2,3 모두 진행 시켜라」) */
+.밖의문 { margin-top: 16px; }
+.밖의문[hidden] { display: none; }
+.밖의문단추 {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 11px 14px; border: 1px solid var(--테); border-radius: 8px;
+  background: #fff; color: #1f1f1f; font-size: .92rem; font-weight: 600; cursor: pointer;
+}
+.밖의문단추 + .밖의문단추 { margin-top: 8px; }
+.밖의문단추:hover { background: #f1f3f4; }
+.밖의문단추 svg { width: 18px; height: 18px; flex: none; }
+.밖의문단추.kakao { background: #FEE500; border-color: #e7d000; }
+.밖의문단추.kakao:hover { background: #f5dd00; }
+.밖의금 { display: flex; align-items: center; gap: 10px; margin: 14px 0 -4px; color: var(--흐린글); font-size: .78rem; }
+.밖의금::before, .밖의금::after { content: ""; flex: 1; height: 1px; background: var(--테); }
+
 /* 업데이트 (아이콘) · 맨 오른쪽 판 번호 (2026-09-22 · 사용자가 정함) */
 .업데이트 { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .업아이콘 { flex: none; }
