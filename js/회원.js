@@ -261,9 +261,88 @@ const 회원 = (() => {
   async function 나가기() {
     // ★ 런처에서 물려받은 로그인은 여기서 못 끊는다 — 끊으면 런처까지 로그아웃된다
     if (표 && 표.서버표) throw new Error("이 화면은 런처 로그인을 쓴다. 로그아웃은 런처에서 해라");
-    try { if (표) await 부르기("/auth/v1/logout", { 방법: "POST" }); } catch (오류) { /* 서버가 몰라도 여기선 지운다 */ }
+    // ★★ scope=local — 이 브라우저 세션만 끊는다 (2026-09-23).
+    //    그냥 부르면 기본이 「전체(global)」 라서 **같은 계정의 런처 로그인까지 같이 죽는다.**
+    //    사용자가 정한 것: 「홈피는 홈피대로 로그인 로그아웃. 런처도 런처만 로그인 로그아웃」
+    // 런처가 로그인 중이면 그 세션은 건너뛴다 — 안 그러면 방금 나갔는데 런처 덕에 바로 다시 들어온다
+    //   ★ 표를 지우기 **전에** 적는다. 지운 뒤에 적으면 그 틈에 창 초점이 돌아와 다시 들어와 버린다
+    try { await 런처세션건너뛰기(); } catch (오류) {}
+    try { if (표) await 부르기("/auth/v1/logout?scope=local", { 방법: "POST" }); } catch (오류) { /* 서버가 몰라도 여기선 지운다 */ }
     표 = null; 나 = null; 서랍쓰기(null); 알리기();
   }
+
+  // ---------- 런처로 로그인하면 홈피도 로그인 (2026-09-23 · 사용자가 정함, 런처 방과 맞춤) ----------
+  //   「홈피는 홈피대로 로그인 로그아웃. 런처도 런처만 로그인 로그아웃. 대신 런처를 로그인하면 홈피도 로그인되게」
+  //
+  //   런처(이 컴퓨터)가 http://127.0.0.1:8779/hompi-pass 에서 **한 번 쓰면 끝나는 입장권(token_hash)** 을 준다.
+  //   사이트는 그걸 저장소 /auth/v1/verify 에 내고 **제 몫의 로그인**을 받는다 — 그 뒤로는 런처와 따로 산다.
+  //   ★ 런처 토큰 · 새로고침표는 안 온다. 입장권뿐이다 (런처 쪽 홈피다리.js · 서버함수 site-handoff).
+  //
+  //   ★★ 아무 컴퓨터에서나 부르면 안 된다 — 크롬이 「이 사이트가 로컬 네트워크의 기기에 접근하려 합니다」 를
+  //      **학생 화면에도** 묻는다. 그래서 **런처가 켠 적이 있는 브라우저에서만** 부른다:
+  //      켜기.vbs 가 https://sejinedu.github.io/#launcher 로 연다 → 그 표시를 한 번 보면 이 브라우저에 적어 둔다.
+  //   ★ 로그인 안 돼 있을 때만 부른다. 못 닿으면(런처 꺼짐) 조용히 그대로 — 평소 로그인 화면.
+  //   ★ 사이트에서 로그아웃하면 그때의 런처 세션을 「건너뛸 것」 으로 적는다 → 런처가 **새로 로그인하기 전까지**
+  //     다시 자동으로 안 들어온다. 런처가 로그아웃해도 사이트는 그대로다.
+  const 런처기기열쇠 = "세진과학.런처기기.v1";
+  const 건너뛸열쇠 = "세진과학.건너뛸런처세션.v1";
+  const 받은런처열쇠 = "세진과학.받은런처세션.v1";
+  const 런처주소 = "http://127.0.0.1:8779/hompi-pass";
+  const 담긴값 = ㅋ => { try { return localStorage.getItem(ㅋ) || ""; } catch (오류) { return ""; } };
+  const 담기 = (ㅋ, ㄱ) => { try { if (ㄱ) localStorage.setItem(ㅋ, ㄱ); else localStorage.removeItem(ㅋ); } catch (오류) {} };
+  const 런처기기인가 = () => !window.주인인가 && location.origin === "https://sejinedu.github.io" && 담긴값(런처기기열쇠) === "1";
+
+  // 켜기.vbs 가 붙인 #launcher — 보면 적어 두고 주소에서 뗀다
+  let 런처가켰나 = false;
+  if (/^#launcher$/.test(location.hash || "")) {
+    런처가켰나 = true;
+    if (!window.주인인가) 담기(런처기기열쇠, "1");
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (오류) { location.hash = ""; }
+  }
+
+  async function 런처에묻기() {
+    const 끊개 = new AbortController();
+    const 시계 = setTimeout(() => 끊개.abort(), 2500);
+    try {
+      const ㄷ = await fetch(런처주소, { headers: { "x-sedobi-hompi": "1" }, cache: "no-store", signal: 끊개.signal });
+      if (!ㄷ.ok && ㄷ.status !== 429) return null;
+      return await ㄷ.json();
+    } catch (오류) { return null; }                    // 런처 없음 · 꺼짐 · 크롬이 막음 — 조용히
+    finally { clearTimeout(시계); }
+  }
+
+  let 마지막물음 = 0;
+  async function 런처로들어오기() {
+    if (표 || !런처기기인가()) return false;
+    if (Date.now() - 마지막물음 < 15000) return false;  // 런처가 10초 안에 또 물으면 429 를 준다
+    마지막물음 = Date.now();
+    const ㄹ = await 런처에묻기();
+    if (!ㄹ || !ㄹ.로그인 || !ㄹ.세션 || !ㄹ.token_hash) return false;
+    if (ㄹ.세션 === 담긴값(건너뛸열쇠)) return false;  // 여기서 로그아웃한 그 런처 세션 — 안 들어간다
+    if (표) return false;                              // 묻는 사이 다른 길로 들어왔다
+    try {
+      const 답 = await 부르기("/auth/v1/verify", { 방법: "POST", 몸: { type: "magiclink", token_hash: ㄹ.token_hash }, 표붙임: false });
+      if (!답 || !답.access_token) return false;
+      표담기(답);
+      if (!표.user || !표.user.id) await 사람읽기();
+      담기(받은런처열쇠, ㄹ.세션);
+      담기(건너뛸열쇠, "");
+      await 나읽기();
+      return true;
+    } catch (오류) { return false; }
+  }
+
+  async function 런처세션건너뛰기() {
+    if (!런처기기인가()) return;
+    let 세션 = 담긴값(받은런처열쇠);
+    if (!세션) { const ㄹ = await 런처에묻기(); if (ㄹ && ㄹ.로그인 && ㄹ.세션) 세션 = ㄹ.세션; }
+    if (세션) 담기(건너뛸열쇠, 세션);
+    담기(받은런처열쇠, "");
+  }
+
+  // 창에 다시 들어올 때도 한 번 — 런처를 나중에 켜고 로그인해도 따라 들어온다
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) 런처로들어오기(); });
+  window.addEventListener("focus", () => 런처로들어오기());
 
   function 듣기(ㅎ) { 듣는이.add(ㅎ); return () => 듣는이.delete(ㅎ); }
 
@@ -287,7 +366,12 @@ const 회원 = (() => {
   } else {
     표 = 서랍읽기();
     if (표) 나읽기();
+    else 런처로들어오기();                            // 런처가 켠 적 있는 브라우저에서만 묻는다
   }
+  // 런처가 처음 켜 준 날 — 크롬이 묻는 창을 미리 알려 준다
+  if (런처가켰나 && !표) setTimeout(() => {
+    try { 쪽지("크롬이 「로컬 네트워크 기기 접근」 을 물으면 「허용」 — 런처 로그인을 이어받는 길이다"); } catch (오류) {}
+  }, 800);
 
   return { 상태, 비번로그인, 가입하기, 가입확인, 번호받기, 번호넣기, 별명정하기, 나가기, 나읽기, 듣기,
            밖의문들, 밖으로가기, 밖의문이름, 밖에서왔나: () => 밖에서왔나, 밖의탈: () => 밖의탈,
