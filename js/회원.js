@@ -25,6 +25,7 @@ const 회원 = (() => {
 
   let 표 = null;          // { access_token, refresh_token, expires_at, user: { id, email } }
   let 나 = null;          // { public_id, nickname, role }
+  let 학원 = null;        // rpc 학원_나 답 — { 학원, 학원이름, 원장인가, 소속이름, 강사id, 권한, 상태, 닉네임, 메일 }
   const 듣는이 = new Set();
 
   // ---------- 서랍 (이 브라우저에만) ----------
@@ -49,7 +50,8 @@ const 회원 = (() => {
       등급: 나 ? 나.role : (표 ? "member" : null),
       이름표: 나 ? 나.public_id : null,
       추천별명: (표 && 표.user && 표.user.이름) || "",
-      런처로그인: !!(표 && 표.서버표)
+      런처로그인: !!(표 && 표.서버표),
+      학원: 학원 || null          // 학원_나 답 (없으면 null) — 로그인 화면 규격 「이름 칸 · 드롭바 머리」
     };
   }
 
@@ -118,7 +120,45 @@ const 회원 = (() => {
       나 = (Array.isArray(ㄹ) && ㄹ[0]) || null;
     } catch (오류) { 나 = null; }
     알리기();
+    await 학원읽기();
     return 나;
+  }
+
+  // ★ 학원 (2026-09-24 · 로그인 화면 규격 — 런처와 같게)
+  //   「로그인·켤 때 rpc/학원_나 를 부른다 — 초대를 받았으면 그 자리에서 학원에 들어간다」
+  //   들어가면서 등급이 선생님으로 오를 수 있다 → 그때는 등급을 한 번 더 읽는다.
+  async function 학원읽기() {
+    if (!표) { 학원 = null; return; }
+    const 앞등급 = 나 && 나.role;
+    try {
+      const ㄹ = await 부르기("/rest/v1/rpc/" + encodeURIComponent("학원_나"), { 방법: "POST", 몸: {} });
+      학원 = ㄹ && ㄹ.학원 ? ㄹ : null;
+    } catch (오류) { 학원 = null; }          // 학원 표가 없는 저장소여도 로그인은 그대로 산다
+    if (학원 && 앞등급 === "member") {
+      try {
+        const ㄹ = await 부르기("/rest/v1/rpc/site_me", { 방법: "POST", 몸: {} });
+        나 = (Array.isArray(ㄹ) && ㄹ[0]) || 나;
+      } catch (오류) {}
+    }
+    알리기();
+  }
+
+  // 학원 쪽 부름 — 이름이 한글이라 주소에 넣을 때 싼다 (선생관리.js 가 쓴다)
+  function 학원부르기(이름, 몸 = {}) {
+    return 표붙여부르기("/rest/v1/rpc/" + encodeURIComponent(이름), { 방법: "POST", 몸 });
+  }
+
+  // ★ 비밀번호 바꾸기 (로그인 화면 규격 — 「비밀번호 찾기: … 번호로 들어가기 → 새 비밀번호 정하기」 · 드롭바 「비밀번호 바꾸기」)
+  async function 비밀번호바꾸기(새비번) {
+    if (String(새비번 || "").length < 8) throw new Error("비밀번호는 여덟 자 이상으로 해라");
+    if (!(await 표챙기기())) throw new Error("로그인이 풀렸다. 다시 들어와라");
+    try {
+      await 부르기("/auth/v1/user", { 방법: "PUT", 몸: { password: 새비번 } });
+    } catch (오류) {
+      if (/reauth|nonce/i.test(오류.message)) throw new Error("로그인한 지 오래돼서 확인이 더 필요하다 — 로그아웃했다가 다시 들어와서 바꿔라");
+      if (/same|different from the old/i.test(오류.message)) throw new Error("지금 비밀번호와 같다. 다른 걸로 해라");
+      throw 오류;
+    }
   }
 
   // ---------- 밖의 문 — 구글 로그인 (2026-09-23 · 사용자가 정함) ----------
@@ -268,7 +308,7 @@ const 회원 = (() => {
     //   ★ 표를 지우기 **전에** 적는다. 지운 뒤에 적으면 그 틈에 창 초점이 돌아와 다시 들어와 버린다
     try { await 런처세션건너뛰기(); } catch (오류) {}
     try { if (표) await 부르기("/auth/v1/logout?scope=local", { 방법: "POST" }); } catch (오류) { /* 서버가 몰라도 여기선 지운다 */ }
-    표 = null; 나 = null; 서랍쓰기(null); 알리기();
+    표 = null; 나 = null; 학원 = null; 서랍쓰기(null); 알리기();
   }
 
   // ---------- 런처로 로그인하면 홈피도 로그인 (2026-09-23 · 사용자가 정함, 런처 방과 맞춤) ----------
@@ -293,11 +333,18 @@ const 회원 = (() => {
   const 런처기기인가 = () => !window.주인인가 && location.origin === "https://sejinedu.github.io" && 담긴값(런처기기열쇠) === "1";
 
   // 켜기.vbs 가 붙인 #launcher — 보면 적어 두고 주소에서 뗀다
+  //   ★ 런처의 「회원 관리」·「게시글 비밀번호」 는 #member-admin · #post-pin 으로 연다 (로그인 화면 규격)
+  //     — 런처가 연 것이니 이것도 「런처 있는 기기」 표시로 친다. 그 화면은 로그인이 되면 로그인창.js 가 연다.
   let 런처가켰나 = false;
-  if (/^#launcher$/.test(location.hash || "")) {
-    런처가켰나 = true;
-    if (!window.주인인가) 담기(런처기기열쇠, "1");
-    try { history.replaceState(null, "", location.pathname + location.search); } catch (오류) { location.hash = ""; }
+  let 처음할일 = "";
+  {
+    const ㅁ = /^#(launcher|member-admin|post-pin)$/.exec(location.hash || "");
+    if (ㅁ) {
+      런처가켰나 = true;
+      처음할일 = ㅁ[1] === "launcher" ? "" : ㅁ[1];
+      if (!window.주인인가) 담기(런처기기열쇠, "1");
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (오류) { location.hash = ""; }
+    }
   }
 
   async function 런처에묻기() {
@@ -369,12 +416,14 @@ const 회원 = (() => {
     else 런처로들어오기();                            // 런처가 켠 적 있는 브라우저에서만 묻는다
   }
   // 런처가 처음 켜 준 날 — 크롬이 묻는 창을 미리 알려 준다
-  if (런처가켰나 && !표) setTimeout(() => {
+  if (런처가켰나 && !처음할일 && !표) setTimeout(() => {
     try { 쪽지("크롬이 「로컬 네트워크 기기 접근」 을 물으면 「허용」 — 런처 로그인을 이어받는 길이다"); } catch (오류) {}
   }, 800);
 
   return { 상태, 비번로그인, 가입하기, 가입확인, 번호받기, 번호넣기, 별명정하기, 나가기, 나읽기, 듣기,
            밖의문들, 밖으로가기, 밖의문이름, 밖에서왔나: () => 밖에서왔나, 밖의탈: () => 밖의탈,
+           비밀번호바꾸기, 학원읽기, 학원부르기,
+           처음할일: () => 처음할일, 할일끝: () => { 처음할일 = ""; },
            부르기: 표붙여부르기 };
 })();
 window.회원 = 회원;

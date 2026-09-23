@@ -33,6 +33,24 @@
   if (!단추 || !막) return;
 
   const 등급이름 = { admin: "관리자", teacher: "선생님", member: "일반 회원" };
+
+  // ★★ 로그인 화면 규격 (2026-09-24 · 사장님 「로그인 구성은 홈피와 런처가 동일하게」)
+  //    원본: 0 세도비 지침서\로그인 화면 규격.md — 런처와 홈피 검사가 이 두 줄을 **글자 그대로** 대조한다.
+  //    바꿀 때는 규격 파일부터 고치고 런처 · 홈피를 같이 고친다. 한쪽만 바꾸면 빨강이다.
+  const 로그인창차례 = ["로그인", "회원 가입", "비밀번호 찾기"];
+  const 드롭바차례 = ["닉네임 바꾸기", "비밀번호 바꾸기", "선생 관리", "회원 관리", "게시글 비밀번호", "로그아웃"];
+  const [글로그인, 글가입, 글찾기] = 로그인창차례;
+
+  // 이름 칸 — 「닉네임 · 학원 · 소속」 (빈 칸은 뺀다 · 닉네임이 없으면 메일 앞부분 · 학원은 「활성」 일 때만)
+  function 학원활성(ㅅ) { return !!(ㅅ.학원 && ㅅ.학원.학원 && ㅅ.학원.상태 === "활성"); }
+  function 이름칸글(ㅅ) {
+    if (!ㅅ.들어왔나) return 글로그인;
+    const 이름 = ㅅ.별명 || String(ㅅ.메일 || "").split("@")[0] || "회원";
+    const 칸 = [이름];
+    if (학원활성(ㅅ)) { 칸.push(ㅅ.학원.학원이름 || ""); 칸.push(ㅅ.학원.원장인가 ? "원장" : (ㅅ.학원.소속이름 || "")); }
+    return 칸.filter(Boolean).join(" · ");
+  }
+  let 새비번제목 = "";
   let 걸음 = "로그인";   // 로그인 · 번호로그인 · 번호로그인확인 · 가입 · 가입확인 · 별명 · 나
   let 받은메일 = "";
   let 도는중 = false;
@@ -95,30 +113,38 @@
     비번.autocomplete = 걸음 === "가입" ? "new-password" : "current-password";
     취소.textContent = "닫기";
     if (걸음 === "로그인") {
-      제목.textContent = "로그인";
+      제목.textContent = 글로그인;
       설명.textContent = "세도비 런처에 넣는 메일과 비밀번호를 넣어라.";
-      보일칸("메일", "비번"); 하기.textContent = "로그인";
-      건너가기([["회원 가입", "가입"], ["비밀번호 찾기", "번호로그인"]]);
+      보일칸("메일", "비번"); 하기.textContent = 글로그인;
+      건너가기([[글가입, "가입"], [글찾기, "번호로그인"]]);
       setTimeout(() => (메일.value ? 비번 : 메일).focus(), 30);
     } else if (걸음 === "번호로그인") {
-      제목.textContent = "비밀번호 찾기";
+      제목.textContent = 글찾기;
       설명.textContent = "가입한 메일을 넣으면 여섯 자리 번호를 보낸다. 번호를 넣으면 바로 들어간다.";
       보일칸("메일"); 하기.textContent = "번호 받기";
       건너가기([["로그인으로 돌아가기", "로그인"]]);
       setTimeout(() => 메일.focus(), 30);
     } else if (걸음 === "번호로그인확인" || 걸음 === "가입확인") {
-      제목.textContent = 걸음 === "가입확인" ? "회원 가입 — 메일 확인" : "비밀번호 찾기";
+      제목.textContent = 걸음 === "가입확인" ? 글가입 + " — 메일 확인" : 글찾기;
       설명.textContent = 받은메일 + " 로 여섯 자리 번호를 보냈다. 메일함(스팸함도)을 봐라.";
       보일칸("번호"); 하기.textContent = "확인";
       건너가기([["메일 다시 쓰기", 걸음 === "가입확인" ? "가입" : "번호로그인"]]);
       번호.value = "";
       setTimeout(() => 번호.focus(), 30);
     } else if (걸음 === "가입") {
-      제목.textContent = "회원 가입";
+      제목.textContent = 글가입;
       설명.textContent = "메일과 새 비밀번호(여덟 자 이상)를 정해라. 메일로 확인 번호가 간다.";
       보일칸("메일", "비번"); 하기.textContent = "가입하기";
       건너가기([["로그인으로 돌아가기", "로그인"]]);
       setTimeout(() => 메일.focus(), 30);
+    } else if (걸음 === "새비번") {
+      // 비밀번호 찾기로 들어온 뒤 · 드롭바 「비밀번호 바꾸기」 (로그인 화면 규격)
+      제목.textContent = 새비번제목 || "새 비밀번호 정하기";
+      설명.textContent = "새 비밀번호(여덟 자 이상)를 넣어라. 런처에도 이 비밀번호로 들어간다.";
+      보일칸("비번"); 하기.textContent = "바꾸기"; 취소.textContent = "나중에";
+      비번.autocomplete = "new-password"; 비번.value = "";
+      건너가기([]);
+      setTimeout(() => 비번.focus(), 30);
     } else if (걸음 === "별명") {
       제목.textContent = "닉네임 정하기";
       설명.textContent = "댓글에 쓸 닉네임을 정해라.";
@@ -169,7 +195,12 @@
       } else if (걸음 === "번호로그인확인") {
         말하기("확인하는 중…");
         await 회원.번호넣기(받은메일, 칸들.번호[1].value);
-        await 들어온뒤();
+        말하기(""); 새비번제목 = "새 비밀번호 정하기"; 걸음보이기("새비번");     // 규격: 번호로 들어가기 → 새 비밀번호 정하기
+      } else if (걸음 === "새비번") {
+        말하기("바꾸는 중…");
+        await 회원.비밀번호바꾸기(비번);
+        말하기("바꿨다", "됨");
+        setTimeout(들어온뒤, 500);
       } else if (걸음 === "가입") {
         말하기("가입하는 중…");
         const ㄹ = await 회원.가입하기(메일, 비번);
@@ -225,31 +256,54 @@
   // ★ 로그인한 뒤에는 이름을 누르면 드롭바 — 닉네임 바꾸기 · 회원 관리(관리자) · 로그아웃 (2026-09-23 · 사용자가 정함)
   const 계정메뉴 = document.getElementById("계정메뉴");
   function 계정메뉴닫기() { if (계정메뉴) 계정메뉴.hidden = true; 단추.setAttribute("aria-expanded", "false"); }
+  // ★ 드롭바 — 차례는 드롭바차례 그대로 (로그인 화면 규격). 보이는 조건만 여기서 가린다:
+  //   선생 관리 — 학원 원장이거나 「초대」 권한 (학원이 없는 선생님 등급 이상은 「학원 만들기」 로 연다)
+  //   회원 관리 — 관리자(admin)만 · 나머지는 늘
+  function 선생관리되나(ㅅ) {
+    if (학원활성(ㅅ)) return !!(ㅅ.학원.원장인가 || (ㅅ.학원.권한 && ㅅ.학원.권한.초대));
+    return !ㅅ.학원 && (ㅅ.등급 === "teacher" || ㅅ.등급 === "admin");
+  }
+  function 알림(글) { try { 쪽지(글); } catch (오류) { alert(글); } }
   function 계정메뉴열기() {
     const ㅅ = 회원.상태();
     계정메뉴.replaceChildren();
+    // 머리 — 닉네임 / 학원 · 소속 / 메일 (학원이 없으면 등급)
     const 머리 = document.createElement("div");
     머리.className = "계정머리";
-    const 이름 = document.createElement("b"); 이름.textContent = (ㅅ.별명 || "닉네임 없음");
-    const 등급 = document.createElement("span"); 등급.className = "계정등급"; 등급.textContent = 등급이름[ㅅ.등급] || "일반 회원";
+    const 이름 = document.createElement("b"); 이름.textContent = ㅅ.별명 || String(ㅅ.메일 || "").split("@")[0] || "닉네임 없음";
+    const 둘째 = document.createElement("span"); 둘째.className = "계정등급";
+    둘째.textContent = 학원활성(ㅅ)
+      ? [ㅅ.학원.학원이름, ㅅ.학원.원장인가 ? "원장" : ㅅ.학원.소속이름].filter(Boolean).join(" · ")
+      : (등급이름[ㅅ.등급] || "일반 회원");
     const 메일 = document.createElement("div"); 메일.className = "계정메일"; 메일.textContent = ㅅ.메일 || "";
-    머리.append(이름, 등급, 메일);
+    머리.append(이름, 둘째, 메일);
     계정메뉴.appendChild(머리);
-    const 줄 = (글, 누르면, 결) => {
-      const ㄷ = document.createElement("button");
-      ㄷ.type = "button"; ㄷ.setAttribute("role", "menuitem");
-      ㄷ.className = "계정줄" + (결 ? " " + 결 : "");
-      ㄷ.textContent = 글;
-      ㄷ.addEventListener("click", ㄴ => { ㄴ.stopPropagation(); 계정메뉴닫기(); 누르면(); });
-      계정메뉴.appendChild(ㄷ);
-    };
     const 금 = () => { const ㄱ = document.createElement("div"); ㄱ.className = "계정금"; 계정메뉴.appendChild(ㄱ); };
     금();
-    줄("닉네임 바꾸기", () => { 말하기(""); 걸음보이기("별명"); 제목.textContent = "닉네임 바꾸기"; 설명.textContent = "댓글과 글쓴이 자리에 이 이름이 나온다."; 취소.textContent = "닫기"; 막.hidden = false; });
-    // ★ 게시글 비밀번호 — 선생님 · 관리자 (2026-09-23 · 사용자가 정함 「드롭바 뜨는곳에 게시글 비밀번호 메뉴」)
-    if ((ㅅ.등급 === "teacher" || ㅅ.등급 === "admin") && window.비공개) 줄("게시글 비밀번호", () => 비공개.비번정하기());
-    if (ㅅ.등급 === "admin" && window.회원관리) 줄("회원 관리", () => 회원관리.열기());
-    if (!ㅅ.런처로그인) { 금(); 줄("로그아웃", async () => { await 회원.나가기(); }, "빨강"); }
+    const 할일 = {
+      "닉네임 바꾸기": { 된다: true, 누르면: () => { 말하기(""); 걸음보이기("별명"); 제목.textContent = "닉네임 바꾸기"; 설명.textContent = "댓글 · 글쓴이 · 런처 · 학원 어디서나 이 이름이 나온다."; 취소.textContent = "닫기"; 막.hidden = false; } },
+      "비밀번호 바꾸기": { 된다: true, 누르면: () => { 말하기(""); 새비번제목 = "비밀번호 바꾸기"; 걸음보이기("새비번"); 취소.textContent = "닫기"; 막.hidden = false; } },
+      "선생 관리": { 된다: 선생관리되나(ㅅ), 누르면: () => { if (window.선생관리) 선생관리.열기(); } },
+      "회원 관리": { 된다: ㅅ.등급 === "admin", 누르면: () => { if (window.회원관리) 회원관리.열기(); } },
+      "게시글 비밀번호": { 된다: true, 누르면: () => {
+        if (ㅅ.등급 !== "teacher" && ㅅ.등급 !== "admin") return 알림("게시글 비밀번호는 선생님 등급부터 쓴다");
+        if (window.비공개) 비공개.비번정하기();
+      } },
+      "로그아웃": { 된다: true, 결: "빨강", 누르면: async () => {
+        try { await 회원.나가기(); } catch (오류) { 알림(오류.message); }
+      } }
+    };
+    드롭바차례.forEach(글 => {
+      const ㄱ = 할일[글];
+      if (!ㄱ || !ㄱ.된다) return;
+      if (글 === "로그아웃") 금();
+      const ㄷ = document.createElement("button");
+      ㄷ.type = "button"; ㄷ.setAttribute("role", "menuitem");
+      ㄷ.className = "계정줄" + (ㄱ.결 ? " " + ㄱ.결 : "");
+      ㄷ.textContent = 글;
+      ㄷ.addEventListener("click", ㄴ => { ㄴ.stopPropagation(); 계정메뉴닫기(); ㄱ.누르면(); });
+      계정메뉴.appendChild(ㄷ);
+    });
     계정메뉴.hidden = false;
     단추.setAttribute("aria-expanded", "true");
   }
@@ -266,7 +320,8 @@
 
   // 머리줄 — 로그인 전엔 「로그인」 「가입」, 뒤엔 별명 하나
   function 단추칠하기(ㅅ) {
-    단추.textContent = ㅅ.들어왔나 ? (ㅅ.별명 || "별명 정하기") : "로그인";
+    단추.textContent = 이름칸글(ㅅ);                  // 「닉네임 · 학원 · 소속」 (로그인 화면 규격)
+    단추.title = ㅅ.들어왔나 ? 단추.textContent : "";
     단추.classList.toggle("들어옴", !!ㅅ.들어왔나);
     if (가입단) 가입단.hidden = true;          // ★ 머리줄 「가입」 은 없앴다 — 로그인 창 안 「회원 가입」 으로
     document.body.classList.toggle("회원", !!ㅅ.들어왔나);
@@ -274,6 +329,28 @@
   }
   회원.듣기(단추칠하기);
   단추칠하기(회원.상태());
+
+  // ★ 런처가 홈피 그 화면을 연다 — #member-admin · #post-pin (로그인 화면 규격)
+  //   로그인이 되면(런처에서 이어받든, 손으로 넣든) 그 화면을 바로 연다. 3초 안에 안 되면 로그인 창을 띄운다.
+  {
+    const 할것 = 회원.처음할일 ? 회원.처음할일() : "";
+    if (할것) {
+      let 했나 = false;
+      const 해보기 = ㅅ => {
+        if (했나 || !ㅅ.들어왔나 || !ㅅ.이름표) return;          // 등급까지 읽힌 뒤에
+        했나 = true; 회원.할일끝(); 끄기();
+        if (할것 === "member-admin") {
+          if (ㅅ.등급 === "admin" && window.회원관리) 회원관리.열기();
+          else 알림("회원 관리는 관리자만 연다");
+        } else if (할것 === "post-pin") {
+          if (ㅅ.등급 === "teacher" || ㅅ.등급 === "admin") { if (window.비공개) 비공개.비번정하기(); }
+          else 알림("게시글 비밀번호는 선생님 등급부터 쓴다");
+        }
+      };
+      const 끄기 = 회원.듣기(ㅅ => setTimeout(() => 해보기(ㅅ), 0));   // 회원관리 · 비공개 가 다 실린 뒤에
+      setTimeout(() => { const ㅅ = 회원.상태(); if (ㅅ.들어왔나) 해보기(ㅅ); else if (!했나) 열기("로그인"); }, 3000);
+    }
+  }
 
   // ★ 구글 문에서 막 돌아온 화면 (2026-09-23)
   //   처음 온 사람이면 닉네임부터 정하게 띄운다. 이미 정했으면 아무것도 안 띄운다 — 그냥 들어온 것이다.

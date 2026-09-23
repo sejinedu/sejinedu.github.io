@@ -1701,7 +1701,11 @@ document.getElementById("지금제목").addEventListener("contextmenu", ㄴ => {
 });
 
 function 격자로() {
-  if (window.회원관리) 회원관리.닫기();         // 다른 화면으로 가면 회원 관리는 닫는다
+  // ★ 다른 화면으로 가면 회원 관리 · 선생 관리는 닫는다.
+  //   그 파일이 실리기 전에는 window.회원관리 가 **같은 id 의 칸(div)** 이다 — 브라우저가 id 를 창에 달아 준다.
+  //   그래서 「닫기」 가 있는지까지 본다 (없으면 부르다 터진다)
+  if (window.회원관리 && typeof window.회원관리.닫기 === "function") window.회원관리.닫기();
+  if (window.선생관리 && typeof window.선생관리.닫기 === "function") window.선생관리.닫기();
   if (window.댓글) 댓글.닫기();
   보기칸.hidden = true;
   격자보기.hidden = false;

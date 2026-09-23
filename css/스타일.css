@@ -1812,3 +1812,51 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .물음아래단추.잠금 { color: #e3b35c; border-color: #6b5427; background: rgba(227, 179, 92, .08); }
 @media (hover: hover) and (pointer: fine) { .물음아래단추.잠금:hover { color: #f0c878; border-color: #e3b35c; } }
 .물음아래단추:disabled { opacity: .5; cursor: default; }
+
+/* ============================================================
+   2026-09-24 · 로그인 화면 규격 「로그인 구성은 홈피와 런처가 동일하게」
+     이름 칸 「닉네임 · 학원 · 소속」 · 선생 관리 화면
+   ============================================================ */
+.로그인단추.들어옴 { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 700px) { .로그인단추.들어옴 { max-width: 150px; } }
+
+/* 선생 관리 표 — 이름 · 메일 · 소속 · 맡은 반 · 권한 · 상태 · 단추 */
+.선생표 .글표머리, .선생표 .글표줄 { grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr) 76px 88px minmax(0, 1.4fr) 50px 176px; }   /* 단추 칸 폭을 박는다 — 원장 줄은 단추가 없어 칸이 밀렸다 */
+.선생표 .칸소속, .선생표 .칸반, .선생표 .칸상태 { font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.선생표 .칸권한 { font-size: .78rem; color: var(--흐린글); overflow-wrap: anywhere; }
+.선생표 .칸단추 { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.선생작은단추 {
+  font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+  padding: 5px 9px; border-radius: 6px; background: none; color: var(--글); border: 1px solid var(--테두리);
+}
+.선생작은단추.빨강 { color: #e08b96; }
+@media (hover: hover) and (pointer: fine) { .선생작은단추:hover { border-color: var(--악센트); } }
+.선생큰단추 {
+  font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer;
+  padding: 9px 16px; border-radius: 8px; margin: 14px 8px 0 0;
+  background: var(--악센트흐림); color: #e6f2f0; border: 1px solid var(--악센트);
+}
+.선생큰단추:disabled { opacity: .5; cursor: default; }
+.선생풀이 { white-space: pre-line; font-size: .9rem; color: var(--글); line-height: 1.7; margin: 6px 0 12px; }
+.선생틀 { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0; }
+.선생틀 input[type="text"], .선생틀 input[type="email"] {
+  background: #0b0e12; color: var(--글); border: 1px solid var(--테두리); border-radius: 8px;
+  padding: 9px 12px; font: inherit; font-size: .9rem; min-width: 260px; flex: 1 1 260px;
+}
+.선생틀 input:focus { outline: none; border-color: var(--악센트); }
+.선생폼 { display: block; margin-top: 16px; padding: 16px; border: 1px solid var(--테두리); border-radius: 10px; background: var(--판); }
+.선생줄 { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 7px 0; }
+.선생줄머리 { flex: 0 0 110px; font-size: .84rem; font-weight: 700; color: var(--흐린글); }
+.선생줄 label { display: inline-flex; align-items: center; gap: 4px; font-size: .88rem; color: var(--글); cursor: pointer; white-space: nowrap; }
+.선생줄 input[type="radio"], .선생줄 input[type="checkbox"] { accent-color: var(--악센트); margin: 0; min-width: 0; flex: none; }
+.선생줄 input[hidden] { display: none; }
+.선생단추줄 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.선생단추줄 .선생큰단추 { margin: 0; }
+@media (max-width: 700px) {
+  .선생표 .글표머리 { display: none; }
+  .선생표 .글표줄 { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: "제목 상태" "메일 메일" "권한 권한" "단추 단추"; row-gap: 4px; }
+  .선생표 .칸소속, .선생표 .칸반 { display: none; }
+  .선생표 .칸제목 { grid-area: 제목; } .선생표 .칸메일 { grid-area: 메일; } .선생표 .칸권한 { grid-area: 권한; }
+  .선생표 .칸상태 { grid-area: 상태; } .선생표 .칸단추 { grid-area: 단추; justify-content: flex-start; }
+  .선생줄머리 { flex-basis: 100%; }
+}
