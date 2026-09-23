@@ -1800,3 +1800,15 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   height: 30px; padding: 0 10px !important; border: 1px dashed var(--악센트) !important;
   border-radius: 6px !important; font-size: .86rem !important;
 }
+
+/* 게시글 비밀번호 창 — 내 비번은 보이게 · 아래 「내 글 전체 비공개」 (2026-09-23 · 사용자가 정함) */
+.비번칸.보임 { -webkit-text-security: none; }
+.물음아래 { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.물음아래단추 {
+  font: inherit; font-size: .84rem; font-weight: 600; cursor: pointer;
+  padding: 8px 12px; border-radius: 8px;
+  background: none; color: var(--글); border: 1px solid var(--테두리);
+}
+.물음아래단추.잠금 { color: #e3b35c; border-color: #6b5427; background: rgba(227, 179, 92, .08); }
+@media (hover: hover) and (pointer: fine) { .물음아래단추.잠금:hover { color: #f0c878; border-color: #e3b35c; } }
+.물음아래단추:disabled { opacity: .5; cursor: default; }

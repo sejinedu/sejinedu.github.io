@@ -91,6 +91,8 @@ window.저장소준비 = (async () => {
           : await 받기(글자리);
         if (!Array.isArray(새것)) return;
         const 목록 = window.동영상목록;
+        // ★ 빈 답이 오면 안 믿는다 — 잠깐 탈 난 답 하나에 게시판이 통째로 비면 안 된다 (2026-09-23 시험에서 잡음)
+        if (!새것.length && 목록.length) return;
         const 새표 = new Map(새것.map(ㄱ => [ㄱ.id, ㄱ]));
         let 바뀜 = false;
         // 지워진 글 — 목록에서 뺀다

@@ -18,7 +18,9 @@
 
 // ---------- 작은 물음 창 — 비번 · 단원 이름 같은 한 칸짜리 (단원관리.js 도 쓴다) ----------
 //  모양은 로그인 창 것(연결막 · 연결창)을 그대로 빌린다. 새 모양을 만들지 않는다.
-window.물음창 = function 물음창({ 제목, 설명, 칸이름, 값 = "", 자리글 = "", 숫자넷 = false, 하기글 = "확인", 넣으면 }) {
+//  보이게: 숫자 네 칸이라도 가리지 않는다 (내 비번을 내가 볼 때)
+//  아래단추: [{ 글, 결, 누르면({ 값, 말하기, 닫기 }) }] — 입력칸 아래 줄에 단추를 더 둔다
+window.물음창 = function 물음창({ 제목, 설명, 칸이름, 값 = "", 자리글 = "", 숫자넷 = false, 보이게 = false, 하기글 = "확인", 넣으면, 아래단추 = [] }) {
   return new Promise(풀기 => {
     const 막 = document.createElement("div");
     막.className = "연결막 물음막";
@@ -26,6 +28,7 @@ window.물음창 = function 물음창({ 제목, 설명, 칸이름, 값 = "", 자
       '<div class="연결창 물음창" role="dialog" aria-modal="true">' +
         '<h2 class="연결제목"></h2><p class="연결단원"></p>' +
         '<label class="연결칸"><span class="연결이름"></span><input type="text" spellcheck="false"></label>' +
+        '<div class="물음아래"></div>' +
         '<p class="연결말"></p>' +
         '<div class="연결단추줄"><button class="연결취소" type="button">닫기</button>' +
         '<button class="연결하기" type="button"></button></div>' +
@@ -39,7 +42,7 @@ window.물음창 = function 물음창({ 제목, 설명, 칸이름, 값 = "", 자
     하기.textContent = 하기글;
     칸.value = 값; 칸.placeholder = 자리글;
     if (숫자넷) {
-      칸.className = "비번칸";
+      칸.className = "비번칸" + (보이게 ? " 보임" : "");
       칸.inputMode = "numeric"; 칸.maxLength = 4; 칸.autocomplete = "off";
       칸.setAttribute("autocomplete", "off"); 칸.setAttribute("data-lpignore", "true");
       칸.name = "게시글번호-" + Date.now();          // 이름이 매번 달라야 브라우저가 채울 게 없다
@@ -65,6 +68,22 @@ window.물음창 = function 물음창({ 제목, 설명, 칸이름, 값 = "", 자
         말하기(String(오류 && 오류.message || 오류), "탈");
       } finally { 도는중 = false; 하기.disabled = false; }
     }
+    // 입력칸 아래 단추들 (예: 「전체 비공개」)
+    const 아래칸 = 막.querySelector(".물음아래");
+    아래단추.forEach(({ 글, 결, 누르면: 할일 }) => {
+      const ㄷ = document.createElement("button");
+      ㄷ.type = "button"; ㄷ.className = "물음아래단추" + (결 ? " " + 결 : ""); ㄷ.textContent = 글;
+      ㄷ.addEventListener("click", async () => {
+        if (도는중) return;
+        도는중 = true; ㄷ.disabled = true;
+        try { await 할일({ 값: 칸.value.trim(), 말하기, 닫기 }); }
+        catch (오류) { 말하기(String(오류 && 오류.message || 오류), "탈"); }
+        finally { 도는중 = false; ㄷ.disabled = false; }
+      });
+      아래칸.appendChild(ㄷ);
+    });
+    if (!아래단추.length) 아래칸.remove();
+
     const 키 = ㄴ => { if (ㄴ.key === "Escape") 닫기(null); };
     document.addEventListener("keydown", 키);
     칸.addEventListener("keydown", ㄴ => { if (ㄴ.key === "Enter") { ㄴ.preventDefault(); 누름(); } });
@@ -112,21 +131,55 @@ const 비공개 = (() => {
     return 있나기억;
   }
 
+  // ★ 내 비번은 나한테 보인다 (2026-09-23 · 사용자가 정함 — 「다시 누르니 번호가 안보인다. 자신에게 보이게 하라.
+  //   그리고 새로 입력하면 그냥 그걸로 바뀌는 거다.」) — 저장소 site_my_pin 이 제 것만 준다 (db/8)
+  async function 내비번() {
+    try { const ㄱ = await 회원.부르기("/rest/v1/rpc/site_my_pin", { 방법: "POST", 몸: {} }); return typeof ㄱ === "string" ? ㄱ : ""; }
+    catch (오류) { return ""; }
+  }
+
+  async function 비번넣기(번호) {
+    await 회원.부르기("/rest/v1/rpc/site_set_pin", { 방법: "POST", 몸: { p_pin: 번호 } });
+    있나기억 = true;
+  }
+
+  // ★ 내 글 전체 비공개 (2026-09-23 · 사용자가 정함 — 「입력창 아래쪽에 전체 비공개 버튼 … 자기꺼 다 비공개」)
+  async function 전체비공개({ 값, 말하기 }) {
+    const ㅅ = 회원.상태();
+    const 내것 = (window.동영상목록 || []).filter(ㅇ => ㅇ.고유 && ㅇ.글쓴이 && ㅇ.글쓴이 === ㅅ.이름표);
+    const 남은 = 내것.filter(ㅇ => !ㅇ.비공개).length;
+    if (!내것.length) return 말하기("내가 올린 글이 없다", "탈");
+    if (!남은) return 말하기("내 글 " + 내것.length + "편이 벌써 다 비공개다", "됨");
+    // 비번이 아직 없으면 칸에 넣은 숫자로 먼저 정한다
+    if (!(await 비번있나())) {
+      if (!/^[0-9]{4}$/.test(값)) return 말하기("비밀번호 네 자리부터 넣어라", "탈");
+      await 비번넣기(값);
+    }
+    if (!confirm("내 글 " + 남은 + "편을 전부 비공개로 바꿀까?\n학생은 비밀번호를 넣어야 본다. (하나씩 다시 공개로 돌릴 수 있다)")) return;
+    const 바꾼수 = await 회원.부르기("/rest/v1/rpc/site_my_posts_private", { 방법: "POST", 몸: {} });
+    내것.forEach(ㅇ => { ㅇ.비공개 = true; ㅇ.잠김 = false; });
+    try { 격자그리기(); } catch (오류) {}
+    말하기("내 글 " + (Number(바꾼수) || 남은) + "편을 비공개로 바꿨다", "됨");
+  }
+
   async function 비번정하기() {
     if (!선생님인가(회원.상태())) return false;
-    const 있다 = await 비번있나();
+    const [있다, 지금번호] = await Promise.all([비번있나(), 내비번()]);
     const 됨 = await 물음창({
       제목: "게시글 비밀번호",
-      설명: 있다
-        ? "비밀번호가 이미 정해져 있다. 새로 넣으면 바뀐다 — 내 비공개 글 전부에 새 비밀번호가 걸린다."
-        : "숫자 네 자리. 비공개로 올린 내 글을 학생이 열 때 이 번호를 넣는다.",
-      칸이름: 있다 ? "새 비밀번호 (숫자 네 자리)" : "비밀번호 (숫자 네 자리)",
-      자리글: "0000", 숫자넷: true, 하기글: "정하기",
+      설명: 지금번호
+        ? "지금 비밀번호다. 새로 넣으면 그걸로 바뀐다 — 내 비공개 글 전부에 새 비밀번호가 걸린다."
+        : 있다
+          ? "비밀번호가 정해져 있는데, 예전 방식이라 숫자를 못 보여 준다. 새로 한 번 넣으면 다음부터 보인다."
+          : "숫자 네 자리. 비공개로 올린 내 글을 학생이 열 때 이 번호를 넣는다.",
+      칸이름: "비밀번호 (숫자 네 자리)",
+      값: 지금번호, 자리글: "0000", 숫자넷: true, 보이게: true, 하기글: "정하기",
       넣으면: async 번호 => {
-        await 회원.부르기("/rest/v1/rpc/site_set_pin", { 방법: "POST", 몸: { p_pin: 번호 } });
-        있나기억 = true;
-        return { 됐나: true, 말: "정했다" };
-      }
+        if (번호 === 지금번호) return { 됐나: true };
+        await 비번넣기(번호);
+        return { 됐나: true, 말: "바꿨다 — 이제 " + 번호 };
+      },
+      아래단추: [{ 글: "🔒 내 글 전체 비공개", 결: "잠금", 누르면: 전체비공개 }]
     });
     return 됨 !== null;
   }
