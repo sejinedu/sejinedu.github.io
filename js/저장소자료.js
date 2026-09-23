@@ -28,9 +28,13 @@ window.저장소준비 = (async () => {
   };
   const 시작 = Date.now();
   try {
+    // ★ 비공개 칸(is_private · locked)은 db/6 을 돌린 뒤에 생긴다 (2026-09-23).
+    //   그 전 저장소에 물으면 400 이 온다 — 그러면 옛 칸만 다시 물어서 그대로 뜬다.
+    const 글칸 = "id,unit_id,title,body,youtube_id,created_at,author_id,author_name";
     const [단원들, 글들] = await Promise.all([
       받기("site_units?select=id,parent_id,name,sort&order=sort.asc,created_at.asc"),
-      받기("site_posts_view?select=id,unit_id,title,body,youtube_id,created_at,author_id,author_name&order=created_at.asc")
+      받기("site_posts_view?select=" + 글칸 + ",is_private,locked&order=created_at.asc")
+        .catch(() => 받기("site_posts_view?select=" + 글칸 + "&order=created_at.asc"))
     ]);
     if (!Array.isArray(단원들) || !단원들.length) throw new Error("단원이 비어 왔다");
     // ★ 부트로더는 4초만 기다린다. 그 뒤에 온 답은 버린다 — 이미 옛 파일로 떴는데
@@ -58,14 +62,22 @@ window.저장소준비 = (async () => {
         아이디: ㄱ.youtube_id || "",
         본문: ㄱ.body || "",
         글쓴이: ㄱ.author_id,
-        올린때: ㄱ.created_at
+        올린때: ㄱ.created_at,
+        비공개: !!ㄱ.is_private,   // ★ 비공개 글 (2026-09-23) — 잠겼으면 아이디가 비어서 온다
+        잠김: !!ㄱ.locked
       }))
     };
     window.저장소가원본 = true;
     // 댓글 수 — 게시판 제목 옆 [N]. 못 받아도 게시판은 뜬다 (기다리지 않는다)
-    받기("site_comments_view?select=post_id").then(줄들 => {
+    //   ★ 잠긴 글 댓글은 창에 안 보인다 — 수만 세 주는 부름(site_comment_counts)으로 센다.
+    //     그 부름이 없는 옛 저장소면 창에서 센다.
+    fetch(주소 + "rpc/site_comment_counts", { method: "POST", headers: { apikey: 공개열쇠, "Content-Type": "application/json" }, body: "{}", cache: "no-store" })
+      .then(ㄷ => { if (!ㄷ.ok) throw new Error(ㄷ.status); return ㄷ.json(); })
+      .then(줄들 => (줄들 || []).map(ㄱ => ({ post_id: ㄱ.post_id, n: Number(ㄱ.n) || 0 })))
+      .catch(() => 받기("site_comments_view?select=post_id").then(줄들 => (줄들 || []).map(ㄱ => ({ post_id: ㄱ.post_id, n: 1 }))))
+      .then(줄들 => {
       const 셈 = {};
-      (줄들 || []).forEach(ㄱ => { 셈[ㄱ.post_id] = (셈[ㄱ.post_id] || 0) + 1; });
+      (줄들 || []).forEach(ㄱ => { 셈[ㄱ.post_id] = (셈[ㄱ.post_id] || 0) + ㄱ.n; });
       window.댓글수 = 셈;
       try { if (typeof 격자그리기 === "function" && document.querySelector(".글표")) 격자그리기(); } catch (오류) {}
     }).catch(() => {});

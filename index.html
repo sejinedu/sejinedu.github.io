@@ -301,6 +301,14 @@
       <span class="연결이름">단원</span>
       <select id="올리기단원"></select>
     </label>
+    <!-- ★ 공개 / 비공개 (2026-09-23 · 사용자가 정함 — 「글쓰기에서 … 공개 비공개 여부를 선택할수 있게」) — js/올리기창.js -->
+    <div class="연결칸 공개칸">
+      <span class="연결이름">공개</span>
+      <div class="공개고르기" role="radiogroup" aria-label="공개 여부">
+        <label><input type="radio" name="올리기공개" value="공개" checked> 공개</label>
+        <label><input type="radio" name="올리기공개" value="비공개"> 비공개 <small>— 내 게시글 비밀번호를 넣어야 본다</small></label>
+      </div>
+    </div>
     <label class="연결칸">
       <span class="연결이름">본문</span>
       <textarea id="올리기본문" rows="4" maxlength="20000" placeholder="이 강의에 대해 적을 말 (없어도 된다)"></textarea>
@@ -455,7 +463,9 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
               "자료/영상목록.js", "js/저장소자료.js", "js/나무.js",
               "js/영상창고.js", "js/자막공장.js", "js/재생기.js", "js/수식.js", "js/caption-layout.js", "js/자막.js", "js/앱.js",
               // ★ 회원은 맨 뒤에 싣는다 — 여기서 탈이 나도 강의 보기는 이미 떠 있다 (2026-09-22)
-              "js/회원.js", "js/로그인창.js", "js/과목단원고르개.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js", "js/유튜브가져오기창.js", "js/회원관리.js"];
+              "js/회원.js", "js/로그인창.js", "js/과목단원고르개.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js", "js/유튜브가져오기창.js", "js/회원관리.js",
+              // ★ 비공개 글 · 게시글 비밀번호 · 단원 관리 (2026-09-23)
+              "js/비공개.js", "js/단원관리.js"];
 
   // ============================================================
   //  카카오톡 안에서 열렸으면 진짜 브라우저로 넘긴다
@@ -547,7 +557,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
         return;
       }
       // ★ 회원 쪽 파일은 못 읽어도 화면을 지우지 않는다 — 강의 보기는 로그인 없이 돼야 한다
-      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이|유튜브가져오기창|과목단원고르개|회원관리)\.js$/.test(차례[ㅈ]);
+      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이|유튜브가져오기창|과목단원고르개|회원관리|비공개|단원관리)\.js$/.test(차례[ㅈ]);
       스크립트(차례[ㅈ] + "?v=" + 판,
         function () {
           if (차례[ㅈ] === "js/저장소자료.js" && window.저장소준비) {

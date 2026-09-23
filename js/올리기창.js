@@ -64,6 +64,8 @@
   function 열기() {
     말하기("");
     주소칸.value = ""; 제목칸.value = ""; 본문칸.value = "";
+    const 공개칸 = 막.querySelector('input[name="올리기공개"][value="공개"]');
+    if (공개칸) 공개칸.checked = true;             // 창을 열 때마다 「공개」 부터
     제목손댔나 = false; 물은아이디 = "";
     // 지금 보고 있는 단원이 있으면 그걸 먼저 골라 둔다
     let 지금단원 = "";
@@ -96,11 +98,20 @@
     if (!아이디) { 말하기("유튜브 링크를 넣어라", "탈"); 주소칸.focus(); return; }
     if (!제목) { 말하기("제목을 적어라", "탈"); 제목칸.focus(); return; }
     if (!단원칸.value) { 말하기("과목과 세부 과목을 골라라", "탈"); 단원칸.focus(); return; }
+    // ★ 비공개 (2026-09-23) — 게시글 비밀번호가 없으면 먼저 정하게 한다 (저장소도 비번 없이는 막는다)
+    const 고른공개 = 막.querySelector('input[name="올리기공개"]:checked');
+    const 비공개로 = !!(고른공개 && 고른공개.value === "비공개");
+    if (비공개로 && window.비공개 && !(await 비공개.비번있나())) {
+      말하기("비공개로 올리려면 게시글 비밀번호부터 정해야 한다");
+      if (!(await 비공개.비번정하기())) { 말하기("비밀번호를 안 정해서 못 올렸다 — 공개로 바꾸거나 비밀번호를 정해라", "탈"); return; }
+    }
     도는중 = true; 하기.disabled = true; 말하기("올리는 중…");
     try {
+      const 몸 = { title: 제목, unit_id: 단원칸.value, youtube_id: 아이디, body: 본문칸.value };
+      if (비공개로) 몸.is_private = true;          // 공개 글은 칸을 안 보낸다 — db/6 전 저장소에서도 그대로 올라간다
       const 새것 = await 회원.부르기("/rest/v1/site_posts?select=id", {
         방법: "POST",
-        몸: { title: 제목, unit_id: 단원칸.value, youtube_id: 아이디, body: 본문칸.value },
+        몸,
         머리: { Prefer: "return=representation" }
       });
       const 번호 = 새것 && 새것[0] && 새것[0].id;
@@ -108,7 +119,8 @@
       const 줄 = (await 회원.부르기("/rest/v1/site_posts_view?select=id,unit_id,title,body,youtube_id,created_at,author_id,author_name&id=eq." + 번호))[0];
       const 영상 = {
         고유: 줄.id, 단원아이디: 줄.unit_id || "", 강사: 줄.author_name || "", 제목: 줄.title,
-        아이디: 줄.youtube_id, 본문: 줄.body || "", 글쓴이: 줄.author_id, 올린때: 줄.created_at
+        아이디: 줄.youtube_id, 본문: 줄.body || "", 글쓴이: 줄.author_id, 올린때: 줄.created_at,
+        비공개: 비공개로, 잠김: false
       };
       window.동영상목록.push(영상);
       말하기("올렸다", "됨");

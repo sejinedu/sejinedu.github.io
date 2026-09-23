@@ -18,7 +18,8 @@ const 댓글 = (() => {
   const 본문칸 = document.getElementById("글본문");
   if (!칸 || !window.회원) return { 열기() {}, 닫기() {} };
 
-  let 지금글 = null;        // { id, body }
+  let 지금글 = null;        // { id, body, 잠김 }
+  let 지금영상 = null;      // 비공개 글이면 댓글을 다시 받을 때 비번 부름에 넘긴다
   let 목록 = [];
   let 차례번호 = 0;         // 늦게 온 답이 새 화면을 덮지 않게
 
@@ -39,18 +40,28 @@ const 댓글 = (() => {
 
   async function 열기(영상) {
     const 내차례 = ++차례번호;
-    지금글 = null; 목록 = [];
+    지금글 = null; 목록 = []; 지금영상 = 영상 || null;
     칸.hidden = true; 본문칸.hidden = true;
     const 아이디 = (영상 && 영상.아이디 || "").trim();
     if (!아이디) return;
     try {
       // ★ 저장소에서 온 영상이면 글 번호(고유)로 곧장 찾는다. 옛 파일에서 온 것이면 유튜브 아이디로.
       const 글번호 = /^[0-9a-f-]{36}$/.test(영상.고유 || "") ? 영상.고유 : "";
-      const 글들 = await 회원.부르기("/rest/v1/site_posts_view?select=id,body,author_id,title&" +
+      const 글들 = await 회원.부르기("/rest/v1/site_posts_view?select=id,body,author_id,title,youtube_id&" +
         (글번호 ? "id=eq." + 글번호 : "youtube_id=eq." + encodeURIComponent(아이디) + "&order=created_at.asc&limit=1"));
       if (내차례 !== 차례번호) return;
       지금글 = (글들 && 글들[0]) || null;
       if (!지금글) return;                       // 아직 글이 없는 영상
+      // ★ 비번으로 연 비공개 글 (2026-09-23) — 창은 본문 · 댓글을 비워서 준다. 비번 부름에서 받은 걸 쓴다
+      if (Array.isArray(영상.열린댓글) && !지금글.youtube_id) {
+        지금글.잠김 = true;
+        지금글.body = 영상.본문 || "";
+        본문칸.textContent = 지금글.body;
+        본문칸.hidden = !지금글.body;
+        목록 = 영상.열린댓글;
+        그리기();
+        return;
+      }
       본문칸.textContent = 지금글.body || "";
       본문칸.hidden = !지금글.body;
       await 목록읽기(내차례);
@@ -63,6 +74,13 @@ const 댓글 = (() => {
 
   async function 목록읽기(내차례 = 차례번호) {
     if (!지금글) return;
+    if (지금글.잠김) {                            // 비공개 글 — 기억해 둔 비번으로 다시 받는다
+      const 답 = window.비공개 && 지금영상 ? await 비공개.다시받기(지금영상) : null;
+      if (내차례 !== 차례번호) return;
+      if (답) 목록 = 답.comments || [];
+      그리기();
+      return;
+    }
     const ㄹ = await 회원.부르기("/rest/v1/site_comments_view?select=id,body,created_at,author_id,author_name&post_id=eq." +
                                지금글.id + "&order=created_at.asc");
     if (내차례 !== 차례번호) return;

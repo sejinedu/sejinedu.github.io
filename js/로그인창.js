@@ -246,6 +246,8 @@
     const 금 = () => { const ㄱ = document.createElement("div"); ㄱ.className = "계정금"; 계정메뉴.appendChild(ㄱ); };
     금();
     줄("닉네임 바꾸기", () => { 말하기(""); 걸음보이기("별명"); 제목.textContent = "닉네임 바꾸기"; 설명.textContent = "댓글과 글쓴이 자리에 이 이름이 나온다."; 취소.textContent = "닫기"; 막.hidden = false; });
+    // ★ 게시글 비밀번호 — 선생님 · 관리자 (2026-09-23 · 사용자가 정함 「드롭바 뜨는곳에 게시글 비밀번호 메뉴」)
+    if ((ㅅ.등급 === "teacher" || ㅅ.등급 === "admin") && window.비공개) 줄("게시글 비밀번호", () => 비공개.비번정하기());
     if (ㅅ.등급 === "admin" && window.회원관리) 줄("회원 관리", () => 회원관리.열기());
     if (!ㅅ.런처로그인) { 금(); 줄("로그아웃", async () => { await 회원.나가기(); }, "빨강"); }
     계정메뉴.hidden = false;

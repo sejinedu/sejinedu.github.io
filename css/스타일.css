@@ -1318,7 +1318,7 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 .밖의문[hidden] { display: none; }
 .밖의문단추 {
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  width: 100%; padding: 11px 14px; border: 1px solid var(--테); border-radius: 8px;
+  width: 100%; padding: 11px 14px; border: 1px solid var(--테두리); border-radius: 8px;
   background: #fff; color: #1f1f1f; font-size: .92rem; font-weight: 600; cursor: pointer;
 }
 .밖의문단추 + .밖의문단추 { margin-top: 8px; }
@@ -1327,7 +1327,7 @@ body.순서끄는중, body.순서끄는중 * { cursor: grabbing !important; user
 .밖의문단추.kakao { background: #FEE500; border-color: #e7d000; }
 .밖의문단추.kakao:hover { background: #f5dd00; }
 .밖의금 { display: flex; align-items: center; gap: 10px; margin: 14px 0 -4px; color: var(--흐린글); font-size: .78rem; }
-.밖의금::before, .밖의금::after { content: ""; flex: 1; height: 1px; background: var(--테); }
+.밖의금::before, .밖의금::after { content: ""; flex: 1; height: 1px; background: var(--테두리); }
 
 /* 업데이트 (아이콘) · 맨 오른쪽 판 번호 (2026-09-22 · 사용자가 정함) */
 .업데이트 { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -1753,4 +1753,50 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   .회원표 .글표줄 .칸제목 { grid-area: 제목; }
   .회원표 .글표줄 .칸메일 { grid-area: 메일; font-size: .74rem; }
   .회원표 .글표줄 .칸등급 { grid-area: 등급; }
+}
+
+/* ============================================================
+   2026-09-23 · 사용자가 정함
+     「각 게시판 게시글에 공개인지 비공개인지 표시하라」
+     「선생님은 게시판 자신의 글에 공개버튼을 누르면 비공개 공개 바뀌게 하라」
+     「관리자는 과목을 추가, 세부 과목 추가, 단원 추가」
+   ============================================================ */
+/* 공개 · 비공개 딱지 — 제목 앞. 공개는 흐리게, 비공개는 자물쇠와 함께 눈에 띄게 */
+.공개딱지 {
+  flex: none; display: inline-flex; align-items: center; gap: 3px;
+  font: inherit; font-size: .7rem; font-weight: 700; line-height: 1;
+  padding: 3px 6px; border-radius: 4px;
+  color: var(--흐린글); background: none; border: 1px solid var(--테두리);
+}
+.공개딱지.잠금 { color: #e3b35c; border-color: #6b5427; background: rgba(227, 179, 92, .08); }
+.공개딱지 .자물쇠 { flex: none; margin-top: -1px; }
+.공개딱지.누름 { cursor: pointer; }
+@media (hover: hover) and (pointer: fine) {
+  .공개딱지.누름:hover { color: var(--글); border-color: var(--악센트); }
+  .공개딱지.누름.잠금:hover { color: #f0c878; border-color: #e3b35c; }
+}
+
+/* 글쓰기 — 공개 / 비공개 고르기 */
+.공개고르기 { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; min-height: 36px; }
+.공개고르기 label { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--글); cursor: pointer; }
+.공개고르기 input { accent-color: var(--악센트); margin: 0; width: auto !important; height: auto !important; padding: 0 !important; flex: none; }   /* .연결칸 input 이 폭 100% 라 동그라미가 늘어난다 */
+.공개고르기 label { white-space: nowrap; }
+.공개고르기 small { white-space: normal; }
+.공개고르기 small { color: var(--흐린글); font-size: .78rem; }
+
+/* 한 칸짜리 물음 창 (비번 · 단원 이름) — 로그인 창 모양을 빌린다 */
+.물음막 { z-index: 360; }          /* 올리기 창(340) 위에서도 뜬다 */
+.물음창 { max-width: 380px; }
+.비번칸 {
+  letter-spacing: .6em; font-size: 1.3rem !important; text-align: center;
+  font-variant-numeric: tabular-nums; -webkit-text-security: disc;
+}
+
+/* 관리자 「＋」 — 과목 줄 · 세부 과목 탭 끝 · 세부 과목에 단원이 없을 때 */
+.메뉴칸.추가칸 { color: var(--악센트); font-weight: 700; }
+.교과띠 .메뉴칸.추가칸 { color: var(--악센트); }
+@media (hover: hover) and (pointer: fine) { .메뉴칸.추가칸:hover { color: #7fd1ae; } }
+.길추가 {
+  height: 30px; padding: 0 10px !important; border: 1px dashed var(--악센트) !important;
+  border-radius: 6px !important; font-size: .86rem !important;
 }

@@ -471,6 +471,8 @@ function 카드메뉴열기(ㅇ, x, y) {
   const ㅅ = window.회원 ? 회원.상태() : {};
   const 지울수있나 = window.저장소가원본 && ㅇ.고유 &&
     (ㅅ.등급 === "admin" || (ㅅ.등급 === "teacher" && ㅇ.글쓴이 && ㅇ.글쓴이 === ㅅ.이름표));
+  // ★ 공개 ↔ 비공개 — 게시판 딱지를 누르는 것과 같다 (2026-09-23)
+  if (window.비공개 && 비공개.내것인가(ㅇ)) 줄들.push([ㅇ.비공개 ? "공개로 바꾸기" : "🔒 비공개로 바꾸기", "", () => 비공개.바꾸기(ㅇ)]);
   if (지울수있나 && window.댓글 && 댓글.글지우기) 줄들.push(["지우기", "빨강", () => 댓글.글지우기(ㅇ)]);
 
   if (!주인인가) { if (!줄들.length) return; 메뉴띄우기(ㅇ.제목 || "제목 없음", 줄들, x, y); return; }
@@ -1163,6 +1165,9 @@ function 교과이름(단원아이디) {
   return ㅊ ? ㅊ.마디.이름 : "";
 }
 
+// 자물쇠 — 비공개 딱지 앞 (그림 글자 🔒 는 기기마다 모양이 달라서 선으로 그린다)
+const 자물쇠그림 = '<svg class="자물쇠" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+
 function 게시판표그리기(묶음) {
   if (쪽묶음 !== (묶음.아이디 || "")) { 쪽묶음 = 묶음.아이디 || ""; 지금쪽 = 1; }
   const 번호표 = new Map();
@@ -1193,6 +1198,14 @@ function 게시판표그리기(묶음) {
     const ㅅ = 기록소.읽기(아이디);
     const 댓 = (window.댓글수 && window.댓글수[ㅇ.고유]) || 0;
     const 딱지 = 교과이름(ㅇ.단원아이디);
+    // ★ 공개 · 비공개 딱지 (2026-09-23 · 사용자가 정함 — 「각 게시판 게시글에 공개인지 비공개인지 표시하라」)
+    //   쓴 선생님 · 관리자한테는 이 딱지가 단추다 — 누르면 공개 ↔ 비공개 (「공개버튼을 누르면 … 바뀌게」)
+    const 잠김 = !!ㅇ.잠김 && !아이디;
+    const 공개글 = ㅇ.비공개 ? 자물쇠그림 + "비공개" : "공개";
+    const 공개딱지 = !window.저장소가원본 || !ㅇ.고유 ? "" :
+      (window.비공개 && 비공개.내것인가(ㅇ)
+        ? '<button type="button" class="공개딱지 누름' + (ㅇ.비공개 ? " 잠금" : "") + '" title="눌러서 ' + (ㅇ.비공개 ? "공개로" : "비공개로") + ' 바꾸기">' + 공개글 + '</button>'
+        : '<span class="공개딱지' + (ㅇ.비공개 ? " 잠금" : "") + '">' + 공개글 + '</span>');
     const 줄 = document.createElement("a");
     줄.className = "글표줄 카드아래";
     줄.setAttribute("role", "row");
@@ -1200,17 +1213,24 @@ function 게시판표그리기(묶음) {
     if (아이디) 줄.dataset.영상 = 아이디;
     줄.innerHTML =
       '<span class="칸번호">' + (번호표.get(ㅇ) || "") + '</span>' +
-      '<span class="칸제목">' + (딱지 ? '<span class="글딱지">' + 새는글(딱지) + '</span>' : "") +
+      '<span class="칸제목">' + 공개딱지 + (딱지 ? '<span class="글딱지">' + 새는글(딱지) + '</span>' : "") +
         '<span class="글제목">' + 새는글(ㅇ.제목 || "제목 없음") + '</span>' +
         (댓 ? '<span class="댓글셈">[' + 댓 + ']</span>' : "") + '</span>' +
       '<span class="칸작성자">' + (ㅇ.강사 ? '<button type="button" class="작성자누르기" title="이 강사의 강의 전체">' + 새는글(ㅇ.강사) + '</button>' : "") + '</span>' +
       '<span class="칸작성일">' + 표날짜(글때(ㅇ)) + '</span>' +
-      '<span class="칸조회 조회셈">' + 셈(ㅅ.조회) + '</span>' +
-      '<span class="칸추천 하트' + (ㅅ.내좋아요 ? " 내가" : "") + '">' + 셈(ㅅ.좋아요) + '</span>';
+      // 잠긴 글은 영상 번호를 모른다 — 조회수 · 좋아요도 영상 번호로 세는 거라 「–」 로 둔다
+      '<span class="칸조회 조회셈">' + (잠김 ? "–" : 셈(ㅅ.조회)) + '</span>' +
+      '<span class="칸추천 하트' + (ㅅ.내좋아요 && !잠김 ? " 내가" : "") + '">' + (잠김 ? "–" : 셈(ㅅ.좋아요)) + '</span>';
     줄.addEventListener("click", ㄴ => {
       ㄴ.preventDefault();
       if (ㄴ.target.closest(".작성자누르기")) { 강사고르기((ㅇ.강사 || "").trim()); return; }
-      if (아이디) 틀기(ㅇ);
+      if (ㄴ.target.closest(".공개딱지.누름")) { if (window.비공개) 비공개.바꾸기(ㅇ); return; }
+      // 비공개 글 — 비번을 받아 열면 그때 영상 번호가 채워진다 (js/비공개.js)
+      if (!(ㅇ.아이디 || "").trim() && ㅇ.잠김) {
+        if (window.비공개) 비공개.열기(ㅇ).then(됐나 => { if (됐나 && (ㅇ.아이디 || "").trim()) 틀기(ㅇ); });
+        return;
+      }
+      if ((ㅇ.아이디 || "").trim()) 틀기(ㅇ);
     });
     줄.addEventListener("contextmenu", ㄴ => { ㄴ.preventDefault(); 카드메뉴열기(ㅇ, ㄴ.clientX, ㄴ.clientY); });
     표.appendChild(줄);
