@@ -17,13 +17,18 @@ const 선생관리 = (() => {
   const 알림 = 글 => { try { 쪽지(글); } catch (오류) {} };
   const 학원 = () => (회원.상태().학원) || null;
 
+  // ★ 디자인 과목 머리 — 디자인 방이 정한 여덟 (files.path 첫 마디 · 런처 v0.78 선생 관리와 같게, 2026-09-24)
+  //   보낼 때는 끝에 「/」 를 꼭 붙인다 — 「수학」 이 「수학2/…」 까지 맞으면 안 된다.
+  const 과목머리 = ["통합과학1/", "통합과학2/", "물리학/", "역학과 에너지/", "전자기와 양자/", "수학/", "한국사/", "미분류/"];
+  const 빗금 = ㄱ => { ㄱ = String(ㄱ || "").trim(); return ㄱ && !ㄱ.endsWith("/") ? ㄱ + "/" : ㄱ; };
+
   function 권한요약(권 = {}) {
     const ㄱ = [];
     ㄱ.push({ 자기: "자기 반", 지정: "지정 반 " + ((권.반들 || []).length) + "개", 전체: "전체 반" }[권.반범위 || "자기"] || "자기 반");
     if (권.학생고치기) ㄱ.push("학생 고치기");
     if (권.문제만들기) ㄱ.push("문제 만들기");
     if (권.문제지우기) ㄱ.push("문제 지우기");
-    if (권.디자인편집) ㄱ.push("디자인 " + (권.디자인편집 === "전체" ? "전체" : (권.디자인편집 || []).join("·")));
+    if (권.디자인편집) ㄱ.push("디자인 " + (권.디자인편집 === "전체" ? "전체" : (권.디자인편집 || []).map(ㄴ => String(ㄴ).replace(/\/$/, "")).join("·")));
     if (권.초대) ㄱ.push("초대");
     return ㄱ.join(" · ");
   }
@@ -157,14 +162,22 @@ const 선생관리 = (() => {
       const 범위 = 권.반범위 || "자기";
       const 지정반칸 = 입력("지정한 반 id — 쉼표로 (예: teacher1, teacher3)", (권.반들 || []).join(", "));
       const 디자인값 = 권.디자인편집 === "전체" ? "전체" : (Array.isArray(권.디자인편집) && 권.디자인편집.length ? "지정" : "안함");
-      const 과목칸 = 입력("과목 (예: 통과2/, 수학2/ — 쉼표로)", Array.isArray(권.디자인편집) ? 권.디자인편집.join(", ") : "");
+      const 있던과목 = Array.isArray(권.디자인편집) ? 권.디자인편집.map(빗금) : [];
+      const 과목상자 = 만들기("span", "선생과목");
+      과목머리.forEach(머 => {
+        const 라 = document.createElement("label"); const ㄱ = document.createElement("input");
+        ㄱ.type = "checkbox"; ㄱ.dataset.과목 = 머; ㄱ.checked = 있던과목.includes(머);
+        라.append(ㄱ, document.createTextNode(" " + 머.slice(0, -1))); 과목상자.appendChild(라);
+      });
+      const 과목칸 = 입력("그 밖의 과목 — 쉼표로 (예: 수학2, 화학)", 있던과목.filter(ㄱ => !과목머리.includes(ㄱ)).join(", "));
+      과목상자.appendChild(과목칸);
 
       줄("메일", 메일칸);
       줄("소속", 소속칸, 묶음.length ? 묶음고르기 : null);
       줄("맡은 반", 반칸);
       줄("학생 보는 범위", 고름("반범위", "자기", "자기 반", 범위 === "자기"), 고름("반범위", "지정", "지정한 반", 범위 === "지정"), 고름("반범위", "전체", "전체 반", 범위 === "전체"), 지정반칸);
       줄("권한", 켬칸("학생고치기", "보는 반 학생 고치기"), 켬칸("문제만들기", "문제 만들기 · 고치기"), 켬칸("문제지우기", "문제 지우기"), 켬칸("초대", "선생 초대 · 권한 주기"));
-      줄("디자인 편집", 고름("디자인", "안함", "안 함(읽기만)", 디자인값 === "안함"), 고름("디자인", "전체", "전체 과목", 디자인값 === "전체"), 고름("디자인", "지정", "지정 과목", 디자인값 === "지정"), 과목칸);
+      줄("디자인 편집", 고름("디자인", "안함", "안 함(읽기만)", 디자인값 === "안함"), 고름("디자인", "전체", "전체 과목", 디자인값 === "전체"), 고름("디자인", "지정", "지정 과목", 디자인값 === "지정"), 과목상자);
 
       const 쉼표 = ㄱ => String(ㄱ || "").split(",").map(ㄴ => ㄴ.trim()).filter(Boolean);
       function 모으기() {
@@ -173,12 +186,15 @@ const 선생관리 = (() => {
         틀.querySelectorAll("input[data-키]").forEach(ㄱ => { if (ㄱ.checked) 권한[ㄱ.dataset.키] = true; });
         const 디 = (틀.querySelector("input[name=디자인]:checked") || {}).value;
         if (디 === "전체") 권한.디자인편집 = "전체";
-        if (디 === "지정") 권한.디자인편집 = 쉼표(과목칸.value);
+        if (디 === "지정") {
+          const 고른 = [...과목상자.querySelectorAll("input[data-과목]:checked")].map(ㄱ => ㄱ.dataset.과목);
+          권한.디자인편집 = [...new Set([...고른, ...쉼표(과목칸.value).map(빗금)])];   // ★ 끝에 「/」
+        }
         return { 메일: 메일칸.value.trim(), 소속이름: 소속칸.value.trim() || "선생님", 강사id: 반칸.value.trim() || null, 권한 };
       }
       const 맞추기 = () => {
         지정반칸.hidden = (틀.querySelector("input[name=반범위]:checked") || {}).value !== "지정";
-        과목칸.hidden = (틀.querySelector("input[name=디자인]:checked") || {}).value !== "지정";
+        과목상자.hidden = (틀.querySelector("input[name=디자인]:checked") || {}).value !== "지정";
       };
       틀.addEventListener("change", 맞추기);
 

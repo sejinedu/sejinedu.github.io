@@ -1860,3 +1860,7 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
   .선생표 .칸상태 { grid-area: 상태; } .선생표 .칸단추 { grid-area: 단추; justify-content: flex-start; }
   .선생줄머리 { flex-basis: 100%; }
 }
+/* 선생 관리 — 디자인 지정 과목 여덟 체크 상자 + 그 밖의 과목 (2026-09-24 · 런처 v0.78 과 같게) */
+.선생과목 { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; flex: 1 1 100%; }
+.선생과목[hidden] { display: none; }
+.선생과목 input[type="text"] { flex: 1 1 240px; min-width: 200px; }
