@@ -215,7 +215,10 @@ const 회원관리 = (() => {
     고르개.disabled = true;
     try {
       await 회원.부르기("/rest/v1/rpc/site_set_role", { 방법: "POST", 몸: { p_public_id: ㅁ.public_id, p_role: 새것 } });
-      ㅁ.role = 새것;
+      // ★ ㅁ 은 그리기 때 만든 **사본**이다(번호를 붙이느라) — 사본만 고치면 다시 그릴 때 옛 등급으로 돌아간다 (2026-09-25 사용자가 잡음)
+      //   명단 원본을 고치고, 저장소 명단을 한 번 더 받아 실제 값으로 그린다
+      const 원본 = 명단.find(ㄱ => ㄱ.public_id === ㅁ.public_id); if (원본) 원본.role = 새것;
+      try { const ㄹ = await 회원.부르기("/rest/v1/rpc/site_admin_members", { 방법: "POST", 몸: {} }); if (Array.isArray(ㄹ) && ㄹ.length) 명단 = ㄹ; } catch (오류) {}
       그리기("「" + 이름 + "」 → " + 등급이름[새것], "됨");
     } catch (오류) {
       고르개.value = ㅁ.role;

@@ -135,11 +135,26 @@ const 회원 = (() => {
     } catch (오류) { 채널 = null; }          // 채널 표가 없는 저장소여도 로그인은 그대로 산다
     알리기();
   }
-  // 받은 초대 빨간 점 — 다른 곳(런처·다른 기기)에서 초대가 와도 창을 다시 보면 받아 온다 (30초에 한 번만)
+  // 등급 · 받은 초대 빨간 점 — 다른 곳에서 바뀌어도(관리자가 등급을 바꾸거나, 런처·다른 기기에서 초대가 와도) 새로고침 없이 받아 온다
+  //   창을 다시 볼 때 + 보고 있는 동안 1분마다 (30초 안에는 다시 안 묻는다). 나읽기 가 site_me(등급) → 채널_목록 차례로 읽는다.
+  //   (2026-09-25 사용자: 「여기서 등급 바꿔도 바로 실시간으로 선생님, 일반회원 안바뀐다」)
+  //   ★ 바뀐 게 있을 때만 알린다 — 알리면 게시판·댓글이 다시 그려진다(댓글 쓰던 칸이 날아갈 수 있다)
   let 채널읽은때 = 0;
-  function 채널다시() { if (!표 || Date.now() - 채널읽은때 < 30000) return; 채널읽은때 = Date.now(); 채널읽기(); }
+  async function 채널다시() {
+    if (!표 || Date.now() - 채널읽은때 < 30000) return;
+    채널읽은때 = Date.now();
+    if (!(await 표챙기기())) return;
+    const 앞 = JSON.stringify([나, 채널]);
+    let 새나 = 나, 새채널 = 채널;
+    try { const ㄹ = await 부르기("/rest/v1/rpc/site_me", { 방법: "POST", 몸: {} }); 새나 = (Array.isArray(ㄹ) && ㄹ[0]) || 나; } catch (오류) {}
+    try { const ㄹ = await 부르기("/rest/v1/rpc/" + encodeURIComponent("채널_목록"), { 방법: "POST", 몸: {} }); if (ㄹ && Array.isArray(ㄹ.목록)) 새채널 = ㄹ; } catch (오류) {}
+    if (!표) return;                                   // 묻는 사이에 로그아웃했다
+    if (JSON.stringify([새나, 새채널]) === 앞) return;
+    나 = 새나; 채널 = 새채널; 알리기();
+  }
   document.addEventListener("visibilitychange", () => { if (!document.hidden) 채널다시(); });
   window.addEventListener("focus", 채널다시);
+  setInterval(() => { if (!document.hidden) 채널다시(); }, 60000);
 
   // 채널 쪽 부름 — 이름이 한글이라 주소에 넣을 때 싼다 (초대관리.js · 회원관리.js 가 쓴다)
   function 학원부르기(이름, 몸 = {}) {
