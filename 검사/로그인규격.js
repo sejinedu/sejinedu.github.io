@@ -78,15 +78,17 @@ const 이름 = ㅅ => vm.runInContext("이름칸글(" + JSON.stringify(ㅅ) + ")
 const 초대 = fs.readFileSync(path.join(집, "js", "초대관리.js"), "utf8");
 const 초대절 = (() => { const ㅈ = 규격.search(/^## 초대 관리/m); if (ㅈ < 0) return ""; const 뒤 = 규격.slice(ㅈ + 3); const 끝 = 뒤.search(/^## /m); return 끝 < 0 ? 뒤 : 뒤.slice(0, 끝); })();
 봄(!!초대절, "규격에 「## 초대 관리」 절이 있다");
-const 초대단추들 = [...new Set([...초대절.split("권한은 **각 앱에서**")[0].matchAll(/`([^`]+)`/g)].map(ㅁ => ㅁ[1]).filter(ㄱ => !/[(…_]/.test(ㄱ)))];
+const 초대단추들 = [...new Set([...초대절.split("권한은 **각 앱에서**")[0].matchAll(/`([^`]+)`/g)].map(ㅁ => ㅁ[1]).filter(ㄱ => !/[(…_]/.test(ㄱ) && !/^https?:/.test(ㄱ)))];
 const 빠진단추 = 초대단추들.filter(ㄱ => !초대.includes('"' + ㄱ + '"'));
 봄(초대단추들.length >= 7 && !빠진단추.length, "초대 관리 단추 이름이 규격 글자 그대로 — " + 초대단추들.join(" / ") + (빠진단추.length ? " (빠짐: " + 빠진단추.join(", ") + ")" : ""));
 봄(["채널_받기", "채널_거절", "채널_나가기"].every(ㄱ => 초대.includes('"' + ㄱ + '", { p_주인: ㄱ.주인 }') && 규격.includes("rpc/" + ㄱ + "(p_주인)")), "받기 · 거절 · 나가기 — rpc 채널_받기/거절/나가기(p_주인)");
 봄(/"학원_이름바꾸기", \{ p_이름: 새이름 \}/.test(초대), "내 채널 이름 바꾸기 — rpc 학원_이름바꾸기(p_이름)");
 봄(/학원_초대", \{ p_메일: 메일, p_소속이름: "선생님", p_권한: \{ 반범위: "자기" \}, p_강사id: null \}/.test(초대) && 초대절.includes(`'선생님', {"반범위":"자기"}, null`), "새 메일은 학원_초대(메일, 선생님, 자기 반, null) — p_주인 없이 = 내 채널");
 봄(/명단\.some\(사람 => [^\n]*=== 메일\)\) \{[\s\S]{0,200}?return;/.test(초대), "이미 명단에 있는 메일은 학원_초대를 다시 안 부른다");
-봄(초대절.includes("launcher/sedobi-setup.exe") && 초대.includes("/launcher/sedobi-setup.exe") &&
-   초대.includes("로그인(없으면 회원 가입) — 이 메일로") && 초대.includes("받은 초대에서 「받기」"), "카톡 글 — 런처 받는 곳 · 로그인(없으면 회원 가입) · 받은 초대에서 받기");
+const 받는곳 = (/`(https:\/\/sejinedu\.github\.io\/download\.html)`/.exec(초대절) || [])[1];
+봄(!!받는곳 && 초대.includes('"' + 받는곳 + '"') && !/sedobi-setup\.exe/.test(초대) &&
+   초대.includes("로그인(없으면 회원 가입) — 이 메일로") && 초대.includes("받은 초대에서 「받기」"), "카톡 글 — 받기 쪽 주소(exe 주소 없음) · 로그인(없으면 회원 가입) · 받은 초대에서 받기");
+봄(fs.existsSync(path.join(집, "download.html")) && /sedobi-setup\.exe/.test(fs.readFileSync(path.join(집, "download.html"), "utf8")), "받기 쪽(download.html)이 있고 설치 파일로 이어진다");
 봄(/"학원_빼기", \{ p_메일: 사람\.메일 \}/.test(초대) && !/p_주인: 내것/.test(초대), "탈퇴시키기 = 학원_빼기 (내 채널)");
 봄(!/"권한"/.test(초대) && !/p_권한: 것\.권한/.test(초대), "「권한」 단추가 없다 — 권한은 각 앱에서");
 

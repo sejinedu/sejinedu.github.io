@@ -17,7 +17,8 @@ const 초대관리 = (() => {
 
   const 만들기 = (태그, 이름, 글) => { const ㄱ = document.createElement(태그); if (이름) ㄱ.className = 이름; if (글 != null) ㄱ.textContent = 글; return ㄱ; };
   const 알림 = 글 => { try { 쪽지(글); } catch (오류) {} };
-  const 런처받는곳 = "https://pub-cdafc1e706964b9c84ebcdd306dd79f0.r2.dev/launcher/sedobi-setup.exe";
+  // 카톡 글은 exe 주소가 아니라 받기 쪽 — 「Windows의 PC 보호 → 추가 정보 → 실행」 안내가 거기 있다 (규격, 2026-09-24)
+  const 런처받는곳 = "https://sejinedu.github.io/download.html";
   const 메일꼴 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   function 머리그리기() {
@@ -160,7 +161,7 @@ const 초대관리 = (() => {
 
     const 채널이름 = (내것 && 내것.이름) || "내 채널";
     const 카톡글 = 메일 => "[" + 채널이름 + "] 세도비 채널 초대\n" +
-      "1) 세도비 런처 설치: " + 런처받는곳 + "\n" +
+      "1) 세도비 런처 받기: " + 런처받는곳 + "\n" +
       "2) 로그인(없으면 회원 가입) — 이 메일로: " + 메일 + "\n" +
       "3) 로그인한 뒤 이름 → 「초대 관리」 → 받은 초대에서 「받기」\n" +
       "4) 앱을 누르면 채널을 골라 연다";
