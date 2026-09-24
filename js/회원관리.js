@@ -12,7 +12,8 @@
 //  ★ 자기 등급은 못 바꾼다 — 관리자를 잃으면 되돌릴 사람이 없다 (저장소도 막는다).
 //  ★ 「채널」 탭 (2026-09-24 · 로그인 화면 규격 「채널 판」) — 학원관리_목록 · 학원관리_정지.
 //    가입한 누구나 제 채널(제 프로그램·자료)이 있다 → 관리자가 채널을 보고 막을 자리. 정지 = 그 사람 계정 정지.
-//    저장은 채널마다 1GB (관리자 자료는 한도 없음).
+//    저장 한도는 **사람(채널)마다** — 기본 1GB, 여기 「한도」 칸에서 바꾼다(2026-09-25 사장님 「이건 개인마다 따로 해줄수는 없는거지?」 → 「진행시켜」).
+//    학원관리_목록 의 한도MB(관리자 채널은 null = 한도 없음) · 기본한도 · 학원관리_한도(p_학원, p_한도MB — null = 기본으로). 관리자 자료는 한도 없음.
 
 const 회원관리 = (() => {
   const 칸 = document.getElementById("회원관리");
@@ -20,7 +21,7 @@ const 회원관리 = (() => {
 
   const 등급이름 = { admin: "관리자", teacher: "선생님", member: "일반 회원" };
   let 명단 = [];
-  let 학원들 = [];      // 학원관리_목록 — 학원(채널 id)·이름·원장메일(주인)·원장닉네임·인원·저장MB·정지·만든때
+  let 학원들 = [];      // 학원관리_목록 — 학원(채널 id)·이름·원장메일(주인)·원장닉네임·인원·저장MB·정지·만든때·한도MB·기본한도
   let 탭 = "";          // "" 전체 · admin · teacher · member
   let 찾을말 = "";
 
@@ -128,28 +129,66 @@ const 회원관리 = (() => {
     const 관리자메일 = new Set(명단.filter(ㅁ => ㅁ.role === "admin").map(ㅁ => String(ㅁ.email || "").toLowerCase()));
     const 표 = 만들기("div", "글표 회원표 학원표");
     표.innerHTML = '<div class="글표머리"><span class="칸제목">채널</span><span class="칸메일">주인</span><span class="칸인원">인원</span>' +
-                   '<span class="칸저장">저장</span><span class="칸작성일">만든 날</span><span class="칸상태">상태</span><span class="칸단추"></span></div>';
+                   '<span class="칸저장">저장</span><span class="칸한도">한도 (GB)</span><span class="칸작성일">만든 날</span><span class="칸상태">상태</span><span class="칸단추"></span></div>';
     학원들.forEach(ㅎ => {
       const 줄 = 만들기("div", "글표줄 회원줄");
       const 이름칸 = 만들기("span", "칸제목"); 이름칸.appendChild(만들기("span", "글제목", ㅎ.이름 || "(이름 없음)"));
       const 주인메일 = ㅎ.주인메일 || ㅎ.원장메일 || "";
       const 원장칸 = 만들기("span", "칸메일", [ㅎ.주인닉네임 || ㅎ.원장닉네임, 주인메일].filter(Boolean).join(" · "));
       const MB = Number(ㅎ.저장MB) || 0;
-      const 한도없음 = 관리자메일.has(String(주인메일).toLowerCase());
-      const 쓴것 = MB >= 1024 ? (MB / 1024).toFixed(2) + " GB" : MB + " MB";
-      const 저장칸 = 만들기("span", "칸저장" + (!한도없음 && MB >= 1024 ? " 넘침" : ""), 쓴것 + (한도없음 ? " · 한도 없음" : " / 1 GB"));
+      // 한도MB 가 null 이면 관리자 채널(한도 없음). 칸이 없던 옛 서버면 관리자 메일로 가리고 1GB 로 본다
+      const 한도없음 = ("한도MB" in ㅎ) ? ㅎ.한도MB == null : 관리자메일.has(String(주인메일).toLowerCase());
+      const 한도MB = 한도없음 ? null : (Number(ㅎ.한도MB) >= 0 && ㅎ.한도MB != null ? Number(ㅎ.한도MB) : 1024);
+      const 저장칸 = 만들기("span", "칸저장" + (!한도없음 && MB >= 한도MB ? " 넘침" : ""), 크기글(MB) + (한도없음 ? " · 한도 없음" : " / " + 크기글(한도MB)));
+      const 한도칸 = 만들기("span", "칸한도");
+      if (한도없음) 한도칸.appendChild(만들기("span", "흐린글", "—"));
+      else {
+        const 입력 = document.createElement("input");
+        입력.type = "number"; 입력.min = "0"; 입력.max = "1024"; 입력.step = "0.5"; 입력.className = "한도입력";
+        입력.value = String(Math.round(한도MB / 1024 * 100) / 100);
+        입력.setAttribute("aria-label", (ㅎ.이름 || "채널") + " 저장 한도(GB)");
+        const 저장단 = 만들기("button", "선생작은단추", "저장"); 저장단.type = "button";
+        저장단.addEventListener("click", () => 한도바꾸기(ㅎ, 입력.value, 저장단));
+        입력.addEventListener("keydown", 이 => { if (이.key === "Enter") 저장단.click(); });
+        한도칸.append(입력, 저장단);
+        if (ㅎ.기본한도 === false) {
+          const 기본단 = 만들기("button", "선생작은단추", "기본으로"); 기본단.type = "button"; 기본단.title = "기본 1GB 로 되돌리기";
+          기본단.addEventListener("click", () => 한도바꾸기(ㅎ, null, 기본단));
+          한도칸.appendChild(기본단);
+        } else 한도칸.appendChild(만들기("span", "한도기본", "기본"));
+      }
       const 단추칸 = 만들기("span", "칸단추");
       if (!한도없음) {                                  // 관리자 제 채널은 정지 단추가 없다 — 자기를 막으면 풀 사람이 없다
         const ㄷ = 만들기("button", "선생작은단추" + (ㅎ.정지 ? "" : " 빨강"), ㅎ.정지 ? "정지 풀기" : "정지"); ㄷ.type = "button";
         ㄷ.addEventListener("click", () => 학원정지(ㅎ, ㄷ));
         단추칸.appendChild(ㄷ);
       }
-      줄.append(이름칸, 원장칸, 만들기("span", "칸인원", (ㅎ.인원 || 0) + "명"), 저장칸,
+      줄.append(이름칸, 원장칸, 만들기("span", "칸인원", (ㅎ.인원 || 0) + "명"), 저장칸, 한도칸,
         만들기("span", "칸작성일", ㅎ.만든때 ? 날(ㅎ.만든때) : ""), 만들기("span", "칸상태" + (ㅎ.정지 ? " 정지됨" : ""), ㅎ.정지 ? "정지" : "활성"), 단추칸);
       표.appendChild(줄);
     });
     if (!학원들.length) 표.appendChild(만들기("div", "글표빔", "아직 채널이 없다"));
     칸.appendChild(표);
+  }
+
+  const 크기글 = MB => MB >= 1024 ? (Math.round(MB / 1024 * 100) / 100) + " GB" : MB + " MB";
+
+  // 저장 한도 — GB 로 받아 MB 로 보낸다. null = 기본(1GB)으로 되돌리기
+  async function 한도바꾸기(ㅎ, GB글, ㄷ) {
+    let MB = null;
+    if (GB글 !== null) {
+      const GB = Number(String(GB글).trim());
+      if (!String(GB글).trim() || !isFinite(GB) || GB < 0 || GB > 1024) return 그리기("한도는 0 에서 1024 GB 사이로 넣어라", "탈");
+      MB = Math.round(GB * 1024);
+    }
+    ㄷ.disabled = true;
+    try {
+      await 회원.학원부르기("학원관리_한도", { p_학원: ㅎ.학원, p_한도MB: MB });
+      ㅎ.한도MB = MB == null ? 1024 : MB; ㅎ.기본한도 = MB == null;
+      그리기("「" + (ㅎ.이름 || "채널") + "」 저장 한도 → " + (MB == null ? "기본 1 GB" : 크기글(MB)), "됨");
+    } catch (오류) {
+      그리기("못 바꿨다 — " + 오류.message, "탈");
+    }
   }
 
   async function 학원정지(ㅎ, ㄷ) {
