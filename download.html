@@ -1,0 +1,216 @@
+<!doctype html>
+<!-- ============================================================
+     세도비 런처 받기 — 누구나, 로그인 없이 (2026-09-24)
+
+     ★ 사용자가 정한 것: 「이제 홈피에 런처 설치을 받는 거 만들어 놔라.
+       이제 불특정 다수가 다운 받아서 자기 컴터에 런처를 설치할수 잇어야 한다」
+     ★ 주소가 영어(download.html)인 까닭 — 초대 카톡 글에 붙는다. 한글 주소는 카톡에서 %EB… 로 깨져 보인다.
+     ★ 설치 파일은 런처 방이 R2 에 올린다(launcher/sedobi-setup.exe). 여기는 그 주소로 보내기만 한다.
+       크기는 launcher/latest.yml 을 읽어 띄운다 — 못 읽으면(CORS) 적어 둔 98MB 그대로다. 판 번호는 안 띄운다(아래 글).
+     ★ 서명이 없는 프로그램이라 처음 받는 사람은 거의 다 「Windows의 PC 보호」 창을 본다.
+       그 창에서 멈추지 않게 그림으로 안내한다 — 이 쪽의 가장 중요한 일이다.
+     ★ 스스로 서는 쪽이다 — 스타일 파일에 안 기댄다(개인정보.html 과 같다).
+============================================================ -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>세도비 런처 받기 — 세진 과학</title>
+<meta name="description" content="세도비 런처(Windows) 설치 파일 받기와 설치 안내">
+<link rel="icon" href="자산/아이콘.png">
+<style>
+  :root {
+    color-scheme: dark;
+    --바탕: #0e1116; --판: #161a20; --테두리: #2a3038; --글: #d8dee5; --흐린글: #8b959f;
+    --악센트: #7fd1ae; --악센트진: #2f6b55; --빨강: #e5484d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--바탕); color: var(--글);
+    font-family: "Pretendard", "맑은 고딕", "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.7; font-size: 16px;
+  }
+  a { color: var(--악센트); }
+  .머리 { display: flex; align-items: center; gap: 10px; max-width: 880px; margin: 0 auto; padding: 18px 16px; }
+  .머리 a { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 700; font-size: 1.05rem; }
+  .머리 img { width: 28px; height: 28px; border-radius: 7px; }
+  .머리 span b { color: var(--악센트); font-weight: 700; }
+  main { max-width: 880px; margin: 0 auto; padding: 8px 16px 72px; }
+
+  .첫판 { text-align: center; padding: 40px 20px 36px; border: 1px solid var(--테두리); border-radius: 16px;
+          background: radial-gradient(120% 90% at 50% 0%, #17322a 0%, var(--판) 60%); }
+  .첫판 img { width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,.45); }
+  h1 { margin: 16px 0 6px; font-size: 1.9rem; color: #fff; letter-spacing: -.01em; }
+  .한줄 { margin: 0 auto 26px; max-width: 520px; color: var(--글); }
+  .받기 { display: inline-flex; align-items: center; gap: 10px; padding: 15px 30px; border-radius: 12px;
+          background: var(--악센트); color: #0b1a14; font-weight: 800; font-size: 1.12rem; text-decoration: none;
+          box-shadow: 0 6px 20px rgba(127,209,174,.25); }
+  .받기:hover { filter: brightness(1.06); }
+  .받기 svg { width: 22px; height: 22px; }
+  .받기정보 { margin: 12px 0 0; color: var(--흐린글); font-size: .9rem; }
+  .폰말 { margin: 22px auto 0; max-width: 460px; padding: 14px 16px; border-radius: 10px; border: 1px solid #5c4a1f;
+          background: #231d0e; color: #f1d58a; font-size: .95rem; }
+  .폰말 button { margin-top: 10px; padding: 8px 16px; border-radius: 8px; border: 1px solid #7a6428; background: none;
+                 color: #f1d58a; font: inherit; font-weight: 700; cursor: pointer; }
+  .폰말[hidden] { display: none; }
+
+  h2 { margin: 44px 0 14px; font-size: 1.25rem; color: #fff; }
+  .걸음들 { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+  .걸음 { display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding: 18px; border: 1px solid var(--테두리); border-radius: 12px; background: var(--판); }
+  .번호 { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--악센트진); color: #fff; font-weight: 800; }
+  .걸음 h3 { margin: 4px 0 6px; font-size: 1.05rem; color: #fff; }
+  .걸음 p { margin: 6px 0; }
+  .흐림 { color: var(--흐린글); font-size: .92rem; }
+  kbd, .단추글 { display: inline-block; padding: 0 7px; border: 1px solid var(--테두리); border-radius: 5px; background: #0f1318;
+                 font: inherit; font-size: .9em; font-weight: 700; color: #fff; white-space: nowrap; }
+
+  /* 「Windows의 PC 보호」 창 흉내 — 어디를 누르는지만 보여 준다 */
+  .창들 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0 6px; }
+  .창 { position: relative; background: #0d5cab; color: #fff; border-radius: 4px; padding: 18px 18px 64px; font-family: "Segoe UI", "맑은 고딕", sans-serif;
+        font-size: .82rem; line-height: 1.55; min-height: 210px; box-shadow: 0 6px 22px rgba(0,0,0,.4); }
+  .창 .창제목 { font-size: 1.15rem; font-weight: 300; margin: 0 0 10px; }
+  .창 .창글 { margin: 0 0 10px; opacity: .95; }
+  .창 .더보기 { display: inline-block; text-decoration: underline; font-weight: 600; }
+  .창 .창단추들 { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; }
+  .창 .창단추 { padding: 5px 18px; border: 2px solid #fff; background: none; color: #fff; font: inherit; font-weight: 600; }
+  .창 .창단추.흐린 { border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.85); }
+  .창 .창표 { margin: 8px 0 0; }
+  .창 .창표 span { display: inline-block; min-width: 52px; opacity: .8; }
+  .누를곳 { outline: 3px solid #ffd43b; outline-offset: 3px; border-radius: 3px; animation: 깜빡 1.4s ease-in-out infinite; }
+  @keyframes 깜빡 { 50% { outline-color: rgba(255,212,59,.35); } }
+  @media (prefers-reduced-motion: reduce) { .누를곳 { animation: none; } }
+  .창밑 { margin: 6px 0 0; font-size: .86rem; color: var(--흐린글); text-align: center; }
+  .창밑 b { color: #ffd43b; }
+
+  .묻답 { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .묻답 li { padding: 14px 16px; border: 1px solid var(--테두리); border-radius: 10px; background: var(--판); }
+  .묻답 b { color: #fff; }
+  .끝 { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--테두리); color: var(--흐린글); font-size: .88rem; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 1.55rem; }
+    .첫판 { padding: 30px 14px 28px; }
+    .창들 { grid-template-columns: 1fr; }
+    .걸음 { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="머리">
+  <a href="./"><img src="자산/아이콘.png" alt=""><span>세진 <b>과학</b></span></a>
+</div>
+
+<main>
+
+<section class="첫판">
+  <img src="자산/아이콘512.png" alt="세도비 런처 아이콘">
+  <h1>세도비 런처</h1>
+  <p class="한줄">학생관리 · 문제은행 · 디자인을 한 곳에서 켜는 Windows 프로그램입니다.
+    가입하면 누구나 <b>자기 채널</b>을 갖고, 초대를 받으면 다른 사람의 채널에도 들어갑니다.</p>
+  <a class="받기" id="받기" href="https://pub-cdafc1e706964b9c84ebcdd306dd79f0.r2.dev/launcher/sedobi-setup.exe" download>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+    내려받기
+  </a>
+  <p class="받기정보" id="받기정보">Windows 10 · 11 (64비트) · <span id="받기크기">98MB</span> · 깔면 최신 판으로 저절로 바뀝니다</p>
+  <div class="폰말" id="폰말" hidden>
+    지금 폰으로 보고 있습니다. 세도비 런처는 <b>Windows 컴퓨터</b>에 까는 프로그램입니다 —
+    컴퓨터에서 이 주소를 여세요.<br>
+    <button type="button" id="주소복사">이 주소 복사</button>
+  </div>
+</section>
+
+<h2>설치 — 세 걸음</h2>
+<ol class="걸음들">
+  <li class="걸음">
+    <span class="번호">1</span>
+    <div>
+      <h3>받기</h3>
+      <p>위의 <span class="단추글">내려받기</span> 를 누릅니다. <code>sedobi-setup.exe</code> 가 받아집니다.</p>
+      <p class="흐림">브라우저가 「흔히 다운로드되는 파일이 아닙니다」 라고 하면 파일 옆의 <span class="단추글">⋯</span> → <span class="단추글">유지</span> 를 누르세요.</p>
+    </div>
+  </li>
+  <li class="걸음">
+    <span class="번호">2</span>
+    <div>
+      <h3>실행 — 파란 창이 뜨면 「추가 정보」 → 「실행」</h3>
+      <p>받은 파일을 두 번 누릅니다. 처음에는 거의 다 아래 같은 <b>파란 창</b>이 뜹니다.
+         세도비 런처가 아직 마이크로소프트 서명을 받지 않은 새 프로그램이라서 뜨는 창입니다.</p>
+      <div class="창들" aria-hidden="true">
+        <div>
+          <div class="창">
+            <p class="창제목">Windows의 PC 보호</p>
+            <p class="창글">Microsoft Defender SmartScreen에서 인식할 수 없는 앱의 시작을 차단했습니다. 이 앱을 실행하면 PC가 위험에 노출될 수 있습니다.</p>
+            <span class="더보기 누를곳">추가 정보</span>
+            <div class="창단추들"><span class="창단추 흐린">실행 안 함</span></div>
+          </div>
+          <p class="창밑">① <b>추가 정보</b> 를 누른다</p>
+        </div>
+        <div>
+          <div class="창">
+            <p class="창제목">Windows의 PC 보호</p>
+            <p class="창글">Microsoft Defender SmartScreen에서 인식할 수 없는 앱의 시작을 차단했습니다.</p>
+            <p class="창표"><span>앱:</span> sedobi-setup.exe<br><span>게시자:</span> 알 수 없는 게시자</p>
+            <div class="창단추들"><span class="창단추 누를곳">실행</span><span class="창단추 흐린">실행 안 함</span></div>
+          </div>
+          <p class="창밑">② 새로 생긴 <b>실행</b> 을 누른다</p>
+        </div>
+      </div>
+      <p class="흐림">「앱: sedobi-setup.exe」 인지 꼭 보고 누르세요. 설치는 저절로 끝나고 런처가 켜집니다.</p>
+    </div>
+  </li>
+  <li class="걸음">
+    <span class="번호">3</span>
+    <div>
+      <h3>로그인 — 없으면 회원 가입</h3>
+      <p>런처 오른쪽 위 <span class="단추글">로그인</span> 을 누릅니다. 계정이 없으면 <span class="단추글">회원 가입</span> — 메일로 온 번호를 넣으면 끝입니다.
+         <b>세진 과학 홈페이지 계정과 같은 계정</b>입니다.</p>
+      <p class="흐림">초대를 받았다면 초대받은 메일로 들어와서 이름 → <span class="단추글">초대 관리</span> → 받은 초대에서 <span class="단추글">받기</span> 를 누르세요.
+         앱을 켤 때 어느 채널로 열지 고르게 됩니다.</p>
+    </div>
+  </li>
+</ol>
+
+<h2>자주 묻는 것</h2>
+<ul class="묻답">
+  <li><b>업데이트는 어떻게 하나요?</b><br>런처가 새 판을 스스로 받아 옵니다. 다시 받아 깔 필요가 없습니다.</li>
+  <li><b>맥(Mac)이나 폰에서도 되나요?</b><br>아직 Windows 컴퓨터만 됩니다. 강의 보기는 폰에서도 <a href="./">세진 과학</a> 에서 됩니다.</li>
+  <li><b>파란 창이 무섭습니다.</b><br>서명이 없는 새 프로그램이면 늘 뜨는 창입니다. 이 쪽(sejinedu.github.io)의 <span class="단추글">내려받기</span> 로 받은 <code>sedobi-setup.exe</code> 만 실행하세요.</li>
+</ul>
+
+<div class="끝">
+  <a href="./">세진 과학으로</a>
+  <a href="개인정보.html">개인정보처리방침</a>
+</div>
+
+</main>
+
+<script>
+  // 폰·맥이면 「컴퓨터에서 열어라」 — 받기 단추는 그대로 둔다(태블릿 PC 도 있다)
+  (function () {
+    var 윈도우 = /Windows NT/i.test(navigator.userAgent);
+    var 폰 = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    if (!윈도우 || 폰) document.getElementById("폰말").hidden = false;
+    document.getElementById("주소복사").addEventListener("click", function () {
+      var 단 = this;
+      var 끝 = function (글) { 단.textContent = 글; setTimeout(function () { 단.textContent = "이 주소 복사"; }, 1800); };
+      try { navigator.clipboard.writeText(location.origin + location.pathname).then(function () { 끝("복사했다"); }, function () { 끝("못 했다 — 주소창을 길게 눌러 복사"); }); }
+      catch (오류) { 끝("못 했다 — 주소창을 길게 눌러 복사"); }
+    });
+  })();
+
+  // 크기 — 런처 방이 올리는 latest.yml 에서 읽는다(버킷 CORS 가 열려야 읽힌다). 못 읽으면 처음 글 그대로 둔다
+  //   ★ 판 번호·날짜는 안 띄운다 — 설치 파일은 옛 판(껍데기)이어도 처음 켤 때 알맹이를 최신으로 받아 갈아입는다(런처 방, 2026-09-24).
+  //     옛 판 번호를 띄우면 「옛 것을 받는다」 로 읽힌다.
+  (function () {
+    var 주소 = "https://pub-cdafc1e706964b9c84ebcdd306dd79f0.r2.dev/launcher/latest.yml";
+    if (!window.fetch) return;
+    fetch(주소 + "?t=" + Date.now(), { cache: "no-store" }).then(function (ㄷ) { return ㄷ.ok ? ㄷ.text() : ""; }).then(function (글) {
+      var 크기 = Number((/^\s*size:\s*(\d+)/m.exec(글 || "") || [])[1]);
+      if (크기) document.getElementById("받기크기").textContent = Math.round(크기 / 1048576) + "MB";
+    }).catch(function () {});
+  })();
+</script>
+</body>
+</html>
