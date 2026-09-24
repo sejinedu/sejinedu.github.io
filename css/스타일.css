@@ -1820,8 +1820,8 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .로그인단추.들어옴 { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 700px) { .로그인단추.들어옴 { max-width: 150px; } }
 
-/* 선생 관리 표 — 이름 · 메일 · 소속 · 맡은 반 · 권한 · 상태 · 단추 */
-.선생표 .글표머리, .선생표 .글표줄 { grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr) 76px 88px minmax(0, 1.4fr) 50px 176px; }   /* 단추 칸 폭을 박는다 — 원장 줄은 단추가 없어 칸이 밀렸다 */
+/* 선생 관리 표 — 이름 · 메일 · 소속 · 상태 · 단추 (권한은 각 앱에서 정한다, 2026-09-24) */
+.선생표 .글표머리, .선생표 .글표줄 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 90px 56px 132px; }   /* 단추 칸 폭을 박는다 — 원장 줄은 단추가 없어 칸이 밀렸다 */
 .선생표 .칸소속, .선생표 .칸반, .선생표 .칸상태 { font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .선생표 .칸권한 { font-size: .78rem; color: var(--흐린글); overflow-wrap: anywhere; }
 .선생표 .칸단추 { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
@@ -1854,7 +1854,7 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .선생단추줄 .선생큰단추 { margin: 0; }
 @media (max-width: 700px) {
   .선생표 .글표머리 { display: none; }
-  .선생표 .글표줄 { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: "제목 상태" "메일 메일" "권한 권한" "단추 단추"; row-gap: 4px; }
+  .선생표 .글표줄 { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: "제목 상태" "메일 메일" "단추 단추"; row-gap: 4px; }
   .선생표 .칸소속, .선생표 .칸반 { display: none; }
   .선생표 .칸제목 { grid-area: 제목; } .선생표 .칸메일 { grid-area: 메일; } .선생표 .칸권한 { grid-area: 권한; }
   .선생표 .칸상태 { grid-area: 상태; } .선생표 .칸단추 { grid-area: 단추; justify-content: flex-start; }
@@ -1864,3 +1864,7 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .선생과목 { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; flex: 1 1 100%; }
 .선생과목[hidden] { display: none; }
 .선생과목 input[type="text"] { flex: 1 1 240px; min-width: 200px; }
+/* 초대 — 복사한 카톡 글을 보여 준다 */
+.선생폼 .선생틀 input[type="email"] { flex: 1 1 260px; }
+.선생카톡 { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: .84rem; color: var(--글); background: var(--바탕, transparent); border: 1px solid var(--테두리); border-radius: 8px; padding: 10px 12px; margin: 6px 0 8px; }
+.선생카톡[hidden] { display: none; }
