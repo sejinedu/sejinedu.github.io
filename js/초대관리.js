@@ -146,60 +146,63 @@ const 초대관리 = (() => {
     if (!명단.length) 표.appendChild(만들기("div", "글표빔", "아직 아무도 없다"));
     틀.appendChild(표);
 
-    // 초대 — 메일 한 칸 · 단추 하나
+    // ★ 초대는 두 가지 (2026-09-24 사장님: 「이제 초대는 가입한 사람만 초대하는거야. 가입 하지도 않은 사람을 초대 할순 없는거야.
+    //   초대는 2가지다. 가입한 사람을 대상으로 자기 채널로 초대하는 경우. 그냥 우리 홈피 와서 가입하세요~ 하는 초대가 있는거다.」)
+    //   ① 채널로 초대 — 가입한 메일만(서버 학원_초대 가 거절한다). 받은 사람 이름 칸에 빨간 점이 뜨니 카톡 글은 없다.
+    //   ② 가입 안내 — 서버 일 없이 글만 복사한다.
+    const 채널이름 = (내것 && 내것.이름) || "내 채널";
     const 폼 = 만들기("div", "선생틀 선생폼");
-    폼.appendChild(만들기("p", "선생풀이", "초대 — 메일만 넣으면 된다. 누르면 런처 받는 곳이 적힌 카톡 글이 복사된다.\n받은 사람이 「받기」 를 눌러야 들어온다. 권한은 각 앱에서 정한다."));
+    폼.appendChild(만들기("h4", "초대폼제목", "① 채널로 초대"));
+    폼.appendChild(만들기("p", "선생풀이", "이미 가입한 사람의 메일을 넣는다. 받은 사람 이름에 빨간 점이 뜨고, 「받기」 를 눌러야 들어온다.\n권한은 각 앱에서 정한다."));
     const 폼줄 = 만들기("div", "선생틀");
-    const 메일칸 = document.createElement("input"); 메일칸.type = "email"; 메일칸.placeholder = "초대할 사람 메일"; 메일칸.autocomplete = "off";
-    const 초대단 = 만들기("button", "선생큰단추", "초대하고 카톡 글 복사"); 초대단.type = "button";
+    const 메일칸 = document.createElement("input"); 메일칸.type = "email"; 메일칸.placeholder = "초대할 사람의 가입 메일"; 메일칸.autocomplete = "off";
+    const 초대단 = 만들기("button", "선생큰단추", "채널로 초대"); 초대단.type = "button";
     폼줄.append(메일칸, 초대단);
     const 폼말 = 만들기("p", "회원말");
+    폼.append(폼줄, 폼말);
+
+    폼.appendChild(만들기("h4", "초대폼제목", "② 가입 안내"));
+    폼.appendChild(만들기("p", "선생풀이", "아직 가입 안 한 사람에게 보낼 글이다. 복사해서 카톡에 붙여 넣어라 — 가입하면 그 메일로 ① 초대를 한다."));
+    const 안내줄 = 만들기("div", "선생틀");
+    const 안내단 = 만들기("button", "선생큰단추", "가입 안내 글 복사"); 안내단.type = "button";
+    안내줄.appendChild(안내단);
+    const 안내말 = 만들기("p", "회원말");
     const 글상자 = 만들기("pre", "선생카톡"); 글상자.hidden = true;
-    const 다시단 = 만들기("button", "선생작은단추", "다시 복사"); 다시단.type = "button"; 다시단.hidden = true;
-    폼.append(폼줄, 폼말, 글상자, 다시단);
+    폼.append(안내줄, 안내말, 글상자);
     틀.appendChild(폼);
 
-    const 채널이름 = (내것 && 내것.이름) || "내 채널";
-    const 카톡글 = 메일 => "[" + 채널이름 + "] 세도비 채널 초대\n" +
+    const 가입안내글 = () => "[세도비] 가입 안내 — 「" + 채널이름 + "」 에서 보냅니다\n" +
+      "세도비 프로그램(학생관리 · 문제은행 · 디자인)을 쓰려면 가입해 주세요.\n" +
       "1) 세도비 런처 받기: " + 런처받는곳 + "\n" +
-      "2) 로그인(없으면 회원 가입) — 이 메일로: " + 메일 + "\n" +
-      "3) 로그인한 뒤 이름 → 「초대 관리」 → 받은 초대에서 「받기」\n" +
-      "4) 앱을 누르면 채널을 골라 연다";
-    const 폼말쓰기 = (글, 결) => { 폼말.textContent = 글; 폼말.className = "회원말" + (결 ? " " + 결 : ""); };
-    async function 복사() {
-      try { await navigator.clipboard.writeText(글상자.textContent); 폼말쓰기("복사했다 — 카톡에 붙여 넣어라"); }
-      catch (오류) { 폼말쓰기("복사를 못 했다 — 아래 글을 직접 긁어 가라", "탈"); }
-    }
-    다시단.addEventListener("click", 복사);
+      "2) 런처 오른쪽 위 「로그인」 → 「회원 가입」 (홈피 https://sejinedu.github.io 에서도 가입된다)\n" +
+      "3) 가입한 메일을 알려 주면 채널로 초대해 드립니다.";
+    const 말쓰기 = (ㄱ, 글, 결) => { ㄱ.textContent = 글; ㄱ.className = "회원말" + (결 ? " " + 결 : ""); };
+    안내단.addEventListener("click", async () => {
+      글상자.textContent = 가입안내글(); 글상자.hidden = false;
+      try { await navigator.clipboard.writeText(글상자.textContent); 말쓰기(안내말, "복사했다 — 카톡에 붙여 넣어라"); }
+      catch (오류) { 말쓰기(안내말, "복사를 못 했다 — 아래 글을 직접 긁어 가라", "탈"); }
+    });
+
     초대단.addEventListener("click", async () => {
       const 메일 = 메일칸.value.trim().toLowerCase();
-      if (!메일꼴.test(메일)) { 폼말쓰기("메일을 다시 봐라", "탈"); 메일칸.focus(); return; }
-      if (메일 === 내메일) { 폼말쓰기("내 메일이다 — 다른 사람 메일을 넣어라", "탈"); return; }
-      글상자.textContent = 카톡글(메일);
+      if (!메일꼴.test(메일)) { 말쓰기(폼말, "메일을 다시 봐라", "탈"); 메일칸.focus(); return; }
+      if (메일 === 내메일) { 말쓰기(폼말, "내 메일이다 — 다른 사람 메일을 넣어라", "탈"); return; }
       // ★ 이미 명단에 있으면 초대를 다시 보내지 않는다 — 앱에서 정해 둔 권한을 덮어쓰면 안 된다
-      if (명단.some(사람 => String(사람.메일 || "").toLowerCase() === 메일)) {
-        글상자.hidden = false; 다시단.hidden = false;
-        await 복사(); 폼말쓰기("이미 명단에 있다 — 카톡 글만 복사했다");
-        return;
-      }
-      초대단.disabled = true; 폼말쓰기("초대하는 중…");
+      if (명단.some(사람 => String(사람.메일 || "").toLowerCase() === 메일)) { 말쓰기(폼말, "이미 명단에 있다"); return; }
+      초대단.disabled = true; 말쓰기(폼말, "초대하는 중…");
       try {
         await 회원.학원부르기("학원_초대", { p_메일: 메일, p_소속이름: "선생님", p_권한: { 반범위: "자기" }, p_강사id: null });
-      } catch (오류) { 폼말쓰기("못 했다 — " + 오류.message, "탈"); 초대단.disabled = false; return; }
-      글상자.hidden = false; 다시단.hidden = false;
-      await 복사();
-      알림("초대했다 — 카톡에 붙여 넣어라");
-      // 명단에 새 줄을 넣되 방금 복사한 글은 남긴다
-      명단 = 명단.concat([{ 메일, 닉네임: null, 소속이름: "선생님", 상태: "초대", 들어왔나: false }]);
-      const 남길글 = 글상자.textContent;
-      그리기(줄들, 내것, 명단);
-      const 새폼 = 칸.querySelector(".선생폼");
-      if (새폼) {
-        const 새글 = 새폼.querySelector(".선생카톡"); 새글.textContent = 남길글; 새글.hidden = false;
-        [...새폼.querySelectorAll(".선생작은단추")].pop().hidden = false;
-        const 새말 = 새폼.querySelector(".회원말"); 새말.textContent = "초대했다 — 복사한 글을 카톡에 붙여 넣어라";
-        새폼.scrollIntoView({ block: "nearest" });
+      } catch (오류) {
+        초대단.disabled = false;
+        if (/가입하지 않은/.test(오류.message)) 말쓰기(폼말, "아직 가입하지 않은 메일이다 — 아래 「가입 안내 글 복사」 로 먼저 가입하게 해라", "탈");
+        else 말쓰기(폼말, "못 했다 — " + 오류.message, "탈");
+        return;
       }
+      알림("초대했다 — 받은 사람 이름에 빨간 점이 뜬다");
+      명단 = 명단.concat([{ 메일, 닉네임: null, 소속이름: "선생님", 상태: "초대", 들어왔나: false }]);
+      그리기(줄들, 내것, 명단);
+      const 새말 = 칸.querySelector(".선생폼 .회원말");
+      if (새말) { 말쓰기(새말, "초대했다 — " + 메일 + " 이름에 빨간 점이 뜬다. 「받기」 를 누르면 들어온다", "됨"); 새말.scrollIntoView({ block: "nearest" }); }
     });
     메일칸.addEventListener("keydown", 이 => { if (이.key === "Enter") 초대단.click(); });
   }
