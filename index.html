@@ -107,8 +107,8 @@
 
     <!-- ★ 회원 관리 — 관리자만 (2026-09-23 · 사용자가 정함 「권한 설정하는 기능」) — js/회원관리.js -->
     <div class="격자보기 회원관리" id="회원관리" hidden></div>
-    <!-- ★ 선생 관리 — 학원 원장 · 「초대」 권한 (2026-09-24 · 로그인 화면 규격 「런처와 같게」) — js/선생관리.js -->
-    <div class="격자보기 회원관리 선생관리" id="선생관리" hidden></div>
+    <!-- ★ 초대 관리 — 받은 초대 · 들어간 채널 · 내 채널 (2026-09-24 · 로그인 화면 규격 「채널 판」) — js/초대관리.js -->
+    <div class="격자보기 회원관리 선생관리" id="초대관리" hidden></div>
 
     <!-- ② 시청 화면 — 썸네일을 누르면 여기 -->
     <div class="보기" id="보기" hidden>
@@ -265,10 +265,6 @@
     <label class="연결칸" id="별명칸" hidden>
       <span class="연결이름">닉네임 — 댓글에 이 이름이 나온다 (메일은 안 보인다)</span>
       <input type="text" id="로그인별명" maxlength="20" placeholder="두 글자에서 스무 글자" autocomplete="nickname">
-    </label>
-    <label class="연결칸" id="학원칸" hidden>
-      <span class="연결이름">학원 이름 — 원장이면 넣고 「원장 — 내 학원 만들기」</span>
-      <input type="text" id="로그인학원" maxlength="40" placeholder="학원 이름 (예: 세진과학)" autocomplete="organization">
     </label>
     <p class="연결말" id="로그인말"></p>
     <p class="로그인바꾸기" id="로그인바꾸기"></p>
@@ -471,7 +467,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
               // ★ 회원은 맨 뒤에 싣는다 — 여기서 탈이 나도 강의 보기는 이미 떠 있다 (2026-09-22)
               "js/회원.js", "js/로그인창.js", "js/과목단원고르개.js", "js/댓글.js", "js/올리기창.js", "js/순서손잡이.js", "js/유튜브가져오기창.js", "js/회원관리.js",
               // ★ 비공개 글 · 게시글 비밀번호 · 단원 관리 (2026-09-23)
-              "js/비공개.js", "js/단원관리.js", "js/선생관리.js"];
+              "js/비공개.js", "js/단원관리.js", "js/초대관리.js"];
 
   // ============================================================
   //  카카오톡 안에서 열렸으면 진짜 브라우저로 넘긴다
@@ -563,7 +559,7 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
         return;
       }
       // ★ 회원 쪽 파일은 못 읽어도 화면을 지우지 않는다 — 강의 보기는 로그인 없이 돼야 한다
-      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이|유튜브가져오기창|과목단원고르개|회원관리|비공개|단원관리|선생관리)\.js$/.test(차례[ㅈ]);
+      var 없어도됨 = /^js\/(회원|로그인창|댓글|저장소자료|올리기창|순서손잡이|유튜브가져오기창|과목단원고르개|회원관리|비공개|단원관리|초대관리)\.js$/.test(차례[ㅈ]);
       스크립트(차례[ㅈ] + "?v=" + 판,
         function () {
           if (차례[ㅈ] === "js/저장소자료.js" && window.저장소준비) {

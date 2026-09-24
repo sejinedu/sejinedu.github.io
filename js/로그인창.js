@@ -24,7 +24,6 @@
     비번: [document.getElementById("비번칸"), document.getElementById("로그인비번")],
     번호: [document.getElementById("번호칸"), document.getElementById("로그인번호")],
     별명: [document.getElementById("별명칸"), document.getElementById("로그인별명")],
-    학원: [document.getElementById("학원칸"), document.getElementById("로그인학원")],
   };
   const 밖의문칸 = document.getElementById("밖의문");
   const 말   = document.getElementById("로그인말");
@@ -39,24 +38,21 @@
   //    원본: 0 세도비 지침서\로그인 화면 규격.md — 런처와 홈피 검사가 이 두 줄을 **글자 그대로** 대조한다.
   //    바꿀 때는 규격 파일부터 고치고 런처 · 홈피를 같이 고친다. 한쪽만 바꾸면 빨강이다.
   const 로그인창차례 = ["로그인", "회원 가입", "비밀번호 찾기"];
-  const 드롭바차례 = ["닉네임 바꾸기", "비밀번호 바꾸기", "선생 관리", "회원 관리", "게시글 비밀번호", "로그아웃"];
+  const 드롭바차례 = ["닉네임 바꾸기", "비밀번호 바꾸기", "초대 관리", "회원 관리", "게시글 비밀번호", "로그아웃"];
   const [글로그인, 글가입, 글찾기] = 로그인창차례;
 
-  // 이름 칸 — 「닉네임 · 학원 · 소속」 (빈 칸은 뺀다 · 닉네임이 없으면 메일 앞부분 · 학원은 「활성」 일 때만)
-  function 학원활성(ㅅ) { return !!(ㅅ.학원 && ㅅ.학원.학원 && ㅅ.학원.상태 === "활성"); }
+  // 이름 칸 — 「닉네임」 만 (채널 판: 채널은 앱마다 고르니 한 채널을 못 박지 않는다) · 닉네임이 없으면 메일 앞부분
+  //   받은 초대가 있으면 빨간 점 — 점은 단추칠하기가 따로 붙인다(글자는 닉네임 그대로)
   function 이름칸글(ㅅ) {
     if (!ㅅ.들어왔나) return 글로그인;
-    const 이름 = ㅅ.별명 || String(ㅅ.메일 || "").split("@")[0] || "회원";
-    const 칸 = [이름];
-    if (학원활성(ㅅ)) { 칸.push(ㅅ.학원.학원이름 || ""); 칸.push(ㅅ.학원.원장인가 ? "원장" : (ㅅ.학원.소속이름 || "")); }
-    return 칸.filter(Boolean).join(" · ");
+    return ㅅ.별명 || String(ㅅ.메일 || "").split("@")[0] || "회원";
   }
+  const 채널줄들 = ㅅ => (ㅅ.채널 && Array.isArray(ㅅ.채널.목록)) ? ㅅ.채널.목록 : [];
+  const 받은초대수 = ㅅ => 채널줄들(ㅅ).filter(ㄱ => !ㄱ.내것 && ㄱ.상태 === "초대").length;
+  const 계정정지 = ㅅ => ㅅ.등급 !== "admin" && 채널줄들(ㅅ).some(ㄱ => ㄱ.내것 && ㄱ.정지);
   let 새비번제목 = "";
-  let 걸음 = "로그인";   // 로그인 · 번호로그인 · 번호로그인확인 · 가입 · 가입확인 · 별명 · 쓰임 · 나
-  // ★ 가입 끝 「어떻게 쓰나요?」 (2026-09-24 · 로그인 화면 규격 · 사장님: 「임의의 사람이 가입했을때 스스로 원장을 선택 할수 있어야」)
-  //   가입(또는 구글로 처음 들어옴) → 닉네임 → 쓰임. 초대받은 메일이라 이미 학원에 들어왔으면 건너뛴다.
-  //   원장이 돼도 홈피 등급은 안 오른다 — 홈피 영상·글은 관리자가 회원 관리에서 따로 준다.
-  let 가입중 = false;
+  let 걸음 = "로그인";   // 로그인 · 번호로그인 · 번호로그인확인 · 가입 · 가입확인 · 별명 · 나
+  // (「어떻게 쓰나요?」 는 없앴다 — 채널 판: 가입하면 누구나 제 채널이 저절로 생긴다, 2026-09-24)
   let 받은메일 = "";
   let 도는중 = false;
 
@@ -157,14 +153,6 @@
       건너가기([]);
       별명.value = ㅅ.별명 || (ㅅ.추천별명 || "").slice(0, 20);      // 구글로 들어왔으면 구글 이름을 미리 넣어 둔다
       setTimeout(() => 별명.focus(), 30);
-    } else if (걸음 === "쓰임") {
-      제목.textContent = "어떻게 쓰나요?";
-      설명.textContent = "학원 원장이면 학원을 만든다 — 학생관리·문제은행·디자인을 바로 쓴다.\n" +
-                         "초대받은 선생님은 초대받은 메일로 가입하면 저절로 들어온다.\n" +
-                         "홈피만 쓸 거면 「그냥 회원으로」.";
-      보일칸("학원"); 하기.textContent = "원장 — 내 학원 만들기"; 취소.textContent = "그냥 회원으로";
-      건너가기([]);
-      setTimeout(() => 칸들.학원[1].focus(), 30);
     } else {
       제목.textContent = ㅅ.별명 || "내 계정";
       설명.textContent = (등급이름[ㅅ.등급] || "일반 회원") + " · " + ㅅ.메일;
@@ -184,24 +172,12 @@
     else 걸음보이기("나");
     막.hidden = false;
   }
-  function 닫기() { 막.hidden = true; 도는중 = false; 하기.disabled = false; 칸들.비번[1].value = ""; 가입중 = false; }
+  function 닫기() { 막.hidden = true; 도는중 = false; 하기.disabled = false; 칸들.비번[1].value = ""; }
 
   async function 들어온뒤() {
     const ㅅ = 회원.상태();
     if (!ㅅ.별명) { 말하기(""); 걸음보이기("별명"); }
-    else if (가입중) 쓰임으로();
     else { 말하기("들어왔다", "됨"); setTimeout(닫기, 500); }
-  }
-
-  // 닉네임 다음 — 이미 학원에 들어왔으면(초대받은 메일) 묻지 않는다
-  function 쓰임으로() {
-    const ㅅ = 회원.상태();
-    if (ㅅ.학원 && ㅅ.학원.학원) {
-      가입중 = false;
-      말하기("「" + (ㅅ.학원.학원이름 || "학원") + "」 에 들어왔다", "됨"); setTimeout(닫기, 900);
-      return;
-    }
-    말하기(""); 칸들.학원[1].value = ""; 걸음보이기("쓰임");
   }
 
   async function 누름() {
@@ -231,27 +207,16 @@
         const ㄹ = await 회원.가입하기(메일, 비번);
         받은메일 = String(메일).trim();
         말하기("");
-        if (ㄹ.바로됨) { 가입중 = true; await 들어온뒤(); } else 걸음보이기("가입확인");
+        if (ㄹ.바로됨) await 들어온뒤(); else 걸음보이기("가입확인");
       } else if (걸음 === "가입확인") {
         말하기("확인하는 중…");
         await 회원.가입확인(받은메일, 칸들.번호[1].value);
-        가입중 = true;
         await 들어온뒤();
       } else if (걸음 === "별명") {
         말하기("정하는 중…");
         await 회원.별명정하기(칸들.별명[1].value);
         말하기("정했다", "됨");
-        if (가입중) setTimeout(쓰임으로, 500);
-        else setTimeout(닫기, 500);
-      } else if (걸음 === "쓰임") {
-        const 이름 = 칸들.학원[1].value.trim();
-        if (!이름) { 말하기("학원 이름을 넣어라", "탈"); 칸들.학원[1].focus(); return; }
-        말하기("학원을 만드는 중…");
-        await 회원.학원부르기("학원_만들기", { p_이름: 이름 });
-        await 회원.학원읽기();
-        가입중 = false;
-        말하기("「" + 이름 + "」 원장이 됐다 — 런처에서 학생관리·문제은행·디자인을 바로 쓴다", "됨");
-        setTimeout(닫기, 1600);
+        setTimeout(닫기, 500);
       } else {
         await 회원.나가기();
         닫기();
@@ -278,11 +243,7 @@
   }
 
   하기.addEventListener("click", 누름);
-  취소.addEventListener("click", () => {
-    if (걸음 === "별명" && 가입중) return 쓰임으로();                 // 닉네임 「나중에」 — 그래도 쓰임은 묻는다
-    if (걸음 === "쓰임") { 가입중 = false; 말하기("홈피 회원으로 들어왔다", "됨"); setTimeout(닫기, 700); return; }   // 「그냥 회원으로」
-    닫기();
-  });
+  취소.addEventListener("click", 닫기);
   막.addEventListener("click", ㄴ => { if (ㄴ.target === 막) 닫기(); });
   Object.values(칸들).forEach(([, 칸]) => 칸.addEventListener("keydown", ㄴ => {
     if (ㄴ.key === "Enter") { ㄴ.preventDefault(); 누름(); }
@@ -297,34 +258,28 @@
   const 계정메뉴 = document.getElementById("계정메뉴");
   function 계정메뉴닫기() { if (계정메뉴) 계정메뉴.hidden = true; 단추.setAttribute("aria-expanded", "false"); }
   // ★ 드롭바 — 차례는 드롭바차례 그대로 (로그인 화면 규격). 보이는 조건만 여기서 가린다:
-  //   선생 관리 — 학원 원장이거나 「초대」 권한 (학원이 없는 사람은 누구나 「학원 만들기」 로 연다)
+  //   초대 관리 — 누구나(가입하면 제 채널이 있다). 계정이 정지됐으면 안 보인다. 받은 초대가 있으면 옆에 수(글자는 그대로)
   //   회원 관리 — 관리자(admin)만 · 나머지는 늘
-  //   (2026-09-24) 학원이 없는 사람은 **누구나** 「학원 만들기」 로 연다 — 스스로 원장. 정지된 학원 사람은 안 보인다.
-  function 선생관리되나(ㅅ) {
-    if (학원활성(ㅅ)) return !!(ㅅ.학원.원장인가 || (ㅅ.학원.권한 && ㅅ.학원.권한.초대));
-    return !(ㅅ.학원 && ㅅ.학원.학원);
-  }
   function 알림(글) { try { 쪽지(글); } catch (오류) { alert(글); } }
   function 계정메뉴열기() {
     const ㅅ = 회원.상태();
     계정메뉴.replaceChildren();
-    // 머리 — 닉네임 / 학원 · 소속 / 메일 (학원이 없으면 등급)
+    // 머리 — 닉네임 / 내 채널 이름 · 들어간 채널 이름들 (관리자면 「관리자」) / 메일
     const 머리 = document.createElement("div");
     머리.className = "계정머리";
     const 이름 = document.createElement("b"); 이름.textContent = ㅅ.별명 || String(ㅅ.메일 || "").split("@")[0] || "닉네임 없음";
     const 둘째 = document.createElement("span"); 둘째.className = "계정등급";
-    둘째.textContent = 학원활성(ㅅ)
-      ? [ㅅ.학원.학원이름, ㅅ.학원.원장인가 ? "원장" : ㅅ.학원.소속이름].filter(Boolean).join(" · ")
-      : (등급이름[ㅅ.등급] || "일반 회원");
+    const 채널이름들 = 채널줄들(ㅅ).filter(ㄱ => ㄱ.내것 || ㄱ.상태 === "활성").map(ㄱ => ㄱ.이름).filter(Boolean);
+    둘째.textContent = ㅅ.등급 === "admin" ? "관리자" : (채널이름들.join(" · ") || (등급이름[ㅅ.등급] || "일반 회원"));
     const 메일 = document.createElement("div"); 메일.className = "계정메일"; 메일.textContent = ㅅ.메일 || "";
     머리.append(이름, 둘째, 메일);
     계정메뉴.appendChild(머리);
     const 금 = () => { const ㄱ = document.createElement("div"); ㄱ.className = "계정금"; 계정메뉴.appendChild(ㄱ); };
     금();
     const 할일 = {
-      "닉네임 바꾸기": { 된다: true, 누르면: () => { 말하기(""); 걸음보이기("별명"); 제목.textContent = "닉네임 바꾸기"; 설명.textContent = "댓글 · 글쓴이 · 런처 · 학원 어디서나 이 이름이 나온다."; 취소.textContent = "닫기"; 막.hidden = false; } },
+      "닉네임 바꾸기": { 된다: true, 누르면: () => { 말하기(""); 걸음보이기("별명"); 제목.textContent = "닉네임 바꾸기"; 설명.textContent = "댓글 · 글쓴이 · 런처 · 채널 어디서나 이 이름이 나온다."; 취소.textContent = "닫기"; 막.hidden = false; } },
       "비밀번호 바꾸기": { 된다: true, 누르면: () => { 말하기(""); 새비번제목 = "비밀번호 바꾸기"; 걸음보이기("새비번"); 취소.textContent = "닫기"; 막.hidden = false; } },
-      "선생 관리": { 된다: 선생관리되나(ㅅ), 누르면: () => { if (window.선생관리) 선생관리.열기(); } },
+      "초대 관리": { 된다: !계정정지(ㅅ), 수: 받은초대수(ㅅ), 누르면: () => { if (window.초대관리) 초대관리.열기(); } },
       "회원 관리": { 된다: ㅅ.등급 === "admin", 누르면: () => { if (window.회원관리) 회원관리.열기(); } },
       "게시글 비밀번호": { 된다: true, 누르면: () => {
         if (ㅅ.등급 !== "teacher" && ㅅ.등급 !== "admin") return 알림("게시글 비밀번호는 선생님 등급부터 쓴다");
@@ -342,6 +297,7 @@
       ㄷ.type = "button"; ㄷ.setAttribute("role", "menuitem");
       ㄷ.className = "계정줄" + (ㄱ.결 ? " " + ㄱ.결 : "");
       ㄷ.textContent = 글;
+      if (ㄱ.수) { const 배지 = document.createElement("span"); 배지.className = "계정배지"; 배지.textContent = String(ㄱ.수); ㄷ.appendChild(배지); }   // 글자는 그대로, 수는 따로
       ㄷ.addEventListener("click", ㄴ => { ㄴ.stopPropagation(); 계정메뉴닫기(); ㄱ.누르면(); });
       계정메뉴.appendChild(ㄷ);
     });
@@ -361,8 +317,13 @@
 
   // 머리줄 — 로그인 전엔 「로그인」 「가입」, 뒤엔 별명 하나
   function 단추칠하기(ㅅ) {
-    단추.textContent = 이름칸글(ㅅ);                  // 「닉네임 · 학원 · 소속」 (로그인 화면 규격)
+    단추.textContent = 이름칸글(ㅅ);                  // 「닉네임」 (로그인 화면 규격 · 채널 판)
     단추.title = ㅅ.들어왔나 ? 단추.textContent : "";
+    const 초대수 = ㅅ.들어왔나 ? 받은초대수(ㅅ) : 0;
+    if (초대수) {                                      // 받은 초대가 있으면 빨간 점
+      const 점 = document.createElement("span"); 점.className = "빨간점"; 점.setAttribute("aria-label", "받은 초대 " + 초대수);
+      단추.appendChild(점); 단추.title += " — 받은 초대 " + 초대수;
+    }
     단추.classList.toggle("들어옴", !!ㅅ.들어왔나);
     if (가입단) 가입단.hidden = true;          // ★ 머리줄 「가입」 은 없앴다 — 로그인 창 안 「회원 가입」 으로
     document.body.classList.toggle("회원", !!ㅅ.들어왔나);
@@ -402,7 +363,7 @@
     const 끄기 = 회원.듣기(ㅅ => {
       if (!ㅅ.들어왔나) return;
       끄기();
-      if (!ㅅ.별명) { 열기(); 가입중 = true; }          // 닉네임이 없다 = 구글로 처음 온 사람 → 닉네임 다음에 「어떻게 쓰나요?」
+      if (!ㅅ.별명) 열기();
     });
   }
 })();
