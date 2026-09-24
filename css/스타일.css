@@ -1868,3 +1868,19 @@ html { scrollbar-gutter: stable; overflow-y: scroll; }
 .선생폼 .선생틀 input[type="email"] { flex: 1 1 260px; }
 .선생카톡 { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: .84rem; color: var(--글); background: var(--바탕, transparent); border: 1px solid var(--테두리); border-radius: 8px; padding: 10px 12px; margin: 6px 0 8px; }
 .선생카톡[hidden] { display: none; }
+
+/* 회원 관리 「학원」 탭 — 학원 · 원장 · 인원 · 저장 · 만든 날 · 상태 · 단추 (2026-09-24 · 학원관리_목록) */
+.학원표 .글표머리, .학원표 .글표줄 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 52px 128px 88px 48px 84px; }
+.학원표 .칸인원, .학원표 .칸저장, .학원표 .칸상태 { font-size: .84rem; white-space: nowrap; }
+.학원표 .칸저장 { color: var(--흐린글); }
+.학원표 .칸저장.넘침, .학원표 .칸상태.정지됨 { color: #e08b96; font-weight: 700; }
+.학원표 .칸단추 { display: flex; justify-content: flex-end; }
+@media (max-width: 700px) {
+  .학원표 .글표머리 { display: none; }
+  .학원표 .글표줄 { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: "제목 상태" "메일 메일" "인원 저장" "단추 단추"; row-gap: 4px; }
+  .학원표 .글표줄 .칸작성일 { display: none; }
+  .학원표 .칸제목 { grid-area: 제목; } .학원표 .칸메일 { grid-area: 메일; } .학원표 .칸인원 { grid-area: 인원; }
+  .학원표 .칸저장 { grid-area: 저장; } .학원표 .칸상태 { grid-area: 상태; } .학원표 .칸단추 { grid-area: 단추; justify-content: flex-start; }
+}
+/* 가입 끝 「어떻게 쓰나요?」 — 풀이가 세 줄이다 */
+#로그인설명 { white-space: pre-line; }

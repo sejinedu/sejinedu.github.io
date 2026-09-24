@@ -10,6 +10,8 @@
 //  ★ 명단(메일 포함)과 등급 바꾸기는 저장소가 관리자만 허락한다 (site_admin_members · site_set_role).
 //    여기서 단추를 숨기는 건 보기 좋으라고고, 몰래 불러도 저장소가 거절한다.
 //  ★ 자기 등급은 못 바꾼다 — 관리자를 잃으면 되돌릴 사람이 없다 (저장소도 막는다).
+//  ★ 「학원」 탭 (2026-09-24 · 로그인 화면 규격 「홈피 등급과 앱 자격은 따로」) — 학원관리_목록 · 학원관리_정지.
+//    누구나 스스로 원장이 되어 학원을 만들 수 있게 됐다 → 관리자가 학원을 보고 막을 자리. 저장은 학원마다 1GB.
 
 const 회원관리 = (() => {
   const 칸 = document.getElementById("회원관리");
@@ -17,6 +19,7 @@ const 회원관리 = (() => {
 
   const 등급이름 = { admin: "관리자", teacher: "선생님", member: "일반 회원" };
   let 명단 = [];
+  let 학원들 = [];      // 학원관리_목록 — 학원·이름·원장메일·원장닉네임·인원·저장MB·정지·만든때
   let 탭 = "";          // "" 전체 · admin · teacher · member
   let 찾을말 = "";
 
@@ -33,7 +36,9 @@ const 회원관리 = (() => {
     window.scrollTo({ top: 0 });
     칸.replaceChildren(만들기("p", "회원말", "명단을 받는 중…"));
     try {
-      명단 = (await 회원.부르기("/rest/v1/rpc/site_admin_members", { 방법: "POST", 몸: {} })) || [];
+      [명단, 학원들] = await Promise.all([
+        회원.부르기("/rest/v1/rpc/site_admin_members", { 방법: "POST", 몸: {} }).then(ㄹ => ㄹ || []),
+        회원.학원부르기("학원관리_목록").then(ㄹ => Array.isArray(ㄹ) ? ㄹ : [], () => [])]);   // 학원 표가 없어도 회원 관리는 산다
       그리기();
     } catch (오류) {
       칸.replaceChildren(만들기("p", "회원말 탈", "명단을 못 받았다 — " + 오류.message));
@@ -49,8 +54,8 @@ const 회원관리 = (() => {
     // 첫 줄 — 등급 탭 (게시판의 세부 과목 탭과 같은 모양 · 같은 자리)
     const 띠 = 만들기("nav", "교과띠");
     const 셈 = 등급 => 명단.filter(ㅁ => !등급 || ㅁ.role === 등급).length;
-    [["", "전체"], ["admin", "관리자"], ["teacher", "선생님"], ["member", "일반 회원"]].forEach(([값, 글]) => {
-      const ㄷ = 만들기("button", "메뉴칸" + (탭 === 값 ? " 켜짐" : ""), 글 + " " + 셈(값));
+    [["", "전체"], ["admin", "관리자"], ["teacher", "선생님"], ["member", "일반 회원"], ["학원", "학원"]].forEach(([값, 글]) => {
+      const ㄷ = 만들기("button", "메뉴칸" + (탭 === 값 ? " 켜짐" : ""), 글 + " " + (값 === "학원" ? 학원들.length : 셈(값)));
       ㄷ.type = "button";
       ㄷ.addEventListener("click", () => { 탭 = 값; 그리기(); });
       띠.appendChild(ㄷ);
@@ -62,9 +67,11 @@ const 회원관리 = (() => {
     // 둘째 줄 — 제목
     const 윗줄 = 만들기("div", "판윗줄");
     const 길 = 만들기("div", "길줄"); 길.appendChild(만들기("span", "", "회원 관리"));
+    if (탭 === "학원") 길.append(만들기("span", "길사이", "›"), 만들기("span", "", "학원"));
     윗줄.appendChild(길);
     칸.appendChild(윗줄);
     if (말) 칸.appendChild(만들기("p", "회원말" + (결 ? " " + 결 : ""), 말));
+    if (탭 === "학원") return 학원그리기();
 
     // 표
     const 표 = 만들기("div", "글표 회원표");
@@ -113,6 +120,42 @@ const 회원관리 = (() => {
     틀.addEventListener("submit", ㄴ => { ㄴ.preventDefault(); 찾을말 = 입력.value; 그리기(); });
     아랫줄.appendChild(틀);
     칸.appendChild(아랫줄);
+  }
+
+  // 학원 표 — 학원 · 원장 · 인원 · 저장 · 만든 날 · 상태 · 정지 단추
+  function 학원그리기() {
+    const 표 = 만들기("div", "글표 회원표 학원표");
+    표.innerHTML = '<div class="글표머리"><span class="칸제목">학원</span><span class="칸메일">원장</span><span class="칸인원">인원</span>' +
+                   '<span class="칸저장">저장</span><span class="칸작성일">만든 날</span><span class="칸상태">상태</span><span class="칸단추"></span></div>';
+    학원들.forEach(ㅎ => {
+      const 줄 = 만들기("div", "글표줄 회원줄");
+      const 이름칸 = 만들기("span", "칸제목"); 이름칸.appendChild(만들기("span", "글제목", ㅎ.이름 || "(이름 없음)"));
+      const 원장칸 = 만들기("span", "칸메일", [ㅎ.원장닉네임, ㅎ.원장메일].filter(Boolean).join(" · "));
+      const MB = Number(ㅎ.저장MB) || 0;
+      const 저장칸 = 만들기("span", "칸저장" + (MB >= 1024 ? " 넘침" : ""), (MB >= 1024 ? (MB / 1024).toFixed(2) + " GB" : MB + " MB") + " / 1 GB");
+      const 단추칸 = 만들기("span", "칸단추");
+      const ㄷ = 만들기("button", "선생작은단추" + (ㅎ.정지 ? "" : " 빨강"), ㅎ.정지 ? "정지 풀기" : "정지"); ㄷ.type = "button";
+      ㄷ.addEventListener("click", () => 학원정지(ㅎ, ㄷ));
+      단추칸.appendChild(ㄷ);
+      줄.append(이름칸, 원장칸, 만들기("span", "칸인원", (ㅎ.인원 || 0) + "명"), 저장칸,
+        만들기("span", "칸작성일", ㅎ.만든때 ? 날(ㅎ.만든때) : ""), 만들기("span", "칸상태" + (ㅎ.정지 ? " 정지됨" : ""), ㅎ.정지 ? "정지" : "활성"), 단추칸);
+      표.appendChild(줄);
+    });
+    if (!학원들.length) 표.appendChild(만들기("div", "글표빔", "아직 학원이 없다"));
+    칸.appendChild(표);
+  }
+
+  async function 학원정지(ㅎ, ㄷ) {
+    const 정지 = !ㅎ.정지;
+    if (정지 && !confirm("「" + (ㅎ.이름 || "학원") + "」 을 정지할까?\n그 학원 사람은 런처 앱을 못 쓰고 학원 자료도 안 보인다. 자료는 지워지지 않는다.")) return;
+    ㄷ.disabled = true;
+    try {
+      await 회원.학원부르기("학원관리_정지", { p_학원: ㅎ.학원, p_정지: 정지 });
+      ㅎ.정지 = 정지;
+      그리기("「" + (ㅎ.이름 || "학원") + "」 → " + (정지 ? "정지" : "정지 풀림"), "됨");
+    } catch (오류) {
+      그리기("못 했다 — " + 오류.message, "탈");
+    }
   }
 
   async function 등급바꾸기(ㅁ, 고르개) {
