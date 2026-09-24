@@ -76,5 +76,16 @@ const 학원 = (상태, 원장인가, 소속이름) => ({ 학원: "h1", 학원�
 봄(/type: "signup"/.test(회원) && /type: "email"/.test(회원), "가입은 verify type signup · 찾기는 type email");
 봄(/글자 수|length < 2 \|\| 별명\.length > 20/.test(회원), "닉네임 두 글자에서 스무 글자");
 
+// 5) 선생 관리 — 규격 「## 선생 관리」 절 (2026-09-24 줄임: 메일 하나 + 카톡 글, 권한은 각 앱에서)
+const 선생 = fs.readFileSync(path.join(집, "js", "선생관리.js"), "utf8");
+const 선생절 = (() => { const ㅈ = 규격.search(/^## 선생 관리/m); if (ㅈ < 0) return ""; const 뒤 = 규격.slice(ㅈ + 3); const 끝 = 뒤.search(/^## /m); return 끝 < 0 ? 뒤 : 뒤.slice(0, 끝); })();
+봄(!!선생절, "규격에 「## 선생 관리」 절이 있다");
+const 단추이름 = (/단추 `([^`]+)`/.exec(선생절) || [])[1];
+봄(!!단추이름 && 선생.includes('"' + 단추이름 + '"'), "초대 단추 이름이 규격과 같다 — " + 단추이름);
+봄(/학원_초대", \{ p_메일: 메일, p_소속이름: "선생님", p_권한: \{ 반범위: "자기" \}, p_강사id: null \}/.test(선생) && 선생절.includes(`'선생님', {"반범위":"자기"}, null`), "새 메일은 학원_초대(메일, 선생님, 자기 반, null)");
+봄(/목록\.some\(사람 => [^\n]*=== 메일\)\) \{[\s\S]{0,200}?return;/.test(선생), "이미 명단에 있는 메일은 학원_초대를 다시 안 부른다");
+봄(선생절.includes("launcher/sedobi-setup.exe") && 선생.includes("/launcher/sedobi-setup.exe"), "카톡 글에 런처 설치 파일 받는 곳");
+봄(!/단\("권한"/.test(선생) && !/p_권한: 것\.권한/.test(선생), "명단에 「권한」 단추가 없다 — 권한은 각 앱에서");
+
 console.log("\n통과 " + 통과 + " / 실패 " + 실패);
 process.exit(실패 ? 1 : 0);
