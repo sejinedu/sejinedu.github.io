@@ -15,7 +15,8 @@
        표가 없으면 「로그인해야 받을 수 있다」 → 홈 ./#download(로그인) · ./#download-join(회원 가입).
        표가 낡았으면 새로 받는 일은 홈(회원.js)에 맡긴다 — ./#download 로 보내면 홈이 표를 새로 받고 download.html#start 로 돌려보낸다.
        (여기서 새로 받으면 홈 탭이 들고 있는 옛 표와 엇갈려 로그아웃될 수 있다)
-       ★ 설치 파일 주소 자체는 공개다 — 주소를 아는 사람은 받는다. 막는 건 이 쪽의 단추다(런처 방과 알고 정한 것).
+       ★ 설치 파일은 비공개다 (2026-09-25 사장님 「설치 파일 주소도 막아라」) — 받을 때마다 서버 setup-sign 에
+         로그인 표를 내고 15분짜리 서명 주소를 받아 그리로 간다. 로그인이 없거나 낡으면 401 → 「회원만」.
 ============================================================ -->
 <html lang="ko">
 <head>
@@ -221,15 +222,15 @@
 <script>
   // ★ 회원만 받는다 — 위 머리글 참고. 확인은 /auth/v1/user 한 번뿐, 표를 새로 받는 일은 홈에 맡긴다.
   (function () {
-    var 설치파일 = "https://pub-cdafc1e706964b9c84ebcdd306dd79f0.r2.dev/launcher/sedobi-setup.exe";
     var 저장소 = "https://burwsvkcaiqfiymdptex.supabase.co";
     var 공개열쇠 = "sb_publishable_Yxaq9Rbth3NUmcREMwlbSg_qaXpoLVy";
     var 받기 = document.getElementById("받기"), 문막 = document.getElementById("문막"), 누구 = document.getElementById("누구");
     function 서랍() { try { return JSON.parse(localStorage.getItem("세진과학.로그인.v1") || "null"); } catch (오류) { return null; } }
+    function 표() { var ㅅ = 서랍(); return ㅅ && ㅅ.access_token ? ㅅ : null; }
     // 답: { 메일 } = 회원 확인됨 · "낡음" = 표는 있는데 새로 받아야 함(홈에 맡긴다) · "없음" = 로그인 안 함
     function 확인() {
-      var ㅅ = 서랍();
-      if (!ㅅ || !ㅅ.access_token) return Promise.resolve("없음");
+      var ㅅ = 표();
+      if (!ㅅ) return Promise.resolve("없음");
       if (!(Number(ㅅ.expires_at) - 60 > Date.now() / 1000)) return Promise.resolve(ㅅ.refresh_token ? "낡음" : "없음");
       if (!window.fetch) return Promise.resolve("낡음");
       return fetch(저장소 + "/auth/v1/user", { headers: { apikey: 공개열쇠, Authorization: "Bearer " + ㅅ.access_token }, cache: "no-store" })
@@ -238,22 +239,44 @@
           return ㅅ.refresh_token ? "낡음" : "없음";
         }, function () { return "낡음"; });                      // 인터넷이 흔들렸으면 홈에 맡긴다
     }
+    // 설치 파일 서명 주소 — 로그인 표를 내고 15분짜리 주소를 받는다. 401 이면 "낡음"
+    function 서명주소() {
+      var ㅅ = 표();
+      if (!ㅅ) return Promise.resolve("없음");
+      return fetch(저장소 + "/functions/v1/setup-sign", {
+        method: "POST", cache: "no-store",
+        headers: { apikey: 공개열쇠, Authorization: "Bearer " + ㅅ.access_token, "Content-Type": "application/json" }, body: "{}"
+      }).then(function (ㄷ) {
+        if (ㄷ.status === 401) return ㅅ.refresh_token ? "낡음" : "없음";
+        return ㄷ.json().then(function (ㄱ) { return ㄷ.ok && ㄱ && ㄱ.url ? { url: ㄱ.url } : "탈"; }, function () { return "탈"; });
+      }, function () { return "탈"; });
+    }
+    var 받는중 = false;
+    function 받아가기() {
+      if (받는중) return; 받는중 = true;
+      var 옛글 = 받기.lastChild.textContent; 받기.lastChild.textContent = " 받는 중…";
+      서명주소().then(function (ㄱ) {
+        받는중 = false; 받기.lastChild.textContent = 옛글;
+        if (typeof ㄱ === "object") { location.href = ㄱ.url; return; }
+        if (ㄱ === "낡음") { location.href = "./#download"; return; }   // 홈이 표를 새로 받고 돌려보낸다
+        if (ㄱ === "없음") { 문막.hidden = false; 문막.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
+        누구.textContent = "지금 받을 수 없다 — 잠시 뒤에 다시 눌러라"; 누구.hidden = false;
+      });
+    }
     var 답 = 확인();
     답.then(function (ㄱ) {
       if (typeof ㄱ !== "object") return;
-      받기.href = 설치파일; 받기.setAttribute("download", "");
       누구.textContent = (ㄱ.메일 || "회원") + " 로 로그인됨"; 누구.hidden = false;
       if (location.hash === "#start") {                          // 홈에서 로그인하고 돌아왔다 — 바로 받는다
         try { history.replaceState(null, "", location.pathname); } catch (오류) {}
-        location.href = 설치파일;
+        받아가기();
       }
     });
     받기.addEventListener("click", function (이) {
-      if (받기.href === 설치파일) return;                        // 회원 확인됨 — 그대로 받는다
       이.preventDefault();
       답.then(function (ㄱ) {
-        if (typeof ㄱ === "object") { location.href = 설치파일; return; }
-        if (ㄱ === "낡음") { location.href = "./#download"; return; }   // 홈이 표를 새로 받고 돌려보낸다
+        if (typeof ㄱ === "object") return 받아가기();
+        if (ㄱ === "낡음") { location.href = "./#download"; return; }
         문막.hidden = false; 문막.scrollIntoView({ block: "center", behavior: "smooth" });
       });
     });

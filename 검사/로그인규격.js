@@ -105,7 +105,8 @@ const 홈피안내 = (() => {
 봄(!!규격안내 && !!홈피안내 && 같나(홈피안내, 규격안내), "가입 안내 글이 규격과 줄 그대로 같다 (" + (규격안내 ? 규격안내.length : 0) + "줄 · 1)→4) 한 방향)");
 봄(!!홈피안내 && !홈피안내.join("\n").includes("에서도") && !/sedobi-setup\.exe/.test(초대) && 홈피안내.includes(받는곳), "갈림길 없음 · 받기 쪽 주소(exe 없음)");
 봄(!/학원부르기/.test((/안내단\.addEventListener\("click"[\s\S]*?\n    \}\);/.exec(초대) || ["학원부르기"])[0]), "가입 안내는 서버를 안 부른다");
-봄(fs.existsSync(path.join(집, "download.html")) && /sedobi-setup\.exe/.test(fs.readFileSync(path.join(집, "download.html"), "utf8")), "받기 쪽(download.html)이 있고 설치 파일로 이어진다");
+const 받기글 = fs.existsSync(path.join(집, "download.html")) ? fs.readFileSync(path.join(집, "download.html"), "utf8") : "";
+봄(/functions\/v1\/setup-sign/.test(받기글) && !/r2\.dev\/launcher\/sedobi-setup\.exe/.test(받기글), "받기 쪽(download.html)은 서명 주소(setup-sign)로 받는다 — 옛 공개 주소 없음");
 const 받기쪽 = fs.readFileSync(path.join(집, "download.html"), "utf8");
 봄(받기쪽.includes("세진과학.로그인.v1") && 받기쪽.includes('href="./#download"') && 받기쪽.includes('href="./#download-join"') && /id="받기" href="\.\/#download"/.test(받기쪽) &&
    /download\|download-join/.test(회원) && 창.includes('location.replace("download.html#start")'), "런처 받기는 회원만 — 로그인 안 했으면 「로그인해야 받을 수 있다」 → 로그인·회원 가입 → 받기 쪽으로 돌아옴");
