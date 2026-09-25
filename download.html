@@ -10,6 +10,12 @@
      ★ 서명이 없는 프로그램이라 처음 받는 사람은 거의 다 「Windows의 PC 보호」 창을 본다.
        그 창에서 멈추지 않게 그림으로 안내한다 — 이 쪽의 가장 중요한 일이다.
      ★ 스스로 서는 쪽이다 — 스타일 파일에 안 기댄다(개인정보.html 과 같다).
+     ★ 회원만 받는다 (2026-09-25 사장님: 「런처 다운 받기 누르면 로그인 해야 한다고 뜨게 해」 · 「런처는 회원 가입을 한 사람만 다운 받을 수 있게」)
+       이 쪽은 회원.js 를 안 싣는다 — 같은 사이트 서랍(localStorage 세진과학.로그인.v1)의 표를 /auth/v1/user 로 확인만 한다.
+       표가 없으면 「로그인해야 받을 수 있다」 → 홈 ./#download(로그인) · ./#download-join(회원 가입).
+       표가 낡았으면 새로 받는 일은 홈(회원.js)에 맡긴다 — ./#download 로 보내면 홈이 표를 새로 받고 download.html#start 로 돌려보낸다.
+       (여기서 새로 받으면 홈 탭이 들고 있는 옛 표와 엇갈려 로그아웃될 수 있다)
+       ★ 설치 파일 주소 자체는 공개다 — 주소를 아는 사람은 받는다. 막는 건 이 쪽의 단추다(런처 방과 알고 정한 것).
 ============================================================ -->
 <html lang="ko">
 <head>
@@ -54,6 +60,15 @@
   .폰말 button { margin-top: 10px; padding: 8px 16px; border-radius: 8px; border: 1px solid #7a6428; background: none;
                  color: #f1d58a; font: inherit; font-weight: 700; cursor: pointer; }
   .폰말[hidden] { display: none; }
+  .문막 { margin: 20px auto 0; max-width: 460px; padding: 16px 18px; border-radius: 12px; border: 1px solid #6b3a3f;
+          background: #2a1417; color: #f3c9ce; font-size: .96rem; }
+  .문막[hidden] { display: none; }
+  .문막 b { color: #fff; }
+  .문단추들 { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .문단추 { display: inline-block; padding: 9px 20px; border-radius: 9px; border: 1px solid var(--테두리); color: #fff; font-weight: 700; text-decoration: none; }
+  .문단추.진 { background: var(--악센트); border-color: var(--악센트); color: #0b1a14; }
+  .누구 { margin: 8px 0 0; color: var(--악센트); font-size: .88rem; }
+  .누구[hidden] { display: none; }
 
   h2 { margin: 44px 0 14px; font-size: 1.25rem; color: #fff; }
   .걸음들 { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
@@ -109,11 +124,20 @@
   <h1>세도비 런처</h1>
   <p class="한줄">학생관리 · 문제은행 · 디자인을 한 곳에서 켜는 Windows 프로그램입니다.
     가입하면 누구나 <b>자기 채널</b>을 갖고, 초대를 받으면 다른 사람의 채널에도 들어갑니다.</p>
-  <a class="받기" id="받기" href="https://pub-cdafc1e706964b9c84ebcdd306dd79f0.r2.dev/launcher/sedobi-setup.exe" download>
+  <a class="받기" id="받기" href="./#download">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
     내려받기
   </a>
   <p class="받기정보" id="받기정보">Windows 10 · 11 (64비트) · <span id="받기크기">98MB</span> · 깔면 최신 판으로 저절로 바뀝니다</p>
+  <p class="누구" id="누구" hidden></p>
+  <div class="문막" id="문막" role="alert" hidden>
+    <b>런처는 세진 과학 회원만 받을 수 있습니다.</b><br>
+    로그인하면 이 쪽으로 돌아와 바로 받아집니다. 계정이 없으면 회원 가입부터 하세요.
+    <div class="문단추들">
+      <a class="문단추 진" href="./#download">로그인</a>
+      <a class="문단추" href="./#download-join">회원 가입</a>
+    </div>
+  </div>
   <div class="폰말" id="폰말" hidden>
     지금 폰으로 보고 있습니다. 세도비 런처는 <b>Windows 컴퓨터</b>에 까는 프로그램입니다 —
     컴퓨터에서 이 주소를 여세요.<br>
@@ -121,18 +145,26 @@
   </div>
 </section>
 
-<h2>설치 — 세 걸음</h2>
+<h2>설치 — 네 걸음</h2>
 <ol class="걸음들">
   <li class="걸음">
     <span class="번호">1</span>
     <div>
-      <h3>받기</h3>
-      <p>위의 <span class="단추글">내려받기</span> 를 누릅니다. <code>sedobi-setup.exe</code> 가 받아집니다.</p>
-      <p class="흐림">브라우저가 「흔히 다운로드되는 파일이 아닙니다」 라고 하면 파일 옆의 <span class="단추글">⋯</span> → <span class="단추글">유지</span> 를 누르세요.</p>
+      <h3>로그인 — 없으면 회원 가입</h3>
+      <p>런처는 <b>회원만</b> 받을 수 있습니다. <span class="단추글">내려받기</span> 를 누르면 로그인 창이 뜹니다.
+         계정이 없으면 <span class="단추글">회원 가입</span> — 메일로 온 번호를 넣으면 끝입니다.</p>
     </div>
   </li>
   <li class="걸음">
     <span class="번호">2</span>
+    <div>
+      <h3>받기</h3>
+      <p>로그인하면 이 쪽으로 돌아와 <code>sedobi-setup.exe</code> 가 받아집니다. 안 받아지면 <span class="단추글">내려받기</span> 를 한 번 더 누르세요.</p>
+      <p class="흐림">브라우저가 「흔히 다운로드되는 파일이 아닙니다」 라고 하면 파일 옆의 <span class="단추글">⋯</span> → <span class="단추글">유지</span> 를 누르세요.</p>
+    </div>
+  </li>
+  <li class="걸음">
+    <span class="번호">3</span>
     <div>
       <h3>실행 — 파란 창이 뜨면 「추가 정보」 → 「실행」</h3>
       <p>받은 파일을 두 번 누릅니다. 처음에는 거의 다 아래 같은 <b>파란 창</b>이 뜹니다.
@@ -161,11 +193,10 @@
     </div>
   </li>
   <li class="걸음">
-    <span class="번호">3</span>
+    <span class="번호">4</span>
     <div>
-      <h3>로그인 — 없으면 회원 가입</h3>
-      <p>런처 오른쪽 위 <span class="단추글">로그인</span> 을 누릅니다. 계정이 없으면 <span class="단추글">회원 가입</span> — 메일로 온 번호를 넣으면 끝입니다.
-         <b>세진 과학 홈페이지 계정과 같은 계정</b>입니다.</p>
+      <h3>런처에 로그인</h3>
+      <p>런처 오른쪽 위 <span class="단추글">로그인</span> 을 누르고, 1번에서 쓴 <b>같은 메일 · 비밀번호</b>로 들어갑니다.</p>
       <p class="흐림">초대를 받았다면 초대받은 메일로 들어와서 이름 → <span class="단추글">초대 관리</span> → 받은 초대에서 <span class="단추글">받기</span> 를 누르세요.
          앱을 켤 때 어느 채널로 열지 고르게 됩니다.</p>
     </div>
@@ -188,6 +219,46 @@
 </main>
 
 <script>
+  // ★ 회원만 받는다 — 위 머리글 참고. 확인은 /auth/v1/user 한 번뿐, 표를 새로 받는 일은 홈에 맡긴다.
+  (function () {
+    var 설치파일 = "https://pub-cdafc1e706964b9c84ebcdd306dd79f0.r2.dev/launcher/sedobi-setup.exe";
+    var 저장소 = "https://burwsvkcaiqfiymdptex.supabase.co";
+    var 공개열쇠 = "sb_publishable_Yxaq9Rbth3NUmcREMwlbSg_qaXpoLVy";
+    var 받기 = document.getElementById("받기"), 문막 = document.getElementById("문막"), 누구 = document.getElementById("누구");
+    function 서랍() { try { return JSON.parse(localStorage.getItem("세진과학.로그인.v1") || "null"); } catch (오류) { return null; } }
+    // 답: { 메일 } = 회원 확인됨 · "낡음" = 표는 있는데 새로 받아야 함(홈에 맡긴다) · "없음" = 로그인 안 함
+    function 확인() {
+      var ㅅ = 서랍();
+      if (!ㅅ || !ㅅ.access_token) return Promise.resolve("없음");
+      if (!(Number(ㅅ.expires_at) - 60 > Date.now() / 1000)) return Promise.resolve(ㅅ.refresh_token ? "낡음" : "없음");
+      if (!window.fetch) return Promise.resolve("낡음");
+      return fetch(저장소 + "/auth/v1/user", { headers: { apikey: 공개열쇠, Authorization: "Bearer " + ㅅ.access_token }, cache: "no-store" })
+        .then(function (ㄷ) {
+          if (ㄷ.ok) return ㄷ.json().then(function (ㄱ) { return { 메일: (ㄱ && ㄱ.email) || "" }; });
+          return ㅅ.refresh_token ? "낡음" : "없음";
+        }, function () { return "낡음"; });                      // 인터넷이 흔들렸으면 홈에 맡긴다
+    }
+    var 답 = 확인();
+    답.then(function (ㄱ) {
+      if (typeof ㄱ !== "object") return;
+      받기.href = 설치파일; 받기.setAttribute("download", "");
+      누구.textContent = (ㄱ.메일 || "회원") + " 로 로그인됨"; 누구.hidden = false;
+      if (location.hash === "#start") {                          // 홈에서 로그인하고 돌아왔다 — 바로 받는다
+        try { history.replaceState(null, "", location.pathname); } catch (오류) {}
+        location.href = 설치파일;
+      }
+    });
+    받기.addEventListener("click", function (이) {
+      if (받기.href === 설치파일) return;                        // 회원 확인됨 — 그대로 받는다
+      이.preventDefault();
+      답.then(function (ㄱ) {
+        if (typeof ㄱ === "object") { location.href = 설치파일; return; }
+        if (ㄱ === "낡음") { location.href = "./#download"; return; }   // 홈이 표를 새로 받고 돌려보낸다
+        문막.hidden = false; 문막.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    });
+  })();
+
   // 폰·맥이면 「컴퓨터에서 열어라」 — 받기 단추는 그대로 둔다(태블릿 PC 도 있다)
   (function () {
     var 윈도우 = /Windows NT/i.test(navigator.userAgent);

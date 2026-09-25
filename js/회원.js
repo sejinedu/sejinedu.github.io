@@ -350,6 +350,15 @@ const 회원 = (() => {
   //     — 런처가 연 것이니 이것도 「런처 있는 기기」 표시로 친다. 그 화면은 로그인이 되면 로그인창.js 가 연다.
   let 런처가켰나 = false;
   let 처음할일 = "";
+  // ★ 받기 쪽(download.html)이 보낸 #download · #download-join — 로그인(가입)하면 받기 쪽으로 돌려보낸다 (2026-09-25 「런처는 회원 가입을 한 사람만」)
+  //   런처가 연 게 아니니 「런처 있는 기기」 표시는 안 한다. 구글 문을 다녀와도 안 잊게 세션 서랍에 적는다 — 로그인창.js 가 읽는다.
+  {
+    const ㅁ = /^#(download|download-join)$/.exec(location.hash || "");
+    if (ㅁ) {
+      try { sessionStorage.setItem("세진과학.받기로.v1", ㅁ[1]); } catch (오류) {}
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (오류) { location.hash = ""; }
+    }
+  }
   {
     const ㅁ = /^#(launcher|member-admin|post-pin)$/.exec(location.hash || "");
     if (ㅁ) {

@@ -106,6 +106,9 @@ const 홈피안내 = (() => {
 봄(!!홈피안내 && !홈피안내.join("\n").includes("에서도") && !/sedobi-setup\.exe/.test(초대) && 홈피안내.includes(받는곳), "갈림길 없음 · 받기 쪽 주소(exe 없음)");
 봄(!/학원부르기/.test((/안내단\.addEventListener\("click"[\s\S]*?\n    \}\);/.exec(초대) || ["학원부르기"])[0]), "가입 안내는 서버를 안 부른다");
 봄(fs.existsSync(path.join(집, "download.html")) && /sedobi-setup\.exe/.test(fs.readFileSync(path.join(집, "download.html"), "utf8")), "받기 쪽(download.html)이 있고 설치 파일로 이어진다");
+const 받기쪽 = fs.readFileSync(path.join(집, "download.html"), "utf8");
+봄(받기쪽.includes("세진과학.로그인.v1") && 받기쪽.includes('href="./#download"') && 받기쪽.includes('href="./#download-join"') && /id="받기" href="\.\/#download"/.test(받기쪽) &&
+   /download\|download-join/.test(회원) && 창.includes('location.replace("download.html#start")'), "런처 받기는 회원만 — 로그인 안 했으면 「로그인해야 받을 수 있다」 → 로그인·회원 가입 → 받기 쪽으로 돌아옴");
 봄(/"학원_빼기", \{ p_메일: 사람\.메일 \}/.test(초대) && !/p_주인: 내것/.test(초대), "탈퇴시키기 = 학원_빼기 (내 채널)");
 봄(!/"권한"/.test(초대) && !/p_권한: 것\.권한/.test(초대), "「권한」 단추가 없다 — 권한은 각 앱에서");
 

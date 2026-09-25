@@ -172,7 +172,11 @@
     else 걸음보이기("나");
     막.hidden = false;
   }
-  function 닫기() { 막.hidden = true; 도는중 = false; 하기.disabled = false; 칸들.비번[1].value = ""; }
+  function 닫기() {
+    막.hidden = true; 도는중 = false; 하기.disabled = false; 칸들.비번[1].value = "";
+    // 받기 쪽에서 왔다가 로그인 없이 닫으면 잊는다 — 안 그러면 나중에 로그인할 때 뜬금없이 받기 쪽으로 간다
+    if (!회원.상태().들어왔나) { try { sessionStorage.removeItem("세진과학.받기로.v1"); } catch (오류) {} }
+  }
 
   async function 들어온뒤() {
     const ㅅ = 회원.상태();
@@ -351,6 +355,30 @@
       };
       const 끄기 = 회원.듣기(ㅅ => setTimeout(() => 해보기(ㅅ), 0));   // 회원관리 · 비공개 가 다 실린 뒤에
       setTimeout(() => { const ㅅ = 회원.상태(); if (ㅅ.들어왔나) 해보기(ㅅ); else if (!했나) 열기("로그인"); }, 3000);
+    }
+  }
+
+  // ★ 받기 쪽에서 왔다(#download · #download-join, 회원.js 가 세션 서랍에 적어 둠) — 로그인되면 받기 쪽으로 돌려보낸다
+  //   이미 로그인돼 있으면(표가 낡아 홈이 새로 받은 경우) 바로 돌아간다. 1.5초 안에 안 되면 로그인(가입) 창을 띄운다.
+  {
+    const 받기열쇠 = "세진과학.받기로.v1";
+    let 받기로 = ""; try { 받기로 = sessionStorage.getItem(받기열쇠) || ""; } catch (오류) {}
+    if (받기로) {
+      let 갔나 = false;
+      const 가기 = ㅅ => {
+        if (갔나 || !ㅅ.들어왔나) return false;
+        갔나 = true; try { sessionStorage.removeItem(받기열쇠); } catch (오류) {}
+        location.replace("download.html#start");
+        return true;
+      };
+      if (!가기(회원.상태())) {
+        const 끄기 = 회원.듣기(ㅅ => { if (가기(ㅅ)) 끄기(); });
+        setTimeout(() => {
+          if (갔나 || 회원.상태().들어왔나) return;
+          열기(받기로 === "download-join" ? "가입" : "로그인");
+          말하기("런처는 회원만 받을 수 있다 — 로그인하면 받기 쪽으로 돌아간다");
+        }, 1500);
+      }
     }
   }
 
