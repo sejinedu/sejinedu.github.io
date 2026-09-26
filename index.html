@@ -16,6 +16,8 @@
      ★ 홈화면에서 열면 **주소창이 아예 없다.** 앱처럼 뜬다.
        그동안 애먹은 「위아래 잡다한 게 남는다」 가 여기서는 처음부터 없다.
      ★ 애플은 manifest 의 아이콘을 안 본다. apple-touch-icon 을 따로 줘야 한다. -->
+<!-- ★ 저장소(글·단원)에 미리 길을 터 둔다 — 첫 자료 받기가 그만큼 빨라진다 (2026-09-26 「로딩 속도」) -->
+<link rel="preconnect" href="https://burwsvkcaiqfiymdptex.supabase.co" crossorigin>
 <link rel="manifest" href="앱설명.json">
 <link rel="apple-touch-icon" href="자산/아이콘180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -533,13 +535,25 @@ window.addEventListener("unhandledrejection", function (ㅇ) {
     var 판 = window.판;
     document.getElementById("판표시").textContent = "v" + 판;
 
+    // ★★★ 모두 한꺼번에 받아 둔다 (2026-09-26 사용자: 「홈페이지 처음 로딩 속도가 너무 느리다. 존나 빠르게 고쳐놔라」)
+    //   아래 「다음」 은 파일을 하나씩 **차례로** 싣는다(순서가 중요해서). 그런데 그러면 받기도 하나씩이라
+    //   파일 스물넷 × 왕복 한 번(약 0.2초) = 표가 뜨기까지 3초가 넘었다.
+    //   ⇒ 받기는 지금 한꺼번에 시작하고(preload), 싣기(실행)만 차례로 한다. 실을 때는 이미 받아 둔 걸 쓴다.
+    //   ★ 주소가 아래 「다음」 이 부르는 것과 **글자 하나 안 틀리게** 같아야 받아 둔 걸 쓴다 (?v=판).
+    var 스타일주소 = "css/스타일.css?v=" + 판;
+    [스타일주소].concat(차례.map(function (ㄱ) { return ㄱ + "?v=" + 판; })).forEach(function (주소, ㅈ) {
+      var 미리 = document.createElement("link");
+      미리.rel = "preload"; 미리.as = ㅈ === 0 ? "style" : "script"; 미리.href = 주소;
+      document.head.appendChild(미리);
+    });
+
     // 아이콘도 판을 붙인다 — 안 그러면 브라우저가 옛 아이콘을 계속 물고 있는다
     document.querySelector('link[rel="icon"]').href = "자산/아이콘.png?v=" + 판;
     document.getElementById("로고").src = "자산/아이콘.png?v=" + 판;
 
     var 링 = document.createElement("link");
     링.rel = "stylesheet";
-    링.href = "css/스타일.css?v=" + 판;
+    링.href = 스타일주소;
     링.onload = function () { document.body.classList.add("들어옴"); };
     링.onerror = function () { document.body.classList.add("들어옴"); };
     document.head.appendChild(링);
