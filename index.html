@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-store">
 <meta name="theme-color" content="#0e1116">
+<!-- ★ 원래 어두운 사이트다 — 다크 모드 확장(Dark Reader 등)이 또 칠하지 말라고 알린다 (2026-09-26 사용자:
+     「크롬 확장으로 다크모드 쓰는데 홈페이지 색깔이 좀 이상해 진다. 새로고침하면 괜찮아 지고 … 뒤죽박죽이다」)
+     스타일 파일이 늦게 실려서, 확장이 「어두운 사이트인가」 를 볼 때 이미 칠해졌으면 비켜 가고 아니면 한 번 더 칠했다.
+     darkreader-lock = Dark Reader 가 이 사이트를 건드리지 않는다 · color-scheme dark = 브라우저·다른 확장에도 어둡다고 알린다 -->
+<meta name="darkreader-lock">
+<meta name="color-scheme" content="dark">
 <!-- ★ 검색에 안 뜨게 한다 (2026-09-02 · 사용자가 정함)
      영상이 유튜브 미등록이라, 사이트도 검색으로 흘러들지 않게 막는다.
      ★ 자물쇠는 아니다. 주소를 아는 사람은 들어온다. -->
@@ -32,6 +38,7 @@
      (사용자가 정한 것 — 「화면 꺼지게 하지 말아라」, 2026-09-01) -->
 <style>
   html, body { background: #0e1116; margin: 0; }
+  :root { color-scheme: dark; }
   body { opacity: 0; transition: opacity .12s; }
   body.들어옴 { opacity: 1; }
 </style>
