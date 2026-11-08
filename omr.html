@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="darkreader-lock">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0e1116">
+<title>답안 올리기 · 세진 과학</title>
+<link rel="icon" href="자산/아이콘.png" type="image/png">
+<link rel="apple-touch-icon" href="자산/아이콘180.png">
+<!--
+  ★ 답안 사진 올리기 (2026-11-08 · 주인은 「문제은행」 방 — 고칠 일이 있으면 그 방에)
+    사장님 「애들이 특정 공간에 넣으면 너가 바로 감지해서 채점」 · 「qr 로」
+    학생: OMR 용지(판 2) 오른쪽의 QR → 이 페이지 → OMR 찍기 → 저장소 omr-up 보관함에 «넣기만»(로그인 없음).
+    사장님 컴퓨터(문제은행 도구/성장/올림받기.js)가 몇 분마다 꺼내 가 채점하고 학생관리에 넣는다.
+    올리기 전에 이 페이지가 «네 귀퉁이 검은 네모» 가 보이는지 재서, 안 보이면 다시 찍게 한다(흐린 사진·잘린 사진을 여기서 거른다).
+    보관함 규칙: 지침서 「3단계 표-답안올림.sql」 (넣기 = 누구나 · 보기·지우기 = 사장님만 · 이름 꼴 omr-<13자리 시각>-<글자>.jpg)
+-->
+<style>
+  :root { --바탕: #0e1116; --판: #161b22; --줄: #2a313c; --글: #e6edf3; --옅은: #9aa4b2; --파랑: #3b82f6; --초록: #22c55e; --노랑: #f59e0b; --빨강: #ef4444; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--바탕); color: var(--글); font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { font-size: 22px; margin: 6px 0 4px; }
+  .작은 { color: var(--옅은); font-size: 14px; line-height: 1.55; margin: 0; }
+  .판 { background: var(--판); border: 1px solid var(--줄); border-radius: 14px; padding: 16px; margin-top: 16px; }
+  ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.7; font-size: 15px; }
+  button { font: inherit; border: 0; border-radius: 12px; cursor: pointer; }
+  .큰단추 { width: 100%; padding: 18px; font-size: 19px; font-weight: 700; background: var(--파랑); color: #fff; margin-top: 16px; }
+  .큰단추:active { filter: brightness(0.9); }
+  .옅은단추 { width: 100%; padding: 13px; font-size: 15px; background: transparent; color: var(--옅은); border: 1px solid var(--줄); margin-top: 10px; }
+  #미리 { width: 100%; border-radius: 10px; margin-top: 14px; display: none; background: #000; }
+  #알림 { margin-top: 14px; font-size: 16px; line-height: 1.6; display: none; padding: 14px; border-radius: 12px; }
+  #알림.좋음 { display: block; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.45); }
+  #알림.주의 { display: block; background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.45); }
+  #알림.나쁨 { display: block; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.45); }
+  #알림.중 { display: block; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.45); }
+  .숨김 { display: none !important; }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>답안 사진 올리기</h1>
+  <p class="작은">세진 과학 · OMR 한 장을 찍어 올리면 채점돼요. 로그인은 필요 없어요.</p>
+
+  <div class="판">
+    <ol>
+      <li>OMR을 다 채워요 — 고유번호, 답, 서술형 칸까지.</li>
+      <li>책상에 놓고 <b>OMR 한 장이 화면에 꽉 차게</b> 찍어요.</li>
+      <li><b>네 귀퉁이 검은 네모</b>가 다 보여야 해요.</li>
+    </ol>
+  </div>
+
+  <button id="찍기" class="큰단추">📷 OMR 찍기</button>
+  <button id="고르기" class="옅은단추">사진첩에서 고르기</button>
+  <input id="카메라" type="file" accept="image/*" capture="environment">
+  <input id="사진첩" type="file" accept="image/*">
+
+  <img id="미리" alt="찍은 사진">
+  <div id="알림"></div>
+  <button id="그래도" class="옅은단추 숨김">그래도 이 사진으로 올리기</button>
+</main>
+<script>
+"use strict";
+const 주소 = "https://burwsvkcaiqfiymdptex.supabase.co";
+const 공개열쇠 = "sb_publishable_Yxaq9Rbth3NUmcREMwlbSg_qaXpoLVy";     // 홈페이지와 같은 공개 열쇠(넣기만 된다)
+const 보관함 = "omr-up";
+const 긴변 = 2400;                                                    // 올리는 사진 긴 변(px) — 칸과 글씨가 읽힐 만큼
+
+const $ = id => document.getElementById(id);
+let 대기 = null;                                                       // 귀퉁이를 못 찾았을 때 «그래도 올리기» 로 올릴 사진
+
+function 알리기(종류, 글) { const a = $("알림"); a.className = 종류; a.innerHTML = 글; }
+function 이름() {
+  const 글자 = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const r = new Uint32Array(12); crypto.getRandomValues(r);
+  return "omr-" + Date.now() + "-" + Array.from(r, x => 글자[x % 글자.length]).join("") + ".jpg";
+}
+
+async function 그림읽기(파일) {
+  // createImageBitmap 은 폰 사진의 돌림(EXIF)을 바로잡아 준다
+  try { return await createImageBitmap(파일, { imageOrientation: "from-image" }); }
+  catch (e) {
+    return await new Promise((ok, 안됨) => { const i = new Image(); i.onload = () => ok(i); i.onerror = 안됨; i.src = URL.createObjectURL(파일); });
+  }
+}
+function 줄이기(그림, 최대) {
+  const w = 그림.width, h = 그림.height, k = Math.min(1, 최대 / Math.max(w, h));
+  const c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+  c.getContext("2d").drawImage(그림, 0, 0, c.width, c.height);
+  return c;
+}
+
+// 귀퉁이 검은 네모 재기 — 작게 줄여 어두운 덩어리 중 «꽉 찬 네모» 를 찾고, 그 넷이 사진의 큰 네모를 이루는지 본다
+function 귀퉁이재기(캔) {
+  const 작 = 줄이기(캔, 800), W = 작.width, H = 작.height;
+  const d = 작.getContext("2d").getImageData(0, 0, W, H).data;
+  const g = new Float32Array(W * H);
+  let 합 = 0;
+  for (let i = 0; i < W * H; i++) { g[i] = 0.299 * d[4 * i] + 0.587 * d[4 * i + 1] + 0.114 * d[4 * i + 2]; 합 += g[i]; }
+  const 밝기 = 합 / (W * H);
+  // 둘레 평균(적분 그림)보다 한참 어두우면 «잉크»
+  const I = new Float64Array((W + 1) * (H + 1));
+  for (let y = 0; y < H; y++) { let 줄 = 0; for (let x = 0; x < W; x++) { 줄 += g[y * W + x]; I[(y + 1) * (W + 1) + x + 1] = I[y * (W + 1) + x + 1] + 줄; } }
+  const r = Math.max(8, Math.round(Math.min(W, H) * 0.05));
+  const 검 = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const x0 = Math.max(0, x - r), x1 = Math.min(W, x + r + 1), y0 = Math.max(0, y - r), y1 = Math.min(H, y + r + 1);
+    const 평 = (I[y1 * (W + 1) + x1] - I[y0 * (W + 1) + x1] - I[y1 * (W + 1) + x0] + I[y0 * (W + 1) + x0]) / ((x1 - x0) * (y1 - y0));
+    검[y * W + x] = g[y * W + x] < 평 * 0.62 && g[y * W + x] < 140 ? 1 : 0;
+  }
+  // 덩어리(4 이웃)
+  const 표 = new Int32Array(W * H).fill(-1), 덩 = [];
+  const 쌓 = new Int32Array(W * H);
+  for (let s = 0; s < W * H; s++) {
+    if (!검[s] || 표[s] >= 0) continue;
+    let n = 0, top = 0, minx = W, maxx = 0, miny = H, maxy = 0, sx = 0, sy = 0;
+    쌓[top++] = s; 표[s] = 덩.length;
+    while (top) {
+      const p = 쌓[--top], px = p % W, py = (p - px) / W; n++; sx += px; sy += py;
+      if (px < minx) minx = px; if (px > maxx) maxx = px; if (py < miny) miny = py; if (py > maxy) maxy = py;
+      for (const q of [p - 1, p + 1, p - W, p + W]) {
+        if (q < 0 || q >= W * H || 표[q] >= 0 || !검[q]) continue;
+        if ((q === p - 1 && px === 0) || (q === p + 1 && px === W - 1)) continue;
+        표[q] = 덩.length; 쌓[top++] = q;
+      }
+    }
+    const bw = maxx - minx + 1, bh = maxy - miny + 1;
+    덩.push({ n, bw, bh, cx: sx / n, cy: sy / n, 참: n / (bw * bh) });
+  }
+  const 짧 = Math.min(W, H);
+  const 네모 = 덩.filter(b => b.bw >= 짧 * 0.008 && b.bw <= 짧 * 0.09 && b.bh >= 짧 * 0.008 && b.bh <= 짧 * 0.09 &&
+                          b.bw / b.bh > 0.6 && b.bw / b.bh < 1.65 && b.참 > 0.72);
+  // 크기가 비슷한 넷 중 가장 넓게 펼쳐진 것
+  let 최 = null;
+  if (네모.length >= 4) {
+    const 큰 = 네모.sort((a, b) => b.n - a.n).slice(0, 12);
+    for (let a = 0; a < 큰.length; a++) for (let b = a + 1; b < 큰.length; b++) for (let c = b + 1; c < 큰.length; c++) for (let e = c + 1; e < 큰.length; e++) {
+      const 넷 = [큰[a], 큰[b], 큰[c], 큰[e]], ns = 넷.map(t => t.n);
+      if (Math.max(...ns) > 3 * Math.min(...ns)) continue;
+      const xs = 넷.map(t => t.cx), ys = 넷.map(t => t.cy);
+      const 넓이 = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+      if (!최 || 넓이 > 최.넓이) 최 = { 넓이, 넷 };
+    }
+  }
+  const 덮음 = 최 ? 최.넓이 / (W * H) : 0;
+  // 흐림 — 라플라시안 세기
+  let 라 = 0, 라n = 0;
+  for (let y = 1; y < H - 1; y += 2) for (let x = 1; x < W - 1; x += 2) {
+    const v = 4 * g[y * W + x] - g[y * W + x - 1] - g[y * W + x + 1] - g[(y - 1) * W + x] - g[(y + 1) * W + x]; 라 += v * v; 라n++;
+  }
+  return { 귀퉁이: 네모.length, 덮음, 선명: 라 / Math.max(1, 라n), 밝기 };
+}
+
+async function 올리기(캔) {
+  알리기("중", "올리는 중이에요…");
+  $("그래도").classList.add("숨김");
+  const 덩이 = await new Promise(ok => 캔.toBlob(ok, "image/jpeg", 0.88));
+  const 파일이름 = 이름();
+  let 답;
+  try {
+    답 = await fetch(주소 + "/storage/v1/object/" + 보관함 + "/" + 파일이름, {
+      method: "POST",
+      headers: { apikey: 공개열쇠, Authorization: "Bearer " + 공개열쇠, "Content-Type": "image/jpeg", "x-upsert": "false" },
+      body: 덩이 });
+  } catch (e) { 답 = null; }
+  if (!답 || !답.ok) {
+    const 왜 = 답 ? await 답.text().catch(() => "") : "인터넷 연결";
+    알리기("나쁨", "<b>못 올렸어요.</b> 잠깐 뒤에 다시 해 주세요.<br><span class='작은'>(" + String(왜).slice(0, 120).replace(/</g, "&lt;") + ")</span>");
+    대기 = 캔; $("그래도").textContent = "다시 올리기"; $("그래도").classList.remove("숨김");
+    return;
+  }
+  대기 = null;
+  알리기("좋음", "<b>받았어요 ✔</b><br>몇 분 안에 채점돼요. 다른 사람 것도 이어서 찍을 수 있어요.");
+  $("찍기").textContent = "📷 한 장 더 찍기";
+}
+
+async function 받음(파일) {
+  if (!파일) return;
+  알리기("중", "사진을 살펴보는 중이에요…");
+  $("그래도").classList.add("숨김");
+  let 그림;
+  try { 그림 = await 그림읽기(파일); } catch (e) { 알리기("나쁨", "이 사진은 열 수가 없어요. 다시 찍어 주세요."); return; }
+  const 캔 = 줄이기(그림, 긴변);
+  $("미리").src = 캔.toDataURL("image/jpeg", 0.6); $("미리").style.display = "block";
+  const 잼 = 귀퉁이재기(캔);
+  const 문제 = [];
+  if (잼.밝기 < 60) 문제.push("사진이 너무 어두워요. 밝은 곳에서 찍어 주세요.");
+  if (잼.덮음 < 0.25) 문제.push("<b>네 귀퉁이 검은 네모</b>가 다 안 보여요. OMR 한 장이 화면에 꽉 차게, 귀퉁이가 잘리지 않게 찍어 주세요.");
+  if (잼.선명 < 25) 문제.push("사진이 흐려요. 폰을 멈추고 초점을 맞춰 다시 찍어 주세요.");
+  if (문제.length) {
+    대기 = 캔;
+    알리기("주의", 문제.join("<br>") + "<br><span class='작은'>다시 찍기를 눌러 주세요.</span>");
+    $("찍기").textContent = "📷 다시 찍기";
+    $("그래도").textContent = "그래도 이 사진으로 올리기"; $("그래도").classList.remove("숨김");
+    return;
+  }
+  await 올리기(캔);
+}
+
+$("찍기").onclick = () => { $("카메라").value = ""; $("카메라").click(); };
+$("고르기").onclick = () => { $("사진첩").value = ""; $("사진첩").click(); };
+$("카메라").onchange = e => 받음(e.target.files[0]);
+$("사진첩").onchange = e => 받음(e.target.files[0]);
+$("그래도").onclick = () => { if (대기) 올리기(대기); };
+</script>
+</body>
+</html>
