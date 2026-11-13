@@ -17,12 +17,16 @@
     사장님 컴퓨터(문제은행 도구/성장/올림받기.js)가 몇 분마다 꺼내 가 채점하고 학생관리에 넣는다.
     올리기 전에 이 페이지가 «네 귀퉁이 검은 네모» 가 보이는지 재서, 안 보이면 다시 찍게 한다(흐린 사진·잘린 사진을 여기서 거른다).
     보관함 규칙: 지침서 「3단계 표-답안올림.sql」 (넣기 = 누구나 · 보기·지우기 = 사장님만 · 이름 꼴 omr-<13자리 시각>-<글자>.jpg)
+  ★ 2026-11-10 사장님 「진행시켜」(못 읽으면 조용히 멈춘다 — 학생도 선생님도 모름):
+    올린 뒤 이 페이지가 결과 칸(omr-res/<사진 이름>.json · 지침서 「3단계 표-답안결과.sql」)을 몇 초마다 본다.
+    사장님 컴퓨터가 «받음» → «읽음(누구 답안)» 또는 «다시(무엇을 고쳐 다시 찍을지)» 를 놓는다. 점수는 안 띄운다(선생님·카톡 몫).
+    휜 종이(중철)를 비스듬히 찍으면 못 읽는다 — 그래서 «평평하게 펴고 바로 위에서» 를 앞에 둔다.
 -->
 <style>
   :root { --바탕: #0e1116; --판: #161b22; --줄: #2a313c; --글: #e6edf3; --옅은: #9aa4b2; --파랑: #3b82f6; --초록: #22c55e; --노랑: #f59e0b; --빨강: #ef4444; }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--바탕); color: var(--글); font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; }
-  main { max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
+  main { max-width: 520px; margin: 0 auto; padding: 14px 16px 40px; }
   h1 { font-size: 22px; margin: 6px 0 4px; }
   .작은 { color: var(--옅은); font-size: 14px; line-height: 1.55; margin: 0; }
   .판 { background: var(--판); border: 1px solid var(--줄); border-radius: 14px; padding: 16px; margin-top: 16px; }
@@ -32,48 +36,54 @@
   .큰단추:active { filter: brightness(0.9); }
   .옅은단추 { width: 100%; padding: 13px; font-size: 15px; background: transparent; color: var(--옅은); border: 1px solid var(--줄); margin-top: 10px; }
   #미리 { width: 100%; border-radius: 10px; margin-top: 14px; display: none; background: #000; }
-  #알림 { margin-top: 14px; font-size: 16px; line-height: 1.6; display: none; padding: 14px; border-radius: 12px; }
+  #알림 { margin: 0 0 4px; font-size: 17px; line-height: 1.6; display: none; padding: 16px; border-radius: 12px; }
+  #알림 b { font-size: 22px; }
   #알림.좋음 { display: block; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.45); }
   #알림.주의 { display: block; background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.45); }
   #알림.나쁨 { display: block; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.45); }
   #알림.중 { display: block; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.45); }
   .숨김 { display: none !important; }
   input[type=file] { display: none; }
+  h2 { font-size: 16px; margin: 26px 0 0; color: var(--옅은); font-weight: 600; }
+  .줄 { margin-top: 10px; padding: 12px 14px; border-radius: 12px; font-size: 15px; line-height: 1.6; border: 1px solid var(--줄); background: var(--판); }
+  .줄 .때 { color: var(--옅은); font-size: 13px; }
+  .줄.기다림 { border-color: rgba(59,130,246,.45); }
+  .줄.좋음 { background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.45); }
+  .줄.나쁨 { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.5); }
+  .줄.주의 { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.45); }
+  .돌기 { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--옅은); border-top-color: transparent; border-radius: 50%; animation: 돌 0.9s linear infinite; vertical-align: -1px; margin-right: 6px; }
+  @keyframes 돌 { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 <main>
-  <h1>답안 사진 올리기</h1>
-  <p class="작은">세진 과학 · OMR 한 장을 찍어 올리면 채점돼요. 로그인은 필요 없어요.</p>
-
-  <div class="판">
-    <ol>
-      <li>OMR을 다 채워요 — 고유번호, 답, 서술형 칸까지.</li>
-      <li>책상에 놓고 <b>OMR 한 장이 화면에 꽉 차게</b> 찍어요.</li>
-      <li><b>네 귀퉁이 검은 네모</b>가 다 보여야 해요.</li>
-    </ol>
-  </div>
-
+  <!-- ★ 11-13 사장님 「받았어요가 폰에서 아래로 내려가야 보인다 — 맨 위에 뜨게 · 위에 쓸데없는 말 다 빼고」: 알림 칸이 맨 위, 설명 글은 없앰 -->
+  <div id="알림"></div>
   <button id="찍기" class="큰단추">📷 OMR 찍기</button>
   <button id="고르기" class="옅은단추">사진첩에서 고르기</button>
+  <button id="그래도" class="옅은단추 숨김">그래도 이 사진으로 올리기</button>
   <input id="카메라" type="file" accept="image/*" capture="environment">
   <input id="사진첩" type="file" accept="image/*">
 
   <img id="미리" alt="찍은 사진">
-  <div id="알림"></div>
-  <button id="그래도" class="옅은단추 숨김">그래도 이 사진으로 올리기</button>
+
+  <div id="올린" class="숨김">
+    <h2>올린 사진</h2>
+    <div id="올린줄"></div>
+  </div>
 </main>
 <script>
 "use strict";
 const 주소 = "https://burwsvkcaiqfiymdptex.supabase.co";
 const 공개열쇠 = "sb_publishable_Yxaq9Rbth3NUmcREMwlbSg_qaXpoLVy";     // 홈페이지와 같은 공개 열쇠(넣기만 된다)
 const 보관함 = "omr-up";
+const 결과곳 = "omr-res";                                              // 사장님 컴퓨터가 놓는 «받음·읽음·다시» (공개 · 이름을 아는 사람만)
 const 긴변 = 2400;                                                    // 올리는 사진 긴 변(px) — 칸과 글씨가 읽힐 만큼
 
 const $ = id => document.getElementById(id);
 let 대기 = null;                                                       // 귀퉁이를 못 찾았을 때 «그래도 올리기» 로 올릴 사진
 
-function 알리기(종류, 글) { const a = $("알림"); a.className = 종류; a.innerHTML = 글; }
+function 알리기(종류, 글) { const a = $("알림"); a.className = 종류; a.innerHTML = 글; try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {} }
 function 이름() {
   const 글자 = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
   const r = new Uint32Array(12); crypto.getRandomValues(r);
@@ -174,8 +184,57 @@ async function 올리기(캔) {
     return;
   }
   대기 = null;
-  알리기("좋음", "<b>받았어요 ✔</b><br>몇 분 안에 채점돼요. 다른 사람 것도 이어서 찍을 수 있어요.");
+  알리기("좋음", "<b>받았어요 ✔</b>");
+  window.scrollTo({ top: 0, behavior: "smooth" });
   $("찍기").textContent = "📷 한 장 더 찍기";
+  const t = { 파일이름, 때: Date.now(), 상태: "기다림" };
+  올린것.unshift(t);
+  결과보기(t);                                                         // 줄은 결과 칸에서 무엇이 오면 그때 그린다
+}
+
+// ── 올린 사진마다 결과 칸(omr-res/<사진 이름>.json)을 몇 초마다 본다 — 사장님 컴퓨터가 «받음 → 읽음/다시» 를 놓는다
+const 올린것 = [];
+const 글막 = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function 줄그리기(t) {
+  $("올린").classList.remove("숨김");
+  if (!t.칸) { t.칸 = document.createElement("div"); $("올린줄").prepend(t.칸); }
+  const 시 = new Date(t.때).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  const 이름 = (t.이름 || []).map(글막).join(", ");
+  const 판 = {
+    기다림: ["기다림", "<span class='돌기'></span>올라갔어요. 선생님 컴퓨터가 가져가길 기다리는 중… (보통 1분 안)"],
+    받음: ["기다림", "<span class='돌기'></span>선생님 컴퓨터가 받았어요. 읽는 중…"],
+    읽음: ["좋음", "<b>✔ " + (이름 || "답안") + "</b> 답안으로 받았어요. 채점 결과는 선생님이 알려 줘요.<br><span class='때'>이름이 내 것이 아니면 고유번호를 잘못 칠한 거예요 — 선생님께 말해 주세요.</span>"],
+    다시: ["나쁨", "<b>✘ 다시 찍어 주세요.</b><br>" + 글막(t.말 || "사진을 잘 못 읽었어요.") + (이름 ? "<br><span class='때'>읽은 것: " + 이름 + "</span>" : "")],
+    늦음: ["주의", "선생님 컴퓨터가 아직 안 가져갔어요(꺼져 있을 수 있어요). 사진은 잘 올라갔으니 창을 닫아도 돼요 — 켜지면 채점돼요."],
+    늦음2: ["주의", "읽는 데 오래 걸려요. 창을 닫아도 돼요 — 선생님이 확인할 거예요."],
+  }[t.상태] || ["기다림", 글막(t.상태)];
+  t.칸.className = "줄 " + 판[0];
+  t.칸.innerHTML = "<span class='때'>" + 시 + " 올린 사진</span><br>" + 판[1];
+}
+async function 결과보기(t) {
+  const 이름 = t.파일이름.replace(/\.[a-z]+$/i, ".json");
+  for (;;) {
+    if (Date.now() - t.때 > 6 * 60e3) { t.상태 = t.상태 === "받음" ? "늦음2" : "늦음"; 줄그리기(t); return; }
+    try {
+      const r = await fetch(주소 + "/storage/v1/object/public/" + 결과곳 + "/" + 이름 + "?t=" + Date.now(), { cache: "no-store" });
+      // 결과 칸(omr-res)이 아직 서버에 없으면 기다리지 않는다 — 위의 «받았어요 ✔» 만 둔다
+      if (!r.ok && /Bucket not found/i.test(await r.clone().text().catch(() => ""))) return;
+      if (r.ok) {
+        const j = await r.json();
+        if (j && j.상태 && j.상태 !== t.상태) {
+          t.상태 = j.상태; t.이름 = Array.isArray(j.이름) ? j.이름 : []; t.말 = j.말; 줄그리기(t);
+          if (j.상태 === "다시" && t === 올린것[0]) {
+            알리기("나쁨", "<b>✘ 다시 찍어 주세요.</b><br>" + 글막(j.말 || ""));
+            $("찍기").textContent = "📷 다시 찍기";
+            try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+          }
+          if (j.상태 === "읽음" && t === 올린것[0]) 알리기("좋음", "<b>받았어요 ✔</b>" + (t.이름.length ? "<br>" + t.이름.map(글막).join(", ") : ""));
+        }
+        if (j && (j.상태 === "읽음" || j.상태 === "다시")) return;
+      }
+    } catch (e) {}
+    await new Promise(z => setTimeout(z, 4000));
+  }
 }
 
 async function 받음(파일) {
