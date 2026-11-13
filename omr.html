@@ -56,6 +56,11 @@
   .줄.주의 { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.45); }
   .돌기 { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--옅은); border-top-color: transparent; border-radius: 50%; animation: 돌 0.9s linear infinite; vertical-align: -1px; margin-right: 6px; }
   @keyframes 돌 { to { transform: rotate(360deg); } }
+  /* ★ 11-14 링크를 누르면 바로 뜨는 카메라 화면(셔터는 사람이) */
+  #캠 { position: fixed; inset: 0; background: #000; z-index: 50; }
+  #캠 video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  #셔터 { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(28px, env(safe-area-inset-bottom)); width: 78px; height: 78px; border-radius: 39px; background: #fff; border: 6px solid rgba(255,255,255,.4); background-clip: padding-box; padding: 0; }
+  #셔터:active { transform: translateX(-50%) scale(0.92); }
 </style>
 </head>
 <body>
@@ -74,6 +79,11 @@
     <div id="올린줄"></div>
   </div>
 </main>
+<!-- ★ 11-14 사장님 「qr 가져다 대고 링크 누르면 바로 카메라 화면 나오게 하고 사진은 사람이 찍게」 — 저절로 찍기 없음 · 셔터 하나뿐 -->
+<div id="캠" class="숨김">
+  <video id="영상" playsinline muted autoplay></video>
+  <button id="셔터" aria-label="찍기"></button>
+</div>
 <script>
 "use strict";
 const 주소 = "https://burwsvkcaiqfiymdptex.supabase.co";
@@ -305,11 +315,43 @@ async function 받은그림(그림) {
   보내기단추("준비");
 }
 
-// ★ 11-14 사장님 「그냥 자동 찍히기 하지 마 · 도대체 알 수가 없어」 — 화면 안 카메라·저절로 찍기를 걷고 폰 기본 카메라로(셔터는 학생이) 되돌림
-$("찍기").onclick = () => {
-  알림지우기(); $("미리").style.display = "none"; $("미리").removeAttribute("src"); 대기 = null; 보내기단추("없음");   // 매번 처음과 똑같이
+// ★ 11-14 사장님 「그냥 자동 찍히기 하지 마」 → 「qr 가져다 대고 링크 누르면 바로 카메라 화면 · 사진은 사람이 찍게」
+//   페이지가 열리자마자 이 화면 안 카메라를 켠다(처음 한 번은 «허용») · 셔터는 사람이 · 찍으면 카메라를 닫고 보내기.
+//   카메라를 못 켜면(허용 안 함 · 카톡 안 브라우저 등) «📷 OMR 찍기» 로 폰 기본 카메라.
+let 스트림 = null, 파일로 = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+async function 카메라열기() {
+  const 조건 = { audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } } };
+  for (let 번 = 0; 번 < 3 && !스트림; 번++) {                         // 방금 닫은 카메라는 폰에 따라 한 번 안 열린다 — 잠깐 뒤 다시
+    try { 스트림 = await navigator.mediaDevices.getUserMedia(조건); }
+    catch (e) { if (e && e.name === "NotAllowedError") break; await new Promise(z => setTimeout(z, 500)); }
+  }
+  if (!스트림) { 파일로 = true; return false; }
+  const v = $("영상"); v.srcObject = 스트림;
+  try { await v.play(); } catch (e) {}
+  $("캠").classList.remove("숨김");
+  return true;
+}
+function 카메라닫기() {
+  if (스트림) 스트림.getTracks().forEach(t => t.stop());
+  스트림 = null; try { $("영상").pause(); } catch (e) {} $("영상").srcObject = null;
+  $("캠").classList.add("숨김");
+}
+function 처음처럼() { 알림지우기(); $("미리").style.display = "none"; $("미리").removeAttribute("src"); 대기 = null; 보내기단추("없음"); }
+$("셔터").onclick = async () => {
+  if (!스트림) return;
+  try { navigator.vibrate && navigator.vibrate(40); } catch (e) {}
+  let 그림 = null;
+  try { if (window.ImageCapture) 그림 = await 그림읽기(await new ImageCapture(스트림.getVideoTracks()[0]).takePhoto()); } catch (e) { 그림 = null; }
+  if (!그림) 그림 = 줄이기($("영상"), 4096);                            // 사진 셔터가 없는 폰은 영상 한 장
+  카메라닫기();
+  await 받은그림(그림);
+};
+$("찍기").onclick = async () => {
+  처음처럼();
+  if (!파일로 && await 카메라열기()) return;
   $("카메라").value = ""; $("카메라").click();
 };
+if (!파일로) 카메라열기();                                             // 링크를 누르면 바로 카메라 화면
 $("카메라").onchange = e => 받음(e.target.files[0]);                 // ★ 11-13 사장님 「사진첩에서 고르기도 없애」 — 카메라로 찍기만
 $("보내기").onclick = () => { if (대기) 올리기(대기); };
 </script>
