@@ -28,9 +28,11 @@
   html, body { margin: 0; background: var(--바탕); color: var(--글); font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; }
   main { max-width: 520px; margin: 0 auto; padding: 14px 16px 40px; }
   #찍기 { margin-top: 0; }
-  #보내기 { background: var(--초록); margin-top: 12px; }
-  #보내기:disabled { background: #2a313c; color: #6b7480; cursor: default; }
-  #보내기.받음, #보내기.받음:disabled { background: #12281a; color: #86efac; border: 1px solid rgba(34,197,94,.6); }
+  /* ★ 11-14 보내기 단추 없음 — 그 자리에 상태 한 줄(보내는 중 · 전송 완료 · 전송 실패) */
+  #보내기 { margin-top: 12px; padding: 18px; border-radius: 12px; font-size: 19px; font-weight: 700; text-align: center; line-height: 1.45; }
+  #보내기.중 { background: #132039; color: #93c5fd; border: 1px solid rgba(59,130,246,.55); }
+  #보내기.받음 { background: #12281a; color: #86efac; border: 1px solid rgba(34,197,94,.6); }
+  #보내기.실패 { background: #2d1416; color: #fca5a5; border: 1px solid rgba(239,68,68,.6); }
   h1 { font-size: 22px; margin: 6px 0 4px; }
   .작은 { color: var(--옅은); font-size: 14px; line-height: 1.55; margin: 0; }
   .판 { background: var(--판); border: 1px solid var(--줄); border-radius: 14px; padding: 16px; margin-top: 16px; }
@@ -65,10 +67,11 @@
 </head>
 <body>
 <main>
-  <!-- ★ 11-13 사장님: 위에 쓸데없는 말 다 빼고 · 찍기 단추는 맨 위 그대로 · 그 아래 «보내기» 단추 —
-       누르면 보내지고, 보내지면 보내기 단추가 «받았어요 ✔» 로 바뀐다(찍자마자 저절로 올리던 것을 걷음) · 사진첩에서 고르기 없음 -->
+  <!-- ★ 11-13 사장님: 위에 쓸데없는 말 다 빼고 · 찍기 단추는 맨 위 · 사진첩에서 고르기 없음
+       ★ 11-14 사장님 「보내기도 누르게 하는 거 없애고 그 자리에 바로 전송 완료 · 사진 이상하면 전송 실패 사진을 다시 찍어 달라고」 —
+       찍으면 곧바로 보낸다 · 그 자리(#보내기)는 상태 한 줄 -->
   <button id="찍기" class="큰단추">📷 OMR 찍기</button>
-  <button id="보내기" class="큰단추" disabled>보내기</button>
+  <div id="보내기" class="숨김"></div>
   <input id="카메라" type="file" accept="image/*" capture="environment">
   <div id="알림"></div>
 
@@ -93,12 +96,12 @@ const 결과곳 = "omr-res";                                              // 사
 const 긴변 = 2400;                                                    // 올리는 사진 긴 변(px) — 칸과 글씨가 읽힐 만큼
 
 const $ = id => document.getElementById(id);
-let 대기 = null;                                                       // 찍은 사진 — «보내기» 를 누르면 올린다
-// 보내기 단추: 없음(사진 전 · 잠김) → 준비(누를 수 있음) → 보내는중 → 받음(«받았어요 ✔») · 실패면 «다시 보내기»
+let 대기 = null;
+// 상태 한 줄(옛 보내기 단추 자리): 없음(안 보임) → 보내는중 → 받음(«전송 완료 ✔») · 실패(«전송 실패 · 사진을 다시 찍어 주세요»)
 function 보내기단추(상태) {
   const b = $("보내기");
-  const [글, 잠금] = { 없음: ["보내기", true], 준비: ["보내기", false], 보내는중: ["보내는 중…", true], 받음: ["받았어요 ✔", true], 실패: ["다시 보내기", false] }[상태];
-  b.textContent = 글; b.disabled = 잠금; b.classList.toggle("받음", 상태 === "받음");
+  const 판 = { 없음: ["", "숨김"], 보내는중: ["보내는 중…", "중"], 받음: ["전송 완료 ✔", "받음"], 실패: ["전송 실패<br>사진을 다시 찍어 주세요", "실패"] }[상태];
+  b.innerHTML = 판[0]; b.className = 판[1];
 }
 function 알림지우기() { $("알림").className = ""; $("알림").innerHTML = ""; }
 
@@ -232,8 +235,8 @@ async function 올리기(캔) {
   } catch (e) { 답 = null; }
   if (!답 || !답.ok) {
     const 왜 = 답 ? await 답.text().catch(() => "") : "인터넷 연결";
-    알리기("나쁨", "<b>못 보냈어요.</b> 다시 보내기를 눌러 주세요.<br><span class='작은'>(" + String(왜).slice(0, 120).replace(/</g, "&lt;") + ")</span>");
-    보내기단추("실패");
+    보내기단추("실패");                                                  // 인터넷이 끊겼거나 서버가 안 받음 — 다시 찍으면 다시 보낸다
+    $("찍기").textContent = "📷 다시 찍기";
     return;
   }
   대기 = null;
@@ -296,6 +299,12 @@ async function 받음(파일) {
   try { 그림 = await 그림읽기(파일); } catch (e) { 알리기("나쁨", "이 사진은 열 수가 없어요. 다시 찍어 주세요."); return; }
   await 받은그림(그림);
 }
+function 네모다움(넷) {                                              // 볼록한 네모 · 가장 짧은 변이 가장 긴 변의 30% 넘게(삼각형처럼 두 꼭지가 붙은 꼴 X)
+  const 변 = 넷.map((p, i) => Math.hypot(넷[(i + 1) % 4][0] - p[0], 넷[(i + 1) % 4][1] - p[1]));
+  if (Math.min(...변) < 0.3 * Math.max(...변)) return false;
+  const 곱 = 넷.map((p, i) => { const a = 넷[(i + 1) % 4], b = 넷[(i + 2) % 4]; return (a[0] - p[0]) * (b[1] - a[1]) - (a[1] - p[1]) * (b[0] - a[0]); });
+  return 곱.every(v => v > 0) || 곱.every(v => v < 0);
+}
 async function 받은그림(그림) {
   알림지우기();
   보내기단추("없음");
@@ -305,14 +314,16 @@ async function 받은그림(그림) {
   const 잼 = 귀퉁이재기(캔, { 비: 0.8, 문: 175, 굵게: true, 고리참: 0.3 });   // 카메라 화면과 같이 너그럽게(11-14) — 읽기가 버틴다
   const 문제 = [];
   if (잼.밝기 < 60) 문제.push("사진이 너무 어두워요. 밝은 곳에서 찍어 주세요.");
-  if (!잼.넷) 문제.push("OMR이 다 안 보여요. 종이 전체가 나오게 찍어 주세요.");
+  // 확실히 이상한 것만 막는다 — 종이가 안 보임 · 빈 종이(안에 잉크 없음). 폰의 점검은 거칠어서 깐깐하게 하면 멀쩡한 사진을 막는다
+  //   (11-14 시험: 꼭지·꼴까지 따졌더니 진짜 학생 사진 18장 중 12장을 막았다). 나머지는 컴퓨터의 읽기가 버틴다.
+  if (!잼.넷 || 잼.잉크 < 0.01) 문제.push("OMR이 다 안 보여요. 종이 전체가 나오게 찍어 주세요.");
   if (잼.선명 < 10) 문제.push("사진이 많이 흐려요. 다시 찍어 주세요.");
-  if (문제.length) {                                                    // 걸리는 게 있으면 알려만 준다 — 보낼지는 학생이(보내기 단추)
-    알리기("주의", 문제.join("<br>"));
+  if (문제.length) {                                                    // 이상한 사진 — 안 보낸다(11-14 사장님 「사진 이상하면 전송 실패 · 다시 찍어 달라고」)
+    보내기단추("실패");
     $("찍기").textContent = "📷 다시 찍기";
+    return;
   }
-  대기 = 캔;
-  보내기단추("준비");
+  await 올리기(캔);                                                     // 찍자마자 보낸다(보내기 단추 없음)
 }
 
 // ★ 11-14 사장님 「그냥 자동 찍히기 하지 마」 → 「qr 가져다 대고 링크 누르면 바로 카메라 화면 · 사진은 사람이 찍게」
@@ -353,7 +364,6 @@ $("찍기").onclick = async () => {
 };
 if (!파일로) 카메라열기();                                             // 링크를 누르면 바로 카메라 화면
 $("카메라").onchange = e => 받음(e.target.files[0]);                 // ★ 11-13 사장님 「사진첩에서 고르기도 없애」 — 카메라로 찍기만
-$("보내기").onclick = () => { if (대기) 올리기(대기); };
 </script>
 </body>
 </html>
