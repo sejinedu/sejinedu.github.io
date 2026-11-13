@@ -60,10 +60,8 @@
   <!-- ★ 11-13 사장님 「받았어요가 폰에서 아래로 내려가야 보인다 — 맨 위에 뜨게 · 위에 쓸데없는 말 다 빼고」: 알림 칸이 맨 위, 설명 글은 없앰 -->
   <div id="알림"></div>
   <button id="찍기" class="큰단추">📷 OMR 찍기</button>
-  <button id="고르기" class="옅은단추">사진첩에서 고르기</button>
   <button id="그래도" class="옅은단추 숨김">그래도 이 사진으로 올리기</button>
   <input id="카메라" type="file" accept="image/*" capture="environment">
-  <input id="사진첩" type="file" accept="image/*">
 
   <img id="미리" alt="찍은 사진">
 
@@ -261,9 +259,7 @@ async function 받음(파일) {
 }
 
 $("찍기").onclick = () => { $("카메라").value = ""; $("카메라").click(); };
-$("고르기").onclick = () => { $("사진첩").value = ""; $("사진첩").click(); };
-$("카메라").onchange = e => 받음(e.target.files[0]);
-$("사진첩").onchange = e => 받음(e.target.files[0]);
+$("카메라").onchange = e => 받음(e.target.files[0]);                 // ★ 11-13 사장님 「사진첩에서 고르기도 없애」 — 카메라로 찍기만
 $("그래도").onclick = () => { if (대기) 올리기(대기); };
 </script>
 </body>
