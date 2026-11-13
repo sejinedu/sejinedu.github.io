@@ -60,7 +60,7 @@
   @keyframes 돌 { to { transform: rotate(360deg); } }
   /* ★ 11-14 링크를 누르면 바로 뜨는 카메라 화면(셔터는 사람이) */
   #캠 { position: fixed; inset: 0; background: #000; z-index: 50; }
-  #캠 video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  #캠 video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }   /* 늘 화면을 꽉 채운다(11-14 「한 장 더 찍기 하면 카메라 화면이 되게 작게」) */
   #셔터 { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(28px, env(safe-area-inset-bottom)); width: 78px; height: 78px; border-radius: 39px; background: #fff; border: 6px solid rgba(255,255,255,.4); background-clip: padding-box; padding: 0; }
   #셔터:active { transform: translateX(-50%) scale(0.92); }
 </style>
@@ -200,14 +200,30 @@ function 귀퉁이재기(캔, 옵 = {}) {
   // ★ 11-13 판 3(점 넷 대신 테두리 한 줄): 사진의 넓은 범위를 감싸는 가는 고리(꽉 차지 않은 큰 덩어리)가 있으면 테두리가 보인 것
   const 고리 = 덩.filter(b => b.bw * b.bh > 0.12 * W * H && b.참 < 고리참 && b.bw > 짧 * 0.3 && b.bh > 짧 * 0.3).sort((a, b) => b.bw * b.bh - a.bw * a.bh)[0];
   const 테두리 = !!고리;
+  // ★ 11-14 사장님 「일부러 반만 찍어 봤는데 전송 완료」 — 종이 전체가 보였나: 테두리(또는 종이 끝) 고리가 끊기지 않고 한 바퀴 닫혔나.
+  //   고리 안 한가운데에서 고리가 아닌 칸으로만 걸어 사진 끝에 닿으면 끊긴(반만 찍힌) 것.
+  const 닫힘 = 덩.map((b, i) => [b, i]).filter(([b]) => b.bw * b.bh > 0.12 * W * H && b.참 < 고리참 && b.bw > 짧 * 0.3 && b.bh > 짧 * 0.3).some(([b, id]) => {
+    const sx = Math.round((b.s0[0] + b.s1[0] + b.d0[0] + b.d1[0]) / 4), sy = Math.round((b.s0[1] + b.s1[1] + b.d0[1] + b.d1[1]) / 4);
+    const 시작 = sy * W + sx;
+    if (표[시작] === id) return false;
+    const 본 = new Uint8Array(W * H); let top = 0; 쌓[top++] = 시작; 본[시작] = 1;
+    while (top) {
+      const p = 쌓[--top], px = p % W, py = (p - px) / W;
+      if (px === 0 || py === 0 || px === W - 1 || py === H - 1) return false;
+      for (const q of [p - 1, p + 1, p - W, p + W]) if (!본[q] && 표[q] !== id) { 본[q] = 1; 쌓[top++] = q; }
+    }
+    return true;
+  });
   // 종이 네 꼭지(왼위 · 오른위 · 오른아래 · 왼아래) — 테두리가 있으면 그 고리, 없으면 네 귀퉁이 네모(판 2)
   let 넷 = null;
-  if (고리) 넷 = [고리.s0, 고리.d1, 고리.s1, 고리.d0];
-  else if (최) {
+  let 네모넷 = null;                                                   // 판 2 네 귀퉁이 네모로 된 네모
+  if (최) {
     const c = 최.넷.map(t => [t.cx, t.cy]);
     const 골 = f => c.reduce((a, b) => (f(b) > f(a) ? b : a));
-    넷 = [골(p => -p[0] - p[1]), 골(p => p[0] - p[1]), 골(p => p[0] + p[1]), 골(p => p[1] - p[0])];
+    네모넷 = [골(p => -p[0] - p[1]), 골(p => p[0] - p[1]), 골(p => p[0] + p[1]), 골(p => p[1] - p[0])];
   }
+  if (고리) 넷 = [고리.s0, 고리.d1, 고리.s1, 고리.d0];
+  else 넷 = 네모넷;
   // 네모 안 잉크 — 빈 종이(어두운 책상 위 흰 종이 끝도 고리처럼 잡힌다)는 안이 텅 비었다. 가장자리 띠를 빼고(안쪽 80%) 잉크 칸 비율.
   let 잉크 = 0;
   if (넷) {
@@ -219,7 +235,7 @@ function 귀퉁이재기(캔, 옵 = {}) {
       for (let x = Math.max(0, Math.round(cx - hw)); x < Math.min(W, Math.round(cx + hw)); x++) { n++; m += 검[y * W + x]; }
     잉크 = n ? m / n : 0;
   }
-  return { 귀퉁이: 네모.length, 덮음, 테두리, 넷, 잉크, W, H, 선명: 라 / Math.max(1, 라n), 밝기 };
+  return { 귀퉁이: 네모.length, 덮음, 테두리, 닫힘, 넷, 네모넷, 잉크, W, H, 선명: 라 / Math.max(1, 라n), 밝기 };
 }
 
 async function 올리기(캔) {
@@ -316,7 +332,11 @@ async function 받은그림(그림) {
   if (잼.밝기 < 60) 문제.push("사진이 너무 어두워요. 밝은 곳에서 찍어 주세요.");
   // 확실히 이상한 것만 막는다 — 종이가 안 보임 · 빈 종이(안에 잉크 없음). 폰의 점검은 거칠어서 깐깐하게 하면 멀쩡한 사진을 막는다
   //   (11-14 시험: 꼭지·꼴까지 따졌더니 진짜 학생 사진 18장 중 12장을 막았다). 나머지는 컴퓨터의 읽기가 버틴다.
-  if (!잼.넷 || 잼.잉크 < 0.01) 문제.push("OMR이 다 안 보여요. 종이 전체가 나오게 찍어 주세요.");
+  // 종이 전체가 보였나 — 새 종이(판 3)는 테두리가 한 바퀴 닫혀야(반만 찍힌 판 3 18장 중 17장을 막음 · 멀쩡한 건 하나도 안 막음).
+  //   예전 종이(판 2 · 점 넷)는 폰에서 점을 깐깐히 못 잡아 멀쩡한 학생 사진을 막는다 → 네 귀퉁이 네모가 잡히면 너그럽게 보낸다.
+  const 엄 = 귀퉁이재기(캔);
+  const 다보임 = 잼.닫힘 || 엄.덮음 >= 0.25 || 잼.덮음 >= 0.5;
+  if (!잼.넷 || 잼.잉크 < 0.01 || !다보임) 문제.push("OMR이 다 안 보여요. 종이 전체가 나오게 찍어 주세요.");
   if (잼.선명 < 10) 문제.push("사진이 많이 흐려요. 다시 찍어 주세요.");
   if (문제.length) {                                                    // 이상한 사진 — 안 보낸다(11-14 사장님 「사진 이상하면 전송 실패 · 다시 찍어 달라고」)
     보내기단추("실패");
@@ -330,7 +350,14 @@ async function 받은그림(그림) {
 //   페이지가 열리자마자 이 화면 안 카메라를 켠다(처음 한 번은 «허용») · 셔터는 사람이 · 찍으면 카메라를 닫고 보내기.
 //   카메라를 못 켜면(허용 안 함 · 카톡 안 브라우저 등) «📷 OMR 찍기» 로 폰 기본 카메라.
 let 스트림 = null, 파일로 = !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+function 카메라살았나() { return !!스트림 && 스트림.getVideoTracks().some(t => t.readyState === "live"); }
+async function 카메라보이기() {                                       // 켜 둔 카메라를 다시 보인다(끄고 다시 켜면 폰이 다른 크기 영상을 줘서 화면이 작아졌다 — 11-14)
+  $("캠").classList.remove("숨김");
+  try { await $("영상").play(); } catch (e) {}
+}
 async function 카메라열기() {
+  if (카메라살았나()) { await 카메라보이기(); return true; }
+  스트림 = null;
   const 조건 = { audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } } };
   for (let 번 = 0; 번 < 3 && !스트림; 번++) {                         // 방금 닫은 카메라는 폰에 따라 한 번 안 열린다 — 잠깐 뒤 다시
     try { 스트림 = await navigator.mediaDevices.getUserMedia(조건); }
@@ -351,12 +378,12 @@ function 처음처럼() { 알림지우기(); $("미리").style.display = "none";
 $("셔터").onclick = async () => {
   if (!스트림) return;
   try { navigator.vibrate && navigator.vibrate(40); } catch (e) {}
-  let 그림 = null;
-  try { if (window.ImageCapture) 그림 = await 그림읽기(await new ImageCapture(스트림.getVideoTracks()[0]).takePhoto()); } catch (e) { 그림 = null; }
-  if (!그림) 그림 = 줄이기($("영상"), 4096);                            // 사진 셔터가 없는 폰은 영상 한 장
-  카메라닫기();
+  const 그림 = 줄이기($("영상"), 4096);                                 // 영상 한 장(사진 셔터는 폰에 따라 카메라를 다시 맞춰 다음 화면이 달라졌다)
+  $("캠").classList.add("숨김");                                         // 카메라는 켜 둔다 — «한 장 더 찍기» 가 처음과 똑같은 화면
+  try { $("영상").pause(); } catch (e) {}
   await 받은그림(그림);
 };
+document.addEventListener("visibilitychange", () => { if (document.hidden && $("캠").classList.contains("숨김")) 카메라닫기(); });   // 다른 앱으로 가면 카메라를 놓는다
 $("찍기").onclick = async () => {
   처음처럼();
   if (!파일로 && await 카메라열기()) return;
