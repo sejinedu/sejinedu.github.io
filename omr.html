@@ -326,9 +326,13 @@ async function 받은그림(그림) {
 // ── 화면 안 카메라(11-14 사장님 「자동으로 안 찍히는데?」) — 민증 찍듯이: 종이 테두리가 잡히고 흔들림이 멎으면 저절로 찰칵
 let 스트림 = null, 살핌 = false, 이전 = null, 멎음 = 0, 파일로 = false;
 async function 카메라열기() {
-  try {
-    스트림 = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } } });
-  } catch (e) { return false; }
+  // ★ 11-14 사장님 「한 장 더 찍기 하니까 처음 찍을 때하고 그림 다른데?」 — 방금 닫은 카메라를 곧바로 다시 열면 폰에 따라 한 번 실패한다 → 잠깐 뒤 한 번 더
+  const 조건 = { audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } } };
+  for (let 번 = 0; 번 < 3 && !스트림; 번++) {
+    try { 스트림 = await navigator.mediaDevices.getUserMedia(조건); }
+    catch (e) { if (e && e.name === "NotAllowedError") return "거절"; await new Promise(z => setTimeout(z, 500)); }
+  }
+  if (!스트림) return false;
   const v = $("영상");
   v.srcObject = 스트림;
   try { await v.play(); } catch (e) {}
@@ -341,7 +345,7 @@ async function 카메라열기() {
 function 카메라닫기() {
   살핌 = false;
   if (스트림) 스트림.getTracks().forEach(t => t.stop());
-  스트림 = null; $("영상").srcObject = null;
+  스트림 = null; try { $("영상").pause(); } catch (e) {} $("영상").srcObject = null;
   $("캠").classList.add("숨김");
 }
 function 겹그리기(잼) {                                                // 잡힌 종이 둘레를 초록 선으로(영상은 화면에 «contain» 으로 맞춰 보인다)
@@ -356,6 +360,12 @@ function 겹그리기(잼) {                                                // �
   잼.넷.forEach(([px, py], i) => { const X = ox + px * 비 * k, Y = oy + py * 비 * k; i ? x.lineTo(X, Y) : x.moveTo(X, Y); });
   x.closePath(); x.stroke();
 }
+function 네모다움(넷) {                                              // 볼록한 네모 · 가장 짧은 변이 가장 긴 변의 30% 넘게
+  const 변 = 넷.map((p, i) => Math.hypot(넷[(i + 1) % 4][0] - p[0], 넷[(i + 1) % 4][1] - p[1]));
+  if (Math.min(...변) < 0.3 * Math.max(...변)) return false;
+  const 곱 = 넷.map((p, i) => { const a = 넷[(i + 1) % 4], b = 넷[(i + 2) % 4]; return (a[0] - p[0]) * (b[1] - a[1]) - (a[1] - p[1]) * (b[0] - a[0]); });
+  return 곱.every(v => v > 0) || 곱.every(v => v < 0);
+}
 function 살피기() {
   if (!살핌) return;
   const v = $("영상");
@@ -364,6 +374,7 @@ function 살피기() {
     //   두 번 연달아 잡히고 크게 안 움직이면 찍는다. 선명함은 여기서 안 따진다(찍은 뒤 사진으로 본다 · 읽기가 버틴다).
     const 잼 = 귀퉁이재기(줄이기(v, 640), { 크기: 640, 비: 0.8, 문: 175, 굵게: true, 고리참: 0.3 });
     let 말 = "OMR을 화면에 비춰 주세요", 좋음 = false;
+    if (잼.넷 && !네모다움(잼.넷)) 잼.넷 = null;                         // 찌그러진 꼴(삼각형처럼 두 꼭지가 붙음 · 오목)은 종이가 아니다
     if (잼.넷 && 잼.잉크 < 0.01) { 이전 = null; 멎음 = 0; }              // 빈 종이 — OMR 이 아니다
     else if (잼.넷) {
       const 짧 = Math.min(잼.W, 잼.H);
@@ -376,7 +387,7 @@ function 살피기() {
       이전 = 잼.넷;
       멎음 = 좋음 && 움직임 < 0.06 ? 멎음 + 1 : 0;
     } else { 이전 = null; 멎음 = 0; }
-    겹그리기(잼);
+    // ★ 11-14 사장님 「도형 난잡해 정신 사나워 · 삼각형 사각형 현란」 — 잡힌 둘레 선은 안 그린다(글자만)
     $("캠말").textContent = 말; $("캠말").className = 좋음 ? "잡힘" : "";
     if (멎음 >= 2) { 찍기(); return; }
   }
@@ -399,11 +410,18 @@ async function 찍기() {
 }
 $("캠닫기").onclick = () => 카메라닫기();
 $("캠찍기").onclick = () => 찍기();
+let 못연수 = 0;
 $("찍기").onclick = async () => {
+  // 매번 처음과 똑같이 — 앞 사진 · 알림 · «받았어요» 를 걷고 시작한다
+  알림지우기(); $("미리").style.display = "none"; $("미리").removeAttribute("src"); 대기 = null; 보내기단추("없음");
   if (!파일로 && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    if (await 카메라열기()) return;
-    파일로 = true;                                                      // 카메라를 못 열었다(권한 거절 · 카톡 안 브라우저 등) — 다음부터는 폰 기본 카메라
-    알리기("주의", "카메라를 못 열었어요. 한 번 더 누르면 폰 카메라로 찍어요.");
+    const r = await 카메라열기();
+    if (r === true) { 못연수 = 0; return; }
+    못연수++;
+    if (r === "거절" || 못연수 >= 2) {                                 // 카메라 허용을 안 했거나 두 번 연달아 못 열었다 — 그다음부터는 폰 기본 카메라
+      파일로 = true;
+      알리기("주의", "카메라를 못 열었어요. 한 번 더 누르면 폰 카메라로 찍어요.");
+    } else 알리기("주의", "카메라가 아직 안 열렸어요. 한 번 더 눌러 주세요.");
     return;
   }
   $("카메라").value = ""; $("카메라").click();
