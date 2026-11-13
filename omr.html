@@ -56,6 +56,15 @@
   .줄.주의 { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.45); }
   .돌기 { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--옅은); border-top-color: transparent; border-radius: 50%; animation: 돌 0.9s linear infinite; vertical-align: -1px; margin-right: 6px; }
   @keyframes 돌 { to { transform: rotate(360deg); } }
+  /* ★ 11-14 화면 안 카메라 — 테두리가 잡히면 저절로 찰칵 */
+  #캠 { position: fixed; inset: 0; background: #000; z-index: 50; }
+  #캠 video, #캠 canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  #캠말 { position: absolute; left: 0; right: 0; top: max(18px, env(safe-area-inset-top)); text-align: center; font-size: 19px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px #000; padding: 0 64px; }
+  #캠말.잡힘 { color: #86efac; }
+  #캠닫기 { position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px; width: 44px; height: 44px; border-radius: 22px; background: rgba(0,0,0,.55); color: #fff; font-size: 22px; padding: 0; }
+  #캠찍기 { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(26px, env(safe-area-inset-bottom)); width: 74px; height: 74px; border-radius: 37px; background: #fff; border: 5px solid rgba(255,255,255,.45); background-clip: padding-box; padding: 0; }
+  #캠 .번쩍 { animation: 번쩍 .25s ease-out; }
+  @keyframes 번쩍 { from { background: #fff; } to { background: #000; } }
 </style>
 </head>
 <body>
@@ -74,6 +83,15 @@
     <div id="올린줄"></div>
   </div>
 </main>
+<!-- ★ 11-14 사장님 「자동으로 안 찍히는데?」: 찍기를 누르면 이 화면 안에서 카메라가 열리고, 테두리(판 3)나 네 귀퉁이(판 2)가 잡혀 흔들림이 멎으면 저절로 찰칵.
+     카메라를 못 열면(권한 거절 · 카톡 안 브라우저 등) 폰 기본 카메라로 바뀐다. 아래 흰 단추는 혹시 안 잡힐 때 손으로 찍는 것. -->
+<div id="캠" class="숨김">
+  <video id="영상" playsinline muted autoplay></video>
+  <canvas id="겹"></canvas>
+  <div id="캠말">OMR을 화면에 비춰 주세요</div>
+  <button id="캠닫기" aria-label="닫기">✕</button>
+  <button id="캠찍기" aria-label="찍기"></button>
+</div>
 <script>
 "use strict";
 const 주소 = "https://burwsvkcaiqfiymdptex.supabase.co";
@@ -107,7 +125,7 @@ async function 그림읽기(파일) {
   }
 }
 function 줄이기(그림, 최대) {
-  const w = 그림.width, h = 그림.height, k = Math.min(1, 최대 / Math.max(w, h));
+  const w = 그림.videoWidth || 그림.width, h = 그림.videoHeight || 그림.height, k = Math.min(1, 최대 / Math.max(w, h));
   const c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
   c.getContext("2d").drawImage(그림, 0, 0, c.width, c.height);
   return c;
@@ -137,10 +155,13 @@ function 귀퉁이재기(캔) {
   for (let s = 0; s < W * H; s++) {
     if (!검[s] || 표[s] >= 0) continue;
     let n = 0, top = 0, minx = W, maxx = 0, miny = H, maxy = 0, sx = 0, sy = 0;
+    let s0 = null, s1 = null, d0 = null, d1 = null;                    // 대각선 끝점(x+y 가장 작은·큰 · x−y 가장 작은·큰) — 고리의 네 꼭지
     쌓[top++] = s; 표[s] = 덩.length;
     while (top) {
       const p = 쌓[--top], px = p % W, py = (p - px) / W; n++; sx += px; sy += py;
       if (px < minx) minx = px; if (px > maxx) maxx = px; if (py < miny) miny = py; if (py > maxy) maxy = py;
+      if (!s0 || px + py < s0[0] + s0[1]) s0 = [px, py]; if (!s1 || px + py > s1[0] + s1[1]) s1 = [px, py];
+      if (!d0 || px - py < d0[0] - d0[1]) d0 = [px, py]; if (!d1 || px - py > d1[0] - d1[1]) d1 = [px, py];
       for (const q of [p - 1, p + 1, p - W, p + W]) {
         if (q < 0 || q >= W * H || 표[q] >= 0 || !검[q]) continue;
         if ((q === p - 1 && px === 0) || (q === p + 1 && px === W - 1)) continue;
@@ -148,7 +169,7 @@ function 귀퉁이재기(캔) {
       }
     }
     const bw = maxx - minx + 1, bh = maxy - miny + 1;
-    덩.push({ n, bw, bh, cx: sx / n, cy: sy / n, 참: n / (bw * bh) });
+    덩.push({ n, bw, bh, cx: sx / n, cy: sy / n, 참: n / (bw * bh), s0, s1, d0, d1 });
   }
   const 짧 = Math.min(W, H);
   const 네모 = 덩.filter(b => b.bw >= 짧 * 0.008 && b.bw <= 짧 * 0.09 && b.bh >= 짧 * 0.008 && b.bh <= 짧 * 0.09 &&
@@ -172,8 +193,17 @@ function 귀퉁이재기(캔) {
     const v = 4 * g[y * W + x] - g[y * W + x - 1] - g[y * W + x + 1] - g[(y - 1) * W + x] - g[(y + 1) * W + x]; 라 += v * v; 라n++;
   }
   // ★ 11-13 판 3(점 넷 대신 테두리 한 줄): 사진의 넓은 범위를 감싸는 가는 고리(꽉 차지 않은 큰 덩어리)가 있으면 테두리가 보인 것
-  const 테두리 = 덩.some(b => b.bw * b.bh > 0.15 * W * H && b.참 < 0.2 && b.bw > 짧 * 0.3 && b.bh > 짧 * 0.3);
-  return { 귀퉁이: 네모.length, 덮음, 테두리, 선명: 라 / Math.max(1, 라n), 밝기 };
+  const 고리 = 덩.filter(b => b.bw * b.bh > 0.15 * W * H && b.참 < 0.2 && b.bw > 짧 * 0.3 && b.bh > 짧 * 0.3).sort((a, b) => b.bw * b.bh - a.bw * a.bh)[0];
+  const 테두리 = !!고리;
+  // 종이 네 꼭지(왼위 · 오른위 · 오른아래 · 왼아래) — 테두리가 있으면 그 고리, 없으면 네 귀퉁이 네모(판 2)
+  let 넷 = null;
+  if (고리) 넷 = [고리.s0, 고리.d1, 고리.s1, 고리.d0];
+  else if (최) {
+    const c = 최.넷.map(t => [t.cx, t.cy]);
+    const 골 = f => c.reduce((a, b) => (f(b) > f(a) ? b : a));
+    넷 = [골(p => -p[0] - p[1]), 골(p => p[0] - p[1]), 골(p => p[0] + p[1]), 골(p => p[1] - p[0])];
+  }
+  return { 귀퉁이: 네모.length, 덮음, 테두리, 넷, W, H, 선명: 라 / Math.max(1, 라n), 밝기 };
 }
 
 async function 올리기(캔) {
@@ -249,11 +279,14 @@ async function 결과보기(t) {
 
 async function 받음(파일) {
   if (!파일) return;
+  let 그림;
+  try { 그림 = await 그림읽기(파일); } catch (e) { 알리기("나쁨", "이 사진은 열 수가 없어요. 다시 찍어 주세요."); return; }
+  await 받은그림(그림);
+}
+async function 받은그림(그림) {
   알림지우기();
   보내기단추("없음");
   대기 = null;
-  let 그림;
-  try { 그림 = await 그림읽기(파일); } catch (e) { 알리기("나쁨", "이 사진은 열 수가 없어요. 다시 찍어 주세요."); return; }
   const 캔 = 줄이기(그림, 긴변);
   $("미리").src = 캔.toDataURL("image/jpeg", 0.6); $("미리").style.display = "block";
   const 잼 = 귀퉁이재기(캔);
@@ -269,7 +302,89 @@ async function 받음(파일) {
   보내기단추("준비");
 }
 
-$("찍기").onclick = () => { $("카메라").value = ""; $("카메라").click(); };
+// ── 화면 안 카메라(11-14 사장님 「자동으로 안 찍히는데?」) — 민증 찍듯이: 종이 테두리가 잡히고 흔들림이 멎으면 저절로 찰칵
+let 스트림 = null, 살핌 = false, 이전 = null, 멎음 = 0, 파일로 = false;
+async function 카메라열기() {
+  try {
+    스트림 = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } } });
+  } catch (e) { return false; }
+  const v = $("영상");
+  v.srcObject = 스트림;
+  try { await v.play(); } catch (e) {}
+  $("캠").classList.remove("숨김");
+  $("캠말").textContent = "OMR을 화면에 비춰 주세요"; $("캠말").className = "";
+  살핌 = true; 이전 = null; 멎음 = 0;
+  setTimeout(살피기, 300);
+  return true;
+}
+function 카메라닫기() {
+  살핌 = false;
+  if (스트림) 스트림.getTracks().forEach(t => t.stop());
+  스트림 = null; $("영상").srcObject = null;
+  $("캠").classList.add("숨김");
+}
+function 겹그리기(잼) {                                                // 잡힌 종이 둘레를 초록 선으로(영상은 화면에 «contain» 으로 맞춰 보인다)
+  const c = $("겹"), v = $("영상"), dpr = window.devicePixelRatio || 1;
+  const cw = c.clientWidth * dpr, ch = c.clientHeight * dpr;
+  if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
+  const x = c.getContext("2d"); x.clearRect(0, 0, cw, ch);
+  if (!잼 || !잼.넷 || !v.videoWidth) return;
+  const k = Math.min(cw / v.videoWidth, ch / v.videoHeight), ox = (cw - v.videoWidth * k) / 2, oy = (ch - v.videoHeight * k) / 2;
+  const 비 = v.videoWidth / 잼.W;
+  x.strokeStyle = "#22c55e"; x.lineWidth = 5 * dpr; x.lineJoin = "round"; x.beginPath();
+  잼.넷.forEach(([px, py], i) => { const X = ox + px * 비 * k, Y = oy + py * 비 * k; i ? x.lineTo(X, Y) : x.moveTo(X, Y); });
+  x.closePath(); x.stroke();
+}
+function 살피기() {
+  if (!살핌) return;
+  const v = $("영상");
+  if (v.videoWidth) {
+    const 잼 = 귀퉁이재기(줄이기(v, 480));
+    let 말 = "OMR을 화면에 비춰 주세요", 좋음 = false;
+    if (잼.넷) {
+      const 짧 = Math.min(잼.W, 잼.H);
+      const 넓 = Math.abs(잼.넷.reduce((s, p, i) => { const q = 잼.넷[(i + 1) % 4]; return s + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2 / (잼.W * 잼.H);
+      const 끝 = 잼.넷.some(([px, py]) => px < 짧 * 0.015 || py < 짧 * 0.015 || px > 잼.W - 짧 * 0.015 || py > 잼.H - 짧 * 0.015);
+      if (끝) 말 = "조금만 멀리";
+      else if (넓 < 0.22) 말 = "조금 더 가까이";
+      else if (잼.선명 < 20) 말 = "멈춰 주세요";
+      else { 말 = "그대로 있어요…"; 좋음 = true; }
+      const 움직임 = 이전 ? Math.max(...잼.넷.map((p, i) => Math.hypot(p[0] - 이전[i][0], p[1] - 이전[i][1]))) / 짧 : 1;
+      이전 = 잼.넷;
+      멎음 = 좋음 && 움직임 < 0.025 ? 멎음 + 1 : 0;
+    } else { 이전 = null; 멎음 = 0; }
+    겹그리기(잼);
+    $("캠말").textContent = 말; $("캠말").className = 좋음 ? "잡힘" : "";
+    if (멎음 >= 4) { 찍기(); return; }                                  // 반 초쯤 멎어 있으면
+  }
+  setTimeout(살피기, 120);
+}
+async function 찍기() {
+  if (!스트림) return;
+  살핌 = false;
+  $("캠").classList.remove("번쩍"); void $("캠").offsetWidth; $("캠").classList.add("번쩍");
+  try { navigator.vibrate && navigator.vibrate(60); } catch (e) {}
+  let 그림 = null;
+  try {                                                                 // 되면 사진 셔터(해상도가 더 높다) · 아니면 영상 한 장
+    const tr = 스트림.getVideoTracks()[0];
+    if (window.ImageCapture) 그림 = await 그림읽기(await new ImageCapture(tr).takePhoto());
+  } catch (e) { 그림 = null; }
+  if (!그림) 그림 = 줄이기($("영상"), 4096);
+  카메라닫기();
+  겹그리기(null);
+  await 받은그림(그림);
+}
+$("캠닫기").onclick = () => 카메라닫기();
+$("캠찍기").onclick = () => 찍기();
+$("찍기").onclick = async () => {
+  if (!파일로 && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    if (await 카메라열기()) return;
+    파일로 = true;                                                      // 카메라를 못 열었다(권한 거절 · 카톡 안 브라우저 등) — 다음부터는 폰 기본 카메라
+    알리기("주의", "카메라를 못 열었어요. 한 번 더 누르면 폰 카메라로 찍어요.");
+    return;
+  }
+  $("카메라").value = ""; $("카메라").click();
+};
 $("카메라").onchange = e => 받음(e.target.files[0]);                 // ★ 11-13 사장님 「사진첩에서 고르기도 없애」 — 카메라로 찍기만
 $("보내기").onclick = () => { if (대기) 올리기(대기); };
 </script>
