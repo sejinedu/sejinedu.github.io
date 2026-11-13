@@ -27,6 +27,10 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--바탕); color: var(--글); font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; }
   main { max-width: 520px; margin: 0 auto; padding: 14px 16px 40px; }
+  #찍기 { margin-top: 0; }
+  #보내기 { background: var(--초록); margin-top: 12px; }
+  #보내기:disabled { background: #2a313c; color: #6b7480; cursor: default; }
+  #보내기.받음, #보내기.받음:disabled { background: #12281a; color: #86efac; border: 1px solid rgba(34,197,94,.6); }
   h1 { font-size: 22px; margin: 6px 0 4px; }
   .작은 { color: var(--옅은); font-size: 14px; line-height: 1.55; margin: 0; }
   .판 { background: var(--판); border: 1px solid var(--줄); border-radius: 14px; padding: 16px; margin-top: 16px; }
@@ -36,12 +40,11 @@
   .큰단추:active { filter: brightness(0.9); }
   .옅은단추 { width: 100%; padding: 13px; font-size: 15px; background: transparent; color: var(--옅은); border: 1px solid var(--줄); margin-top: 10px; }
   #미리 { width: 100%; border-radius: 10px; margin-top: 14px; display: none; background: #000; }
-  #알림 { margin: 0 0 4px; font-size: 17px; line-height: 1.6; display: none; padding: 16px; border-radius: 12px; }
-  #알림 b { font-size: 22px; }
-  #알림.좋음 { display: block; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.45); }
-  #알림.주의 { display: block; background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.45); }
-  #알림.나쁨 { display: block; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.45); }
-  #알림.중 { display: block; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.45); }
+  #알림 { margin-top: 12px; font-size: 16px; line-height: 1.6; display: none; padding: 14px; border-radius: 12px; }
+  #알림.좋음 { display: block; background: #12281a; border: 1px solid rgba(34,197,94,.55); }
+  #알림.주의 { display: block; background: #2a2110; border: 1px solid rgba(245,158,11,.55); }
+  #알림.나쁨 { display: block; background: #2d1416; border: 1px solid rgba(239,68,68,.55); }
+  #알림.중 { display: block; background: #132039; border: 1px solid rgba(59,130,246,.55); }
   .숨김 { display: none !important; }
   input[type=file] { display: none; }
   h2 { font-size: 16px; margin: 26px 0 0; color: var(--옅은); font-weight: 600; }
@@ -57,11 +60,12 @@
 </head>
 <body>
 <main>
-  <!-- ★ 11-13 사장님 「받았어요가 폰에서 아래로 내려가야 보인다 — 맨 위에 뜨게 · 위에 쓸데없는 말 다 빼고」: 알림 칸이 맨 위, 설명 글은 없앰 -->
-  <div id="알림"></div>
+  <!-- ★ 11-13 사장님: 위에 쓸데없는 말 다 빼고 · 찍기 단추는 맨 위 그대로 · 그 아래 «보내기» 단추 —
+       누르면 보내지고, 보내지면 보내기 단추가 «받았어요 ✔» 로 바뀐다(찍자마자 저절로 올리던 것을 걷음) · 사진첩에서 고르기 없음 -->
   <button id="찍기" class="큰단추">📷 OMR 찍기</button>
-  <button id="그래도" class="옅은단추 숨김">그래도 이 사진으로 올리기</button>
+  <button id="보내기" class="큰단추" disabled>보내기</button>
   <input id="카메라" type="file" accept="image/*" capture="environment">
+  <div id="알림"></div>
 
   <img id="미리" alt="찍은 사진">
 
@@ -79,7 +83,14 @@ const 결과곳 = "omr-res";                                              // 사
 const 긴변 = 2400;                                                    // 올리는 사진 긴 변(px) — 칸과 글씨가 읽힐 만큼
 
 const $ = id => document.getElementById(id);
-let 대기 = null;                                                       // 귀퉁이를 못 찾았을 때 «그래도 올리기» 로 올릴 사진
+let 대기 = null;                                                       // 찍은 사진 — «보내기» 를 누르면 올린다
+// 보내기 단추: 없음(사진 전 · 잠김) → 준비(누를 수 있음) → 보내는중 → 받음(«받았어요 ✔») · 실패면 «다시 보내기»
+function 보내기단추(상태) {
+  const b = $("보내기");
+  const [글, 잠금] = { 없음: ["보내기", true], 준비: ["보내기", false], 보내는중: ["보내는 중…", true], 받음: ["받았어요 ✔", true], 실패: ["다시 보내기", false] }[상태];
+  b.textContent = 글; b.disabled = 잠금; b.classList.toggle("받음", 상태 === "받음");
+}
+function 알림지우기() { $("알림").className = ""; $("알림").innerHTML = ""; }
 
 function 알리기(종류, 글) { const a = $("알림"); a.className = 종류; a.innerHTML = 글; try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {} }
 function 이름() {
@@ -164,8 +175,7 @@ function 귀퉁이재기(캔) {
 }
 
 async function 올리기(캔) {
-  알리기("중", "올리는 중이에요…");
-  $("그래도").classList.add("숨김");
+  보내기단추("보내는중");
   const 덩이 = await new Promise(ok => 캔.toBlob(ok, "image/jpeg", 0.88));
   const 파일이름 = 이름();
   let 답;
@@ -177,13 +187,13 @@ async function 올리기(캔) {
   } catch (e) { 답 = null; }
   if (!답 || !답.ok) {
     const 왜 = 답 ? await 답.text().catch(() => "") : "인터넷 연결";
-    알리기("나쁨", "<b>못 올렸어요.</b> 잠깐 뒤에 다시 해 주세요.<br><span class='작은'>(" + String(왜).slice(0, 120).replace(/</g, "&lt;") + ")</span>");
-    대기 = 캔; $("그래도").textContent = "다시 올리기"; $("그래도").classList.remove("숨김");
+    알리기("나쁨", "<b>못 보냈어요.</b> 다시 보내기를 눌러 주세요.<br><span class='작은'>(" + String(왜).slice(0, 120).replace(/</g, "&lt;") + ")</span>");
+    보내기단추("실패");
     return;
   }
   대기 = null;
-  알리기("좋음", "<b>받았어요 ✔</b>");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  알림지우기();
+  보내기단추("받음");
   $("찍기").textContent = "📷 한 장 더 찍기";
   const t = { 파일이름, 때: Date.now(), 상태: "기다림" };
   올린것.unshift(t);
@@ -226,7 +236,7 @@ async function 결과보기(t) {
             $("찍기").textContent = "📷 다시 찍기";
             try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
           }
-          if (j.상태 === "읽음" && t === 올린것[0]) 알리기("좋음", "<b>받았어요 ✔</b>" + (t.이름.length ? "<br>" + t.이름.map(글막).join(", ") : ""));
+          if (j.상태 === "읽음" && t === 올린것[0] && t.이름.length) 알리기("좋음", t.이름.map(글막).join(", "));
         }
         if (j && (j.상태 === "읽음" || j.상태 === "다시")) return;
       }
@@ -237,8 +247,9 @@ async function 결과보기(t) {
 
 async function 받음(파일) {
   if (!파일) return;
-  알리기("중", "사진을 살펴보는 중이에요…");
-  $("그래도").classList.add("숨김");
+  알림지우기();
+  보내기단추("없음");
+  대기 = null;
   let 그림;
   try { 그림 = await 그림읽기(파일); } catch (e) { 알리기("나쁨", "이 사진은 열 수가 없어요. 다시 찍어 주세요."); return; }
   const 캔 = 줄이기(그림, 긴변);
@@ -248,19 +259,17 @@ async function 받음(파일) {
   if (잼.밝기 < 60) 문제.push("사진이 너무 어두워요. 밝은 곳에서 찍어 주세요.");
   if (잼.덮음 < 0.25) 문제.push("<b>네 귀퉁이 검은 네모</b>가 다 안 보여요. OMR 한 장이 화면에 꽉 차게, 귀퉁이가 잘리지 않게 찍어 주세요.");
   if (잼.선명 < 25) 문제.push("사진이 흐려요. 폰을 멈추고 초점을 맞춰 다시 찍어 주세요.");
-  if (문제.length) {
-    대기 = 캔;
-    알리기("주의", 문제.join("<br>") + "<br><span class='작은'>다시 찍기를 눌러 주세요.</span>");
+  if (문제.length) {                                                    // 걸리는 게 있으면 알려만 준다 — 보낼지는 학생이(보내기 단추)
+    알리기("주의", 문제.join("<br>"));
     $("찍기").textContent = "📷 다시 찍기";
-    $("그래도").textContent = "그래도 이 사진으로 올리기"; $("그래도").classList.remove("숨김");
-    return;
   }
-  await 올리기(캔);
+  대기 = 캔;
+  보내기단추("준비");
 }
 
 $("찍기").onclick = () => { $("카메라").value = ""; $("카메라").click(); };
 $("카메라").onchange = e => 받음(e.target.files[0]);                 // ★ 11-13 사장님 「사진첩에서 고르기도 없애」 — 카메라로 찍기만
-$("그래도").onclick = () => { if (대기) 올리기(대기); };
+$("보내기").onclick = () => { if (대기) 올리기(대기); };
 </script>
 </body>
 </html>
