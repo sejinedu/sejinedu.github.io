@@ -59,10 +59,12 @@
   .돌기 { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--옅은); border-top-color: transparent; border-radius: 50%; animation: 돌 0.9s linear infinite; vertical-align: -1px; margin-right: 6px; }
   @keyframes 돌 { to { transform: rotate(360deg); } }
   /* ★ 11-14 링크를 누르면 바로 뜨는 카메라 화면(셔터는 사람이) */
-  #캠 { position: fixed; inset: 0; background: #000; z-index: 50; }
-  #캠 video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }   /* 늘 화면을 꽉 채운다(11-14 「한 장 더 찍기 하면 카메라 화면이 되게 작게」) */
-  #셔터 { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(28px, env(safe-area-inset-bottom)); width: 78px; height: 78px; border-radius: 39px; background: #fff; border: 6px solid rgba(255,255,255,.4); background-clip: padding-box; padding: 0; }
-  #셔터:active { transform: translateX(-50%) scale(0.92); }
+  /* ★ 11-14 밤 사장님 「폰 기본 카메라처럼 4:3」 — 위아래가 텅 남던 길쭉한 화면 대신 3:4 틀 하나(찍히는 것도 틀 안만) · 셔터는 틀 아래 */
+  #캠 { position: fixed; inset: 0; background: #000; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding-bottom: env(safe-area-inset-bottom); }
+  #틀 { position: relative; flex: none; width: min(100vw, calc((100vh - 150px) * 0.75)); width: min(100vw, calc((100dvh - 150px) * 0.75)); aspect-ratio: 3 / 4; overflow: hidden; background: #111; }
+  #틀 video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }   /* 틀을 늘 꽉 채운다(11-14 「한 장 더 찍기 하면 카메라 화면이 되게 작게」) */
+  #셔터 { flex: none; width: 78px; height: 78px; border-radius: 39px; background: #fff; border: 6px solid rgba(255,255,255,.4); background-clip: padding-box; padding: 0; }
+  #셔터:active { transform: scale(0.92); }
 </style>
 </head>
 <body>
@@ -84,7 +86,7 @@
 </main>
 <!-- ★ 11-14 사장님 「qr 가져다 대고 링크 누르면 바로 카메라 화면 나오게 하고 사진은 사람이 찍게」 — 저절로 찍기 없음 · 셔터 하나뿐 -->
 <div id="캠" class="숨김">
-  <video id="영상" playsinline muted autoplay></video>
+  <div id="틀"><video id="영상" playsinline muted autoplay></video></div>
   <button id="셔터" aria-label="찍기"></button>
 </div>
 <script>
@@ -386,16 +388,38 @@ async function 카메라보이기() {                                       // �
 async function 카메라열기() {
   if (카메라살았나()) { await 카메라보이기(); return true; }
   스트림 = null;
-  const 조건 = { audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } } };
+  // ★ 11-14 밤 4:3(폰 기본 카메라와 같은 꼴 · 같은 넓이)을 먼저 — 4:3 이 작게 나오는 폰은 크게()가 4K 로 바꾼다(틀만큼 잘라 쓴다)
+  const 조건 = { audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 4032 }, height: { ideal: 3024 }, aspectRatio: { ideal: 4 / 3 } } };
   for (let 번 = 0; 번 < 3 && !스트림; 번++) {                         // 방금 닫은 카메라는 폰에 따라 한 번 안 열린다 — 잠깐 뒤 다시
     try { 스트림 = await navigator.mediaDevices.getUserMedia(조건); }
     catch (e) { if (e && e.name === "NotAllowedError") break; await new Promise(z => setTimeout(z, 500)); }
   }
   if (!스트림) { 파일로 = true; return false; }
+  await 크게(스트림.getVideoTracks()[0]);
   const v = $("영상"); v.srcObject = 스트림;
   try { await v.play(); } catch (e) {}
   $("캠").classList.remove("숨김");
   return true;
+}
+// 4:3 영상의 짧은 변이 2000 아래면(칸·글씨가 덜 촘촘) 4K(16:9)로 바꿔 본다 — 3:4 틀로 잘라도 가로는 짧은 변 그대로라, 짧은 변이 더 커질 때만 그대로 둔다
+async function 크게(트랙) {
+  if (!트랙 || !트랙.getSettings || !트랙.applyConstraints) return;
+  const 짧 = () => { const s = 트랙.getSettings() || {}; return s.width && s.height ? Math.min(s.width, s.height) : 0; };
+  const 처음 = 짧(); if (!처음 || 처음 >= 2000) return;
+  const 옛 = 트랙.getConstraints ? 트랙.getConstraints() : null;
+  try { await 트랙.applyConstraints({ width: { ideal: 3840 }, height: { ideal: 2160 } }); } catch (e) { return; }
+  if (짧() <= 처음 && 옛) { try { await 트랙.applyConstraints(옛); } catch (e) {} }
+}
+// 화면 틀(3:4)에 보이는 만큼만 — 보이는 대로 찍힌다(object-fit: cover 와 같은 셈 · 영상 가운데)
+function 틀만(영상, 최대) {
+  const vw = 영상.videoWidth, vh = 영상.videoHeight, 틀 = $("틀");
+  const B = (틀.clientWidth && 틀.clientHeight) ? 틀.clientWidth / 틀.clientHeight : 3 / 4;
+  let cw = vw, ch = vh;
+  if (vw / vh < B) ch = Math.round(vw / B); else cw = Math.round(vh * B);
+  const k = Math.min(1, 최대 / Math.max(cw, ch));
+  const c = document.createElement("canvas"); c.width = Math.round(cw * k); c.height = Math.round(ch * k);
+  c.getContext("2d").drawImage(영상, Math.round((vw - cw) / 2), Math.round((vh - ch) / 2), cw, ch, 0, 0, c.width, c.height);
+  return c;
 }
 function 카메라닫기() {
   if (스트림) 스트림.getTracks().forEach(t => t.stop());
@@ -406,7 +430,7 @@ function 처음처럼() { 알림지우기(); $("미리").style.display = "none";
 $("셔터").onclick = async () => {
   if (!스트림) return;
   try { navigator.vibrate && navigator.vibrate(40); } catch (e) {}
-  const 그림 = 줄이기($("영상"), 4096);                                 // 영상 한 장(사진 셔터는 폰에 따라 카메라를 다시 맞춰 다음 화면이 달라졌다)
+  const 그림 = 틀만($("영상"), 4096);                                   // 영상 한 장 — 3:4 틀에 보이는 만큼(사진 셔터는 폰에 따라 카메라를 다시 맞춰 다음 화면이 달라졌다)
   $("캠").classList.add("숨김");                                         // 카메라는 켜 둔다 — «한 장 더 찍기» 가 처음과 똑같은 화면
   try { $("영상").pause(); } catch (e) {}
   await 받은그림(그림);
